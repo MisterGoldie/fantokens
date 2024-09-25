@@ -230,18 +230,31 @@ async function getRewardsInfo(fid: string): Promise<any> {
     const query_result = await dune.getLatestResult({queryId: 4088502});
     console.log('Dune query result:', JSON.stringify(query_result, null, 2));
     
-    if (query_result && query_result.result && query_result.result.rows) {
+    if (query_result && query_result.result && Array.isArray(query_result.result.rows)) {
+      console.log('Rows in Dune query result:', query_result.result.rows.length);
+      
+      // Log the structure of the first row
+      if (query_result.result.rows.length > 0) {
+        console.log('Structure of first row:', JSON.stringify(query_result.result.rows[0], null, 2));
+      }
+      
       // Filter the rows to only include the data for the specific FID
-      const userRewards = query_result.result.rows.find((row: any) => row.fid.toString() === fid);
+      const userRewards = query_result.result.rows.find((row: any) => {
+        if (row && row.fid) {
+          return row.fid.toString() === fid;
+        }
+        return false;
+      });
       
       if (userRewards) {
+        console.log('Found rewards for FID:', fid, JSON.stringify(userRewards, null, 2));
         return userRewards;
       } else {
         console.log(`No rewards found for FID: ${fid}`);
         return null;
       }
     } else {
-      console.log('No result or rows in the Dune query result');
+      console.log('No result, rows, or rows is not an array in the Dune query result');
       return null;
     }
   } catch (error) {
@@ -498,19 +511,22 @@ app.frame('/yourfantoken', async (c) => {
               </div>
             </div>
           )}
-          {rewardsInfo && (
+          {rewardsInfo ? (
             <div style={{ marginTop: '20px', textAlign: 'center' }}>
               <p style={{ fontSize: '28px', color: '#FFD700', marginBottom: '10px' }}>Rewards Information</p>
-              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Total Rewards: {rewardsInfo.total_rewards_moxie} MOXIE</p>
-              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 24h: {rewardsInfo.rewards_last_24h_moxie} MOXIE</p>
-              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 7d: {rewardsInfo.rewards_last_7d_moxie} MOXIE</p>
+              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Total Rewards: {rewardsInfo.total_rewards_moxie || 'N/A'} MOXIE</p>
+              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 24h: {rewardsInfo.rewards_last_24h_moxie || 'N/A'} MOXIE</p>
+              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 7d: {rewardsInfo.rewards_last_7d_moxie || 'N/A'} MOXIE</p>
             </div>
+          ) : (
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No rewards information available</p>
           )}
         </div>
       </div>
     ),
     intents: [
       <Button action="/">Back</Button>,
+      <Button action="/owned-tokens">OT</Button>,
       <Button action="/yourfantoken">Refresh</Button>,
     ]
   });
