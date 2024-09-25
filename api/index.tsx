@@ -266,11 +266,20 @@ async function getRewardsInfo(fid: string): Promise<any> {
 async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
   const query = `
     query GetOwnedFanTokens($fid: Identity!) {
-      TokenBalances(
+      Tokens(
         input: {filter: {owner: {_eq: $fid}, tokenType: {_in: [ERC20]}, tokenAddress: {_in: ["0x3006424b9e166978b5afa7e1e1887acd60d35f82"]}}, blockchain: ALL, limit: 50}
       ) {
-        TokenBalance {
+        Token {
+          tokenAddress
+          tokenId
+          tokenType
+          token {
+            name
+            symbol
+            decimals
+          }
           amount
+          formattedAmount
           owner {
             addresses
             domains {
@@ -282,11 +291,6 @@ async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
               profileName
               profileImage
             }
-          }
-          token {
-            name
-            symbol
-            decimals
           }
         }
       }
@@ -317,13 +321,13 @@ async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
       throw new Error('GraphQL errors in the response: ' + JSON.stringify(data.errors));
     }
 
-    const tokens = data.data.TokenBalances.TokenBalance || [];
+    const tokens = data.data.Tokens.Token || [];
 
     return tokens.map((token: any): OwnedToken => ({
       holderId: fid,
       holderProfileName: token.owner.socials?.[0]?.profileName || '',
       holderProfileImageUrl: token.owner.socials?.[0]?.profileImage || '',
-      balance: token.amount,
+      balance: token.formattedAmount || token.amount,
       tokenEntitySymbol: token.token.symbol,
       tokenMinPriceInMoxie: '0', // This information is not available in this query
     }));
@@ -588,13 +592,10 @@ app.frame('/owned-tokens', async (c) => {
                 />
                 <div>
                   <p style={{ fontSize: '24px', color: '#BDBDBD' }}>
-                    {token.holderProfileName} (FID: {token.holderId})
+                    {token.holderProfileName || `FID: ${token.holderId}`}
                   </p>
                   <p style={{ fontSize: '20px', color: '#A9A9A9' }}>
                     Balance: {token.balance} {token.tokenEntitySymbol}
-                  </p>
-                  <p style={{ fontSize: '18px', color: '#A9A9A9' }}>
-                    Price: {Number(token.tokenMinPriceInMoxie).toFixed(6)} MOXIE
                   </p>
                 </div>
               </div>
@@ -607,6 +608,7 @@ app.frame('/owned-tokens', async (c) => {
     ),
     intents: [
       <Button action="/">Back</Button>,
+      <Button action="/check">Check Your Fan Token</Button>,
     ]
   });
 });
