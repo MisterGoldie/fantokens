@@ -3,29 +3,29 @@ import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
 
 const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
-const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY;
-const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
+const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
+const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
 
 if (!AIRSTACK_API_KEY) {
-  throw new Error('AIRSTACK_API_KEY is not set in the environment variables');
+  console.warn('AIRSTACK_API_KEY is not set in the environment variables');
 }
 
 if (!NEYNAR_API_KEY) {
-  throw new Error('NEYNAR_API_KEY is not set in the environment variables');
+  console.warn('NEYNAR_API_KEY is not set in the environment variables');
 }
 
 export const app = new Frog({
   basePath: '/api',
   imageOptions: { width: 1200, height: 628 },
   title: 'Farcaster Fan Token Tracker',
-  hub: {
+  hub: AIRSTACK_API_KEY ? {
     apiUrl: "https://hubs.airstack.xyz",
     fetchOptions: {
       headers: {
         "x-airstack-hubs": AIRSTACK_API_KEY,
       }
     }
-  }
+  } : undefined
 }).use(
   neynar({
     apiKey: NEYNAR_API_KEY,
@@ -33,13 +33,27 @@ export const app = new Frog({
   })
 );
 
+interface RewardDistribution {
+  channelFans: string;
+  creator: string;
+  creatorFans: string;
+  network: string;
+}
+
 interface FanTokenInfo {
   auctionId: string;
+  auctionSupply: string;
+  decimals: number;
+  entityId: string;
   entityName: string;
   entitySymbol: string;
-  auctionSupply: string;
+  estimatedEndTimestamp: string;
+  estimatedStartTimestamp: string;
+  minBiddingAmount: string;
   minPriceInMoxie: string;
+  subjectAddress: string;
   status: string;
+  rewardDistributionPercentage: RewardDistribution;
 }
 
 async function getFanTokenInfo(fid: string): Promise<FanTokenInfo[]> {
@@ -53,11 +67,22 @@ async function getFanTokenInfo(fid: string): Promise<FanTokenInfo[]> {
         FarcasterFanTokenAuction {
           auctionId
           auctionSupply
+          decimals
           entityId
           entityName
           entitySymbol
+          estimatedEndTimestamp
+          estimatedStartTimestamp
+          minBiddingAmount
           minPriceInMoxie
+          subjectAddress
           status
+          rewardDistributionPercentage {
+            channelFans
+            creator
+            creatorFans
+            network
+          }
         }
       }
     }
@@ -72,6 +97,8 @@ async function getFanTokenInfo(fid: string): Promise<FanTokenInfo[]> {
 
     if (AIRSTACK_API_KEY) {
       headers['Authorization'] = AIRSTACK_API_KEY;
+    } else {
+      console.warn('AIRSTACK_API_KEY is not set, API request may fail');
     }
 
     const response = await fetch(AIRSTACK_API_URL, {
@@ -94,7 +121,7 @@ async function getFanTokenInfo(fid: string): Promise<FanTokenInfo[]> {
     return data.data?.FarcasterFanTokenAuctions?.FarcasterFanTokenAuction || [];
   } catch (error) {
     console.error('Error in getFanTokenInfo:', error);
-    throw error;
+    return [];
   }
 }
 
@@ -226,7 +253,7 @@ app.frame('/check', async (c) => {
             </h2>
             {fanTokens.slice(0, 3).map((token, index) => (
               <div key={index} style={{ 
-                fontSize: '24px', 
+                fontSize: '20px', 
                 marginBottom: '10px', 
                 color: 'white', 
                 textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
@@ -240,7 +267,17 @@ app.frame('/check', async (c) => {
                 <p>{token.entityName} ({token.entitySymbol})</p>
                 <p>Supply: {token.auctionSupply}</p>
                 <p>Min Price: {token.minPriceInMoxie} MOXIE</p>
+                <p>Min Bidding: {token.minBiddingAmount}</p>
                 <p>Status: {token.status}</p>
+                <p>Start: {new Date(parseInt(token.estimatedStartTimestamp) * 1000).toLocaleString()}</p>
+                <p>End: {new Date(parseInt(token.estimatedEndTimestamp) * 1000).toLocaleString()}</p>
+                <p>Reward Distribution:</p>
+                <ul style={{ paddingLeft: '20px' }}>
+                  <li>Channel Fans: {token.rewardDistributionPercentage.channelFans}%</li>
+                  <li>Creator: {token.rewardDistributionPercentage.creator}%</li>
+                  <li>Creator Fans: {token.rewardDistributionPercentage.creatorFans}%</li>
+                  <li>Network: {token.rewardDistributionPercentage.network}%</li>
+                </ul>
               </div>
             ))}
             {fanTokens.length > 3 && (
