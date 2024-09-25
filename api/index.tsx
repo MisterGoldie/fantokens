@@ -197,62 +197,57 @@ app.frame('/check', async (c) => {
         backgroundColor: '#1A1A1A',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
-        padding: '30px',
+        padding: '20px',
         boxSizing: 'border-box',
         overflowY: 'auto',
       }}>
         <h2 style={{ 
-          fontSize: '36px', 
-          marginBottom: '30px', 
-          color: 'white', 
-          textShadow: '2px 2px 4px rgba(0,0,0,0.5)', 
+          fontSize: '28px', 
+          marginBottom: '20px', 
+          color: '#FFD700', 
           textAlign: 'center',
-          borderBottom: '2px solid #FFD700',
-          paddingBottom: '10px',
           width: '100%'
         }}>
           Fan Tokens for FID: {fid}
         </h2>
         {fanTokens.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '20px' }}>
-            {fanTokens.map((token: FanTokenInfo, index: number) => (
+          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '15px' }}>
+            {fanTokens.map((token, index) => (
               <div key={index} style={{ 
                 display: 'flex',
                 flexDirection: 'column',
-                padding: '20px', 
-                backgroundColor: 'rgba(255,255,255,0.15)', 
-                borderRadius: '15px',
-                gap: '10px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                marginBottom: '20px',
+                padding: '15px', 
+                backgroundColor: 'rgba(255,255,255,0.1)', 
+                borderRadius: '10px',
+                gap: '5px'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#FFD700' }}>{token.entityName}</span>
-                  <span style={{ fontSize: '20px', color: '#A9A9A9' }}>({token.entitySymbol})</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#4CAF50' }}>{token.entityName}</span>
+                  <span style={{ fontSize: '14px', color: '#BDBDBD' }}>({token.entitySymbol})</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                   <span>Min Price:</span>
-                  <span style={{ color: '#90EE90' }}>{token.minPriceInMoxie} MOXIE</span>
+                  <span style={{ color: '#FFD700' }}>{token.minPriceInMoxie} MOXIE</span>
                 </div>
                 <div style={{ 
                   display: 'grid', 
                   gridTemplateColumns: 'repeat(2, 1fr)', 
-                  gap: '10px', 
-                  fontSize: '16px',
-                  backgroundColor: 'rgba(0,0,0,0.1)',
-                  padding: '10px',
-                  borderRadius: '10px'
+                  gap: '5px', 
+                  fontSize: '12px',
+                  backgroundColor: 'rgba(0,0,0,0.2)',
+                  padding: '5px',
+                  borderRadius: '5px'
                 }}>
-                  <span>Channel: <strong>{token.rewardDistributionPercentage.channelFans}%</strong></span>
-                  <span>Creator: <strong>{token.rewardDistributionPercentage.creator}%</strong></span>
-                  <span>Fans: <strong>{token.rewardDistributionPercentage.creatorFans}%</strong></span>
-                  <span>Network: <strong>{token.rewardDistributionPercentage.network}%</strong></span>
+                  <span>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
+                  <span>Creator: {token.rewardDistributionPercentage.creator}%</span>
+                  <span>Fans: {token.rewardDistributionPercentage.creatorFans}%</span>
+                  <span>Network: {token.rewardDistributionPercentage.network}%</span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: '24px', color: '#A9A9A9', textAlign: 'center' }}>No fan tokens found</p>
+          <p style={{ fontSize: '20px', color: '#BDBDBD', textAlign: 'center' }}>No fan tokens found</p>
         )}
       </div>
     ),
