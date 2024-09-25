@@ -47,7 +47,7 @@ interface FanTokenInfo {
   entityId: string;
   entityName: string;
   entitySymbol: string;
-  minPriceInMoxie: number;
+  minPriceInMoxie: string;
   rewardDistributionPercentage: RewardDistribution;
 }
 
@@ -207,8 +207,7 @@ app.frame('/check', async (c) => {
           </h1>
           {fanToken ? (
             <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
-              <p>{fanToken.entityName} ({fanToken.entitySymbol})</p>
-              <p>Min Price: {fanToken.minPriceInMoxie} MOXIE</p>
+              <p>Current Price: {fanToken.minPriceInMoxie} MOXIE</p>
               <p>Reward Distribution:</p>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <p>Fans: {fanToken.rewardDistributionPercentage.creatorFans}%</p>
