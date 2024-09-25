@@ -322,40 +322,46 @@ app.frame('/profile', async (c) => {
         fontFamily: 'Arial, sans-serif',
         padding: '20px',
         boxSizing: 'border-box',
-        alignItems: 'center',
-        justifyContent: 'center',
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
           {profileInfo?.farcasterSocial.profileImage && (
             <img 
               src={profileInfo.farcasterSocial.profileImage} 
               alt="Profile" 
-              style={{ width: '120px', height: '120px', borderRadius: '50%', marginBottom: '15px' }}
+              style={{ width: '100px', height: '100px', borderRadius: '50%', marginRight: '20px' }}
             />
           )}
-          <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '5px' }}>
-            {profileInfo?.farcasterSocial.profileDisplayName}
-          </p>
-          <p style={{ fontSize: '20px', color: '#BDBDBD', textAlign: 'center' }}>
-            @{profileInfo?.farcasterSocial.profileHandle}
-          </p>
+          <div>
+            <p style={{ fontSize: '36px', color: '#FFD700', marginBottom: '5px' }}>
+              {profileInfo?.farcasterSocial.profileDisplayName}
+            </p>
+            <p style={{ fontSize: '24px', color: '#BDBDBD' }}>
+              @{profileInfo?.farcasterSocial.profileHandle}
+            </p>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '800px' }}>
-          <h2 style={{ fontSize: '28px', color: '#FFD700', marginBottom: '15px', textAlign: 'center' }}>
-            Profile Information
-          </h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', flex: 1 }}>
           {profileInfo ? (
-            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '18px', color: '#BDBDBD', textAlign: 'center', width: '100%' }}>
-              <p style={{ marginBottom: '8px' }}>Bio: {profileInfo.farcasterSocial.profileBio}</p>
-              <p style={{ marginBottom: '8px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
-              <p style={{ marginBottom: '8px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
-              <p style={{ marginBottom: '8px' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
+            <>
+              <div style={{ width: '48%', backgroundColor: '#2A2A2A', padding: '15px', borderRadius: '10px', marginBottom: '15px' }}>
+                <h3 style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>Bio</h3>
+                <p style={{ fontSize: '20px', color: 'white' }}>{profileInfo.farcasterSocial.profileBio}</p>
+              </div>
+              <div style={{ width: '48%', backgroundColor: '#2A2A2A', padding: '15px', borderRadius: '10px', marginBottom: '15px' }}>
+                <h3 style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>Stats</h3>
+                <p style={{ fontSize: '20px', color: 'white', marginBottom: '5px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+                <p style={{ fontSize: '20px', color: 'white', marginBottom: '5px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
+                <p style={{ fontSize: '20px', color: 'white' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
+              </div>
               {profileInfo.primaryDomain && (
-                <p style={{ marginBottom: '8px' }}>Primary Domain: {profileInfo.primaryDomain.name}</p>
+                <div style={{ width: '100%', backgroundColor: '#2A2A2A', padding: '15px', borderRadius: '10px' }}>
+                  <h3 style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>Primary Domain</h3>
+                  <p style={{ fontSize: '20px', color: 'white' }}>{profileInfo.primaryDomain.name}</p>
+                </div>
               )}
-            </div>
+            </>
           ) : (
-            <p style={{ fontSize: '20px', color: '#BDBDBD', textAlign: 'center' }}>No profile information found</p>
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center', width: '100%' }}>No profile information found</p>
           )}
         </div>
       </div>
