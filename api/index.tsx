@@ -171,15 +171,12 @@ app.frame('/check', async (c) => {
         backgroundPosition: 'center',
         padding: '20px', 
         boxSizing: 'border-box',
-        position: 'relative'
       }}>
         <div style={{
-          position: 'absolute',
-          top: '30px',
-          left: '20px',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center'
+          alignItems: 'center',
+          width: '100%',
         }}>
           {pfpUrl ? (
             <img 
@@ -189,7 +186,8 @@ app.frame('/check', async (c) => {
                 width: '100px', 
                 height: '100px', 
                 borderRadius: '50%',
-                border: '3px solid black'
+                border: '3px solid black',
+                marginBottom: '10px',
               }}
             />
           ) : (
@@ -203,16 +201,17 @@ app.frame('/check', async (c) => {
               justifyContent: 'center',
               border: '3px solid black',
               fontSize: '48px',
-              color: '#333'
+              color: '#333',
+              marginBottom: '10px',
             }}>
               {displayName ? displayName.charAt(0).toUpperCase() : 'U'}
             </div>
           )}
           <p style={{ 
             fontSize: '24px', 
-            marginTop: '10px', 
             color: 'white', 
-            textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+            marginBottom: '20px',
           }}>
             FID: {fid}
           </p>
@@ -221,7 +220,7 @@ app.frame('/check', async (c) => {
         {errorMessage ? (
           <p style={{ fontSize: '36px', color: 'red', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>Error: {errorMessage}</p>
         ) : fanTokens.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '80%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
             <h2 style={{ fontSize: '36px', marginBottom: '20px', color: 'white', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>
               Your Fan Tokens
             </h2>
@@ -234,7 +233,9 @@ app.frame('/check', async (c) => {
                 backgroundColor: 'rgba(0,0,0,0.5)',
                 padding: '10px',
                 borderRadius: '10px',
-                width: '100%'
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
               }}>
                 <p>{token.entityName} ({token.entitySymbol})</p>
                 <p>Supply: {token.auctionSupply}</p>
