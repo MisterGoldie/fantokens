@@ -133,15 +133,21 @@ app.frame('/', (c) => {
     image: (
       <div style={{
         display: 'flex',
+        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
         height: '100%',
-        backgroundColor: '#1DA1F2',
+        backgroundColor: '#1A1A1A',
+        color: 'white',
+        fontFamily: 'Arial, sans-serif',
       }}>
-        <h1 style={{ fontSize: '48px', color: 'white', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+        <h1 style={{ fontSize: '48px', color: 'white', textShadow: '2px 2px 4px rgba(0,0,0,0.5)', marginBottom: '20px', textAlign: 'center' }}>
           Farcaster Fan Token Tracker
         </h1>
+        <p style={{ fontSize: '24px', color: '#A9A9A9', textAlign: 'center' }}>
+          Check your fan tokens and their details
+        </p>
       </div>
     ),
     intents: [
@@ -160,8 +166,8 @@ app.frame('/check', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#1DA1F2' }}>
-          <h1 style={{ fontSize: '36px', marginBottom: '20px', color: 'white' }}>Error: No FID</h1>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -188,45 +194,65 @@ app.frame('/check', async (c) => {
         justifyContent: 'flex-start', 
         width: '100%', 
         height: '100%', 
-        backgroundColor: '#1DA1F2',
+        backgroundColor: '#1A1A1A',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
-        padding: '20px',
+        padding: '30px',
         boxSizing: 'border-box',
+        overflowY: 'auto',
       }}>
-        <h2 style={{ fontSize: '32px', marginBottom: '20px', color: 'white', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', textAlign: 'center' }}>
+        <h2 style={{ 
+          fontSize: '36px', 
+          marginBottom: '30px', 
+          color: 'white', 
+          textShadow: '2px 2px 4px rgba(0,0,0,0.5)', 
+          textAlign: 'center',
+          borderBottom: '2px solid #FFD700',
+          paddingBottom: '10px',
+          width: '100%'
+        }}>
           Fan Tokens for FID: {fid}
         </h2>
         {fanTokens.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '10px' }}>
-            {fanTokens.map((token, index) => (
+          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '20px' }}>
+            {fanTokens.map((token: FanTokenInfo, index: number) => (
               <div key={index} style={{ 
                 display: 'flex',
                 flexDirection: 'column',
-                padding: '10px', 
-                backgroundColor: 'rgba(255,255,255,0.1)', 
-                borderRadius: '10px',
-                gap: '5px'
+                padding: '20px', 
+                backgroundColor: 'rgba(255,255,255,0.15)', 
+                borderRadius: '15px',
+                gap: '10px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                marginBottom: '20px',
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '20px', fontWeight: 'bold' }}>{token.entityName}</span>
-                  <span style={{ fontSize: '16px' }}>({token.entitySymbol})</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#FFD700' }}>{token.entityName}</span>
+                  <span style={{ fontSize: '20px', color: '#A9A9A9' }}>({token.entitySymbol})</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px' }}>
                   <span>Min Price:</span>
-                  <span>{token.minPriceInMoxie} MOXIE</span>
+                  <span style={{ color: '#90EE90' }}>{token.minPriceInMoxie} MOXIE</span>
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', fontSize: '14px' }}>
-                  <span style={{ flex: '1 0 40%' }}>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
-                  <span style={{ flex: '1 0 40%' }}>Creator: {token.rewardDistributionPercentage.creator}%</span>
-                  <span style={{ flex: '1 0 40%' }}>Fans: {token.rewardDistributionPercentage.creatorFans}%</span>
-                  <span style={{ flex: '1 0 40%' }}>Network: {token.rewardDistributionPercentage.network}%</span>
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(2, 1fr)', 
+                  gap: '10px', 
+                  fontSize: '16px',
+                  backgroundColor: 'rgba(0,0,0,0.1)',
+                  padding: '10px',
+                  borderRadius: '10px'
+                }}>
+                  <span>Channel: <strong>{token.rewardDistributionPercentage.channelFans}%</strong></span>
+                  <span>Creator: <strong>{token.rewardDistributionPercentage.creator}%</strong></span>
+                  <span>Fans: <strong>{token.rewardDistributionPercentage.creatorFans}%</strong></span>
+                  <span>Network: <strong>{token.rewardDistributionPercentage.network}%</strong></span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: '24px' }}>No fan tokens found</p>
+          <p style={{ fontSize: '24px', color: '#A9A9A9', textAlign: 'center' }}>No fan tokens found</p>
         )}
       </div>
     ),
