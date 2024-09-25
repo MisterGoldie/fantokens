@@ -158,7 +158,13 @@ async function getRewardsInfo(fid: string): Promise<any> {
       
       if (userRewards) {
         console.log('Found rewards for FID:', fid, JSON.stringify(userRewards, null, 2));
-        return userRewards;
+        // Extract only the required information
+        return {
+          last_price: userRewards.last_price,
+          all_earnings: userRewards.all_earnings,
+          cast_earnings: userRewards.cast_earnings,
+          frame_earnings: userRewards.frame_earnings
+        };
       } else {
         console.log(`No rewards found for FID: ${fid}`);
         return null;
@@ -172,6 +178,7 @@ async function getRewardsInfo(fid: string): Promise<any> {
     return null;
   }
 }
+
 
 async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
   const query = `
@@ -397,27 +404,16 @@ app.frame('/yourfantoken', async (c) => {
           {rewardsInfo ? (
             <>
               <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
-                FID: {rewardsInfo.fid}
+                FID: {fid}
               </p>
               <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center', marginBottom: '20px' }}>
-                Min Price: {rewardsInfo.min_price_moxie || 0} MOXIE
+                Last Price: {rewardsInfo.last_price.toFixed(6)} MOXIE
               </p>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <p style={{ fontSize: '28px', color: '#BDBDBD', textAlign: 'center', marginBottom: '15px' }}>Reward Distribution:</p>
-                <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
-                  <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Fans: {rewardsInfo.creator_fans_percent || 0}%</p>
-                  <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Creator: {rewardsInfo.creator_percent || 0}%</p>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', marginTop: '10px' }}>
-                  <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Channel: {rewardsInfo.channel_fans_percent || 0}%</p>
-                  <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Network: {rewardsInfo.network_percent || 0}%</p>
-                </div>
-              </div>
               <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                <p style={{ fontSize: '28px', color: '#FFD700', marginBottom: '10px' }}>Rewards Information</p>
-                <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Total Rewards: {rewardsInfo.total_rewards_moxie || 0} MOXIE</p>
-                <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 24h: {rewardsInfo.rewards_last_24h_moxie || 0} MOXIE</p>
-                <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 7d: {rewardsInfo.rewards_last_7d_moxie || 0} MOXIE</p>
+                <p style={{ fontSize: '28px', color: '#FFD700', marginBottom: '10px' }}>Earnings Information</p>
+                <p style={{ fontSize: '24px', color: '#BDBDBD' }}>All Earnings: {rewardsInfo.all_earnings.toFixed(6)} MOXIE</p>
+                <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Cast Earnings: {rewardsInfo.cast_earnings.toFixed(6)} MOXIE</p>
+                <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Frame Earnings: {rewardsInfo.frame_earnings.toFixed(6)} MOXIE</p>
               </div>
             </>
           ) : (
