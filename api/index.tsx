@@ -194,31 +194,41 @@ app.frame('/check', async (c) => {
         padding: '20px',
         boxSizing: 'border-box',
       }}>
-        <h2 style={{ fontSize: '28px', marginBottom: '20px', color: 'white', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '32px', marginBottom: '20px', color: 'white', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', textAlign: 'center' }}>
           Fan Tokens for FID: {fid}
         </h2>
         {fanTokens.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '20px' }}>
             {fanTokens.map((token, index) => (
               <div key={index} style={{ 
                 display: 'flex',
                 flexDirection: 'column',
-                marginBottom: '20px', 
-                padding: '10px', 
+                padding: '15px', 
                 backgroundColor: 'rgba(255,255,255,0.1)', 
-                borderRadius: '10px' 
+                borderRadius: '10px',
+                gap: '10px'
               }}>
-                <p style={{ fontSize: '24px', marginBottom: '10px' }}>{token.entityName} ({token.entitySymbol})</p>
-                <p>Supply: {(Number(token.auctionSupply) / 10**token.decimals).toFixed(2)}</p>
-                <p>Min Price: {token.minPriceInMoxie} MOXIE</p>
-                <p>Status: {token.status}</p>
-                <p>Start: {new Date(token.estimatedStartTimestamp).toLocaleString()}</p>
-                <p>End: {new Date(token.estimatedEndTimestamp).toLocaleString()}</p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <span>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
-                  <span>Creator: {token.rewardDistributionPercentage.creator}%</span>
-                  <span>Fans: {token.rewardDistributionPercentage.creatorFans}%</span>
-                  <span>Network: {token.rewardDistributionPercentage.network}%</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{token.entityName}</span>
+                  <span style={{ fontSize: '20px' }}>({token.entitySymbol})</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Min Price:</span>
+                  <span>{token.minPriceInMoxie} MOXIE</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Start:</span>
+                  <span>{new Date(token.estimatedStartTimestamp).toLocaleString()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>End:</span>
+                  <span>{new Date(token.estimatedEndTimestamp).toLocaleString()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '5px' }}>
+                  <span style={{ flex: '1 0 40%' }}>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
+                  <span style={{ flex: '1 0 40%' }}>Creator: {token.rewardDistributionPercentage.creator}%</span>
+                  <span style={{ flex: '1 0 40%' }}>Fans: {token.rewardDistributionPercentage.creatorFans}%</span>
+                  <span style={{ flex: '1 0 40%' }}>Network: {token.rewardDistributionPercentage.network}%</span>
                 </div>
               </div>
             ))}
