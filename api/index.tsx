@@ -16,8 +16,7 @@ if (!NEYNAR_API_KEY) {
 
 export const app = new Frog({
   basePath: '/api',
-  imageOptions: { width: 1000, height: 1000 },
-  imageAspectRatio: '1:1',
+  imageOptions: { width: 1200, height: 628 },
   title: 'Farcaster Fan Token Tracker',
   hub: AIRSTACK_API_KEY ? {
     apiUrl: "https://hubs.airstack.xyz",
