@@ -178,17 +178,21 @@ app.frame('/check', async (c) => {
         backgroundColor: '#1A1A1A',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
-        padding: '20px',
+        padding: '40px',
         justifyContent: 'center',
         alignItems: 'center',
       }}>
-        <h1 style={{ fontSize: '48px', color: '#FFD700', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '48px', color: '#FFD700', textAlign: 'center', marginBottom: '20px' }}>
           Fan Token for FID: {fid}
         </h1>
         {token ? (
-          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
-            {token.entityName} ({token.entitySymbol})
-          </p>
+          <div style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+            <p style={{ marginBottom: '10px' }}>{token.entityName} ({token.entitySymbol})</p>
+            <p style={{ marginBottom: '10px' }}>Min Price: {token.minPriceInMoxie} MOXIE</p>
+            <p style={{ marginBottom: '10px' }}>Reward Distribution:</p>
+            <p>Fans: {token.rewardDistributionPercentage.creatorFans}% | Creator: {token.rewardDistributionPercentage.creator}%</p>
+            <p>Channel: {token.rewardDistributionPercentage.channelFans}% | Network: {token.rewardDistributionPercentage.network}%</p>
+          </div>
         ) : (
           <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
             No fan token found
@@ -202,6 +206,5 @@ app.frame('/check', async (c) => {
     ]
   });
 });
-
 export const GET = handle(app);
 export const POST = handle(app);
