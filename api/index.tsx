@@ -198,33 +198,25 @@ app.frame('/check', async (c) => {
           Fan Tokens for FID: {fid}
         </h2>
         {fanTokens.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '10px' }}>
             {fanTokens.map((token, index) => (
               <div key={index} style={{ 
                 display: 'flex',
                 flexDirection: 'column',
-                padding: '15px', 
+                padding: '10px', 
                 backgroundColor: 'rgba(255,255,255,0.1)', 
                 borderRadius: '10px',
-                gap: '10px'
+                gap: '5px'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{token.entityName}</span>
-                  <span style={{ fontSize: '20px' }}>({token.entitySymbol})</span>
+                  <span style={{ fontSize: '20px', fontWeight: 'bold' }}>{token.entityName}</span>
+                  <span style={{ fontSize: '16px' }}>({token.entitySymbol})</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Min Price:</span>
                   <span>{token.minPriceInMoxie} MOXIE</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Start:</span>
-                  <span>{new Date(token.estimatedStartTimestamp).toLocaleString()}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>End:</span>
-                  <span>{new Date(token.estimatedEndTimestamp).toLocaleString()}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '5px' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', fontSize: '14px' }}>
                   <span style={{ flex: '1 0 40%' }}>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
                   <span style={{ flex: '1 0 40%' }}>Creator: {token.rewardDistributionPercentage.creator}%</span>
                   <span style={{ flex: '1 0 40%' }}>Fans: {token.rewardDistributionPercentage.creatorFans}%</span>
