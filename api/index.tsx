@@ -44,26 +44,6 @@ app.use(
   })
 );
 
-interface RewardDistribution {
-  channelFans: number;
-  creator: number;
-  creatorFans: number;
-  network: number;
-}
-
-interface FanTokenInfo {
-  entityId: string;
-  entityName: string;
-  entitySymbol: string;
-  minPriceInMoxie: number;
-  rewardDistributionPercentage: RewardDistribution;
-}
-
-interface UserProfile {
-  profileName: string;
-  profileImage: string;
-}
-
 interface ProfileInfo {
   primaryDomain: {
     name: string;
@@ -90,71 +70,6 @@ interface OwnedToken {
   balance: string;
   tokenEntitySymbol: string;
   tokenMinPriceInMoxie: string;
-}
-
-async function getFanTokenInfo(fid: string): Promise<{ fanToken: FanTokenInfo | null, userProfile: UserProfile | null }> {
-  console.log(`Fetching fan token info for FID: ${fid}`);
-
-  const query = `
-    query GetFanTokenAndUserProfile($fid: String!) {
-      FarcasterFanTokenAuctions(
-        input: {filter: {entityType: {_in: [USER, CHANNEL, NETWORK]}, entityId: {_eq: $fid}}, blockchain: ALL, limit: 1}
-      ) {
-        FarcasterFanTokenAuction {
-          entityId
-          entityName
-          entitySymbol
-          minPriceInMoxie
-          rewardDistributionPercentage {
-            channelFans
-            creator
-            creatorFans
-            network
-          }
-        }
-      }
-      Socials(
-        input: {filter: {dappName: {_eq: farcaster}, userId: {_eq: $fid}}, blockchain: ethereum}
-      ) {
-        Social {
-          profileName
-          profileImage
-        }
-      }
-    }
-  `;
-
-  const variables = { fid: fid };
-
-  try {
-    const response = await fetch(AIRSTACK_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': AIRSTACK_API_KEY,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('API response data:', JSON.stringify(data, null, 2));
-
-    if (data.errors) {
-      throw new Error('GraphQL errors in the response');
-    }
-
-    const fanToken = data.data?.FarcasterFanTokenAuctions?.FarcasterFanTokenAuction[0] || null;
-    const userProfile = data.data?.Socials?.Social[0] || null;
-
-    return { fanToken, userProfile };
-  } catch (error) {
-    console.error('Error in getFanTokenInfo:', error);
-    return { fanToken: null, userProfile: null };
-  }
 }
 
 async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
@@ -232,11 +147,6 @@ async function getRewardsInfo(fid: string): Promise<any> {
     
     if (query_result && query_result.result && Array.isArray(query_result.result.rows)) {
       console.log('Rows in Dune query result:', query_result.result.rows.length);
-      
-      // Log the structure of the first row
-      if (query_result.result.rows.length > 0) {
-        console.log('Structure of first row:', JSON.stringify(query_result.result.rows[0], null, 2));
-      }
       
       // Filter the rows to only include the data for the specific FID
       const userRewards = query_result.result.rows.find((row: any) => {
@@ -443,7 +353,6 @@ app.frame('/profile', async (c) => {
   });
 });
 
-
 app.frame('/yourfantoken', async (c) => {
   console.log('Entering /yourfantoken frame');
   const { fid } = c.frameData || {};
@@ -464,11 +373,7 @@ app.frame('/yourfantoken', async (c) => {
     });
   }
 
-  let { fanToken, userProfile } = await getFanTokenInfo(fid.toString());
   let rewardsInfo = await getRewardsInfo(fid.toString());
-
-  // Format minPriceInMoxie
-  const formattedPrice = fanToken ? Number(fanToken.minPriceInMoxie).toFixed(6) : '0';
 
   return c.res({
     image: (
@@ -489,48 +394,40 @@ app.frame('/yourfantoken', async (c) => {
           Your Fan Token
         </h1>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-          {userProfile?.profileImage && (
-            <img 
-              src={userProfile.profileImage} 
-              alt="Profile" 
-              style={{ width: '120px', height: '120px', borderRadius: '50%', marginBottom: '15px' }}
-            />
-          )}
-          <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
-            {userProfile?.profileName || `FID: ${fid}`}
-          </p>
-          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center', marginBottom: '20px' }}>
-            Min Price: {formattedPrice} MOXIE
-          </p>
-          {fanToken && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-              <p style={{ fontSize: '28px', color: '#BDBDBD', textAlign: 'center', marginBottom: '15px' }}>Reward Distribution:</p>
-              <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
-                <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Fans: {fanToken.rewardDistributionPercentage.creatorFans}%</p>
-                <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Creator: {fanToken.rewardDistributionPercentage.creator}%</p>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', marginTop: '10px' }}>
-                <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Channel: {fanToken.rewardDistributionPercentage.channelFans}%</p>
-                <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Network: {fanToken.rewardDistributionPercentage.network}%</p>
-              </div>
-            </div>
-          )}
           {rewardsInfo ? (
-            <div style={{ marginTop: '20px', textAlign: 'center' }}>
-              <p style={{ fontSize: '28px', color: '#FFD700', marginBottom: '10px' }}>Rewards Information</p>
-              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Total Rewards: {rewardsInfo.total_rewards_moxie || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 24h: {rewardsInfo.rewards_last_24h_moxie || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 7d: {rewardsInfo.rewards_last_7d_moxie || 'N/A'} MOXIE</p>
-            </div>
+            <>
+              <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
+                FID: {rewardsInfo.fid}
+              </p>
+              <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center', marginBottom: '20px' }}>
+                Min Price: {rewardsInfo.min_price_moxie || 0} MOXIE
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+                <p style={{ fontSize: '28px', color: '#BDBDBD', textAlign: 'center', marginBottom: '15px' }}>Reward Distribution:</p>
+                <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
+                  <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Fans: {rewardsInfo.creator_fans_percent || 0}%</p>
+                  <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Creator: {rewardsInfo.creator_percent || 0}%</p>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', marginTop: '10px' }}>
+                  <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Channel: {rewardsInfo.channel_fans_percent || 0}%</p>
+                  <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Network: {rewardsInfo.network_percent || 0}%</p>
+                </div>
+              </div>
+              <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                <p style={{ fontSize: '28px', color: '#FFD700', marginBottom: '10px' }}>Rewards Information</p>
+                <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Total Rewards: {rewardsInfo.total_rewards_moxie || 0} MOXIE</p>
+                <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 24h: {rewardsInfo.rewards_last_24h_moxie || 0} MOXIE</p>
+                <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 7d: {rewardsInfo.rewards_last_7d_moxie || 0} MOXIE</p>
+              </div>
+            </>
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No rewards information available</p>
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token or rewards information available</p>
           )}
         </div>
       </div>
     ),
     intents: [
       <Button action="/">Back</Button>,
-      <Button action="/owned-tokens">OT</Button>,
       <Button action="/yourfantoken">Refresh</Button>,
     ]
   });
