@@ -47,7 +47,7 @@ interface FanTokenInfo {
   entityId: string;
   entityName: string;
   entitySymbol: string;
-  minPriceInMoxie: string;
+  minPriceInMoxie: number; // Changed to number
   rewardDistributionPercentage: RewardDistribution;
 }
 
@@ -149,6 +149,7 @@ app.frame('/', (c) => {
   });
 });
 
+
 app.frame('/check', async (c) => {
   console.log('Entering /check frame');
   const { fid } = c.frameData || {};
@@ -170,6 +171,9 @@ app.frame('/check', async (c) => {
   }
 
   let { fanToken, userProfile } = await getFanTokenInfo(fid.toString());
+
+  // Format minPriceInMoxie
+  const formattedPrice = fanToken ? Number(fanToken.minPriceInMoxie).toFixed(6) : '0';
 
   return c.res({
     image: (
@@ -207,7 +211,7 @@ app.frame('/check', async (c) => {
           </h1>
           {fanToken ? (
             <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
-              <p>Current Price: {fanToken.minPriceInMoxie} MOXIE</p>
+              <p>Current Price: {formattedPrice} MOXIE</p>
               <p>Reward Distribution:</p>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <p>Fans: {fanToken.rewardDistributionPercentage.creatorFans}%</p>
