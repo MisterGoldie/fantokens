@@ -376,7 +376,7 @@ app.frame('/yourfantoken', async (c) => {
         </h1>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
           {tokenInfo ? (
-            <div style={{ textAlign: 'center', border: '1px solid #FFD700', padding: '20px', borderRadius: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '1px solid #FFD700', padding: '20px', borderRadius: '10px' }}>
               <p style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>FID: {tokenInfo.query_fid}</p>
               <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Last Price: {tokenInfo.last_price?.toFixed(6) || 'N/A'} MOXIE</p>
               <p style={{ fontSize: '18px', color: '#BDBDBD' }}>All Earnings: {tokenInfo.all_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
