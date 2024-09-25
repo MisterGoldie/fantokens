@@ -185,21 +185,24 @@ app.frame('/check', async (c) => {
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center', 
-        justifyContent: 'center', 
+        justifyContent: 'flex-start', 
         width: '100%', 
         height: '100%', 
         backgroundColor: '#1DA1F2',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
         padding: '20px',
+        boxSizing: 'border-box',
       }}>
         <h2 style={{ fontSize: '28px', marginBottom: '20px', color: 'white', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', textAlign: 'center' }}>
           Fan Tokens for FID: {fid}
         </h2>
         {fanTokens.length > 0 ? (
-          <div style={{ width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflowY: 'auto' }}>
             {fanTokens.map((token, index) => (
               <div key={index} style={{ 
+                display: 'flex',
+                flexDirection: 'column',
                 marginBottom: '20px', 
                 padding: '10px', 
                 backgroundColor: 'rgba(255,255,255,0.1)', 
