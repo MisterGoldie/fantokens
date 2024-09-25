@@ -16,7 +16,7 @@ if (!NEYNAR_API_KEY) {
 
 export const app = new Frog({
   basePath: '/api',
-  imageOptions: { width: 1200, height: 628 },
+  imageOptions: { width: 1200, height: 630 },
   title: 'Farcaster Fan Token Tracker',
   hub: AIRSTACK_API_KEY ? {
     apiUrl: "https://hubs.airstack.xyz",
@@ -168,36 +168,41 @@ app.frame('/check', async (c) => {
 
   const token = fanTokens[0];
 
+  const tokenInfo = token
+    ? `${token.entityName} (${token.entitySymbol})
+Min Price: ${token.minPriceInMoxie} MOXIE
+
+Reward Distribution:
+Fans: ${token.rewardDistributionPercentage.creatorFans}%
+Creator: ${token.rewardDistributionPercentage.creator}%
+Channel: ${token.rewardDistributionPercentage.channelFans}%
+Network: ${token.rewardDistributionPercentage.network}%`
+    : 'No fan token found';
+
   return c.res({
     image: (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        width: '1200px', 
-        height: '628px', 
-        backgroundColor: '#1A1A1A',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif',
-        padding: '40px',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}>
-        <h1 style={{ fontSize: '48px', color: '#FFD700', textAlign: 'center', marginBottom: '20px' }}>
-          Fan Token for FID: {fid}
-        </h1>
-        {token ? (
-          <div style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
-            <p style={{ marginBottom: '10px' }}>{token.entityName} ({token.entitySymbol})</p>
-            <p style={{ marginBottom: '10px' }}>Min Price: {token.minPriceInMoxie} MOXIE</p>
-            <p style={{ marginBottom: '10px' }}>Reward Distribution:</p>
-            <p>Fans: {token.rewardDistributionPercentage.creatorFans}% | Creator: {token.rewardDistributionPercentage.creator}%</p>
-            <p>Channel: {token.rewardDistributionPercentage.channelFans}% | Network: {token.rewardDistributionPercentage.network}%</p>
-          </div>
-        ) : (
-          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
-            No fan token found
-          </p>
-        )}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '1200px',
+          height: '628px',
+          backgroundColor: '#1A1A1A',
+          color: 'white',
+          fontFamily: 'Arial, sans-serif',
+          padding: '40px',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h1 style={{ fontSize: '48px', color: '#FFD700', textAlign: 'center', marginBottom: '20px' }}>
+            Fan Token for FID: {fid}
+          </h1>
+          <pre style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'left', whiteSpace: 'pre-wrap' }}>
+            {tokenInfo}
+          </pre>
+        </div>
       </div>
     ),
     intents: [
@@ -206,5 +211,7 @@ app.frame('/check', async (c) => {
     ]
   });
 });
+
+
 export const GET = handle(app);
 export const POST = handle(app);
