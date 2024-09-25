@@ -237,6 +237,83 @@ app.frame('/', (c) => {
 });
 
 
+app.frame('/profile', async (c) => {
+  console.log('Entering /profile frame');
+  const { fid } = c.frameData || {};
+
+  console.log(`FID: ${fid}`);
+
+  if (!fid) {
+    console.error('No FID found in frameData');
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
+  }
+
+  const profileInfo = await getProfileInfo(fid.toString());
+
+  return c.res({
+    image: (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'row', 
+        width: '1200px', 
+        height: '628px', 
+        backgroundColor: '#1A1A1A',
+        color: 'white',
+        fontFamily: 'Arial, sans-serif',
+        padding: '40px',
+        boxSizing: 'border-box',
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '30%', alignItems: 'center', justifyContent: 'center' }}>
+          {profileInfo?.farcasterSocial.profileImage && (
+            <img 
+              src={profileInfo.farcasterSocial.profileImage} 
+              alt="Profile" 
+              style={{ width: '200px', height: '200px', borderRadius: '50%', marginBottom: '20px' }}
+            />
+          )}
+          <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
+            {profileInfo?.farcasterSocial.profileDisplayName}
+          </p>
+          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+            @{profileInfo?.farcasterSocial.profileHandle}
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '70%', justifyContent: 'center' }}>
+          <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px' }}>
+            Profile Information
+          </h1>
+          {profileInfo ? (
+            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
+              <p>Bio: {profileInfo.farcasterSocial.profileBio}</p>
+              <p>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+              <p>Following: {profileInfo.farcasterSocial.followingCount}</p>
+              <p>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
+              {profileInfo.primaryDomain && (
+                <p>Primary Domain: {profileInfo.primaryDomain.name}</p>
+              )}
+            </div>
+          ) : (
+            <p style={{ fontSize: '24px', color: '#BDBDBD' }}>No profile information found</p>
+          )}
+        </div>
+      </div>
+    ),
+    intents: [
+      <Button action="/check">Check Fan Tokens</Button>,
+    ]
+  });
+});
+
+
 app.frame('/check', async (c) => {
   console.log('Entering /check frame');
   const { fid } = c.frameData || {};
@@ -316,89 +393,12 @@ app.frame('/check', async (c) => {
       </div>
     ),
     intents: [
-      <Button action="/">Back</Button>,
-      <Button action="/profile">View Profile</Button>,
+      <Button action="/profile">Back</Button>,
       <Button action="/check">Refresh</Button>,
     ]
   });
 });
 
-app.frame('/profile', async (c) => {
-  console.log('Entering /profile frame');
-  const { fid } = c.frameData || {};
-
-  console.log(`FID: ${fid}`);
-
-  if (!fid) {
-    console.error('No FID found in frameData');
-    return c.res({
-      image: (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
-        </div>
-      ),
-      intents: [
-        <Button action="/">Back</Button>
-      ]
-    });
-  }
-
-  const profileInfo = await getProfileInfo(fid.toString());
-
-  return c.res({
-    image: (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'row', 
-        width: '1200px', 
-        height: '628px', 
-        backgroundColor: '#1A1A1A',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif',
-        padding: '40px',
-        boxSizing: 'border-box',
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', width: '30%', alignItems: 'center', justifyContent: 'center' }}>
-          {profileInfo?.farcasterSocial.profileImage && (
-            <img 
-              src={profileInfo.farcasterSocial.profileImage} 
-              alt="Profile" 
-              style={{ width: '200px', height: '200px', borderRadius: '50%', marginBottom: '20px' }}
-            />
-          )}
-          <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
-            {profileInfo?.farcasterSocial.profileDisplayName}
-          </p>
-          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
-            @{profileInfo?.farcasterSocial.profileHandle}
-          </p>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', width: '70%', justifyContent: 'center' }}>
-          <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px' }}>
-            Profile Information
-          </h1>
-          {profileInfo ? (
-            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
-              <p>Bio: {profileInfo.farcasterSocial.profileBio}</p>
-              <p>Followers: {profileInfo.farcasterSocial.followerCount}</p>
-              <p>Following: {profileInfo.farcasterSocial.followingCount}</p>
-              <p>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
-              {profileInfo.primaryDomain && (
-                <p>Primary Domain: {profileInfo.primaryDomain.name}</p>
-              )}
-            </div>
-          ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD' }}>No profile information found</p>
-          )}
-        </div>
-      </div>
-    ),
-    intents: [
-      <Button action="/">Back</Button>,
-      <Button action="/check">Check Fan Tokens</Button>,
-    ]
-  });
-});
 
 export const GET = handle(app);
 export const POST = handle(app);
