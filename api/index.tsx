@@ -237,7 +237,6 @@ async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
     return [];
   }
 }
-
 app.frame('/', (c) => {
   return c.res({
     image: (
