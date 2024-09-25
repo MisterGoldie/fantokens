@@ -56,6 +56,25 @@ interface UserProfile {
   profileImage: string;
 }
 
+interface ProfileInfo {
+  primaryDomain: {
+    name: string;
+    avatar: string;
+  };
+  farcasterSocial: {
+    profileName: string;
+    profileDisplayName: string;
+    profileHandle: string;
+    profileImage: string;
+    profileBio: string;
+    followerCount: number;
+    followingCount: number;
+    farcasterScore: {
+      farScore: number;
+    };
+  };
+}
+
 async function getFanTokenInfo(fid: string): Promise<{ fanToken: FanTokenInfo | null, userProfile: UserProfile | null }> {
   console.log(`Fetching fan token info for FID: ${fid}`);
 
@@ -118,6 +137,74 @@ async function getFanTokenInfo(fid: string): Promise<{ fanToken: FanTokenInfo | 
   } catch (error) {
     console.error('Error in getFanTokenInfo:', error);
     return { fanToken: null, userProfile: null };
+  }
+}
+
+async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
+  const query = `
+    query GetProfileInfo($identity: Identity!) {
+      Wallet(input: { identity: $identity }) {
+        primaryDomain {
+          name
+          avatar
+        }
+      }
+      farcasterSocials: Socials(
+        input: {
+          filter: { identity: { _eq: $identity }, dappName: { _eq: farcaster } }
+          blockchain: ethereum
+          order: { followerCount: DESC }
+        }
+      ) {
+        Social {
+          profileName
+          profileDisplayName
+          profileHandle
+          profileImage
+          profileBio
+          followerCount
+          followingCount
+          farcasterScore {
+            farScore
+          }
+        }
+      }
+    }
+  `;
+
+  const variables = { identity: `fc_fid:${fid}` };
+
+  try {
+    const response = await fetch(AIRSTACK_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': AIRSTACK_API_KEY,
+      },
+      body: JSON.stringify({ query, variables }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Profile API response data:', JSON.stringify(data, null, 2));
+
+    if (data.errors) {
+      throw new Error('GraphQL errors in the response');
+    }
+
+    const wallet = data.data.Wallet;
+    const social = data.data.farcasterSocials.Social[0];
+
+    return {
+      primaryDomain: wallet.primaryDomain,
+      farcasterSocial: social,
+    };
+  } catch (error) {
+    console.error('Error in getProfileInfo:', error);
+    return null;
   }
 }
 
@@ -230,7 +317,85 @@ app.frame('/check', async (c) => {
     ),
     intents: [
       <Button action="/">Back</Button>,
+      <Button action="/profile">View Profile</Button>,
       <Button action="/check">Refresh</Button>,
+    ]
+  });
+});
+
+app.frame('/profile', async (c) => {
+  console.log('Entering /profile frame');
+  const { fid } = c.frameData || {};
+
+  console.log(`FID: ${fid}`);
+
+  if (!fid) {
+    console.error('No FID found in frameData');
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
+  }
+
+  const profileInfo = await getProfileInfo(fid.toString());
+
+  return c.res({
+    image: (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'row', 
+        width: '1200px', 
+        height: '628px', 
+        backgroundColor: '#1A1A1A',
+        color: 'white',
+        fontFamily: 'Arial, sans-serif',
+        padding: '40px',
+        boxSizing: 'border-box',
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '30%', alignItems: 'center', justifyContent: 'center' }}>
+          {profileInfo?.farcasterSocial.profileImage && (
+            <img 
+              src={profileInfo.farcasterSocial.profileImage} 
+              alt="Profile" 
+              style={{ width: '200px', height: '200px', borderRadius: '50%', marginBottom: '20px' }}
+            />
+          )}
+          <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
+            {profileInfo?.farcasterSocial.profileDisplayName}
+          </p>
+          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+            @{profileInfo?.farcasterSocial.profileHandle}
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '70%', justifyContent: 'center' }}>
+          <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px' }}>
+            Profile Information
+          </h1>
+          {profileInfo ? (
+            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
+              <p>Bio: {profileInfo.farcasterSocial.profileBio}</p>
+              <p>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+              <p>Following: {profileInfo.farcasterSocial.followingCount}</p>
+              <p>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
+              {profileInfo.primaryDomain && (
+                <p>Primary Domain: {profileInfo.primaryDomain.name}</p>
+              )}
+            </div>
+          ) : (
+            <p style={{ fontSize: '24px', color: '#BDBDBD' }}>No profile information found</p>
+          )}
+        </div>
+      </div>
+    ),
+    intents: [
+      <Button action="/">Back</Button>,
+      <Button action="/check">Check Fan Tokens</Button>,
     ]
   });
 });
