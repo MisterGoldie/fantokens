@@ -241,25 +241,35 @@ async function getRewardsInfo(fid: string): Promise<any> {
 
 async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
   const query = `
-    query GetOwnedFanTokens($fid: String!) {
-      FarcasterFanTokenBalances(
-        input: {filter: {holderId: {_eq: $fid}}, blockchain: ALL, limit: 50}
+    query GetOwnedFanTokens($fid: Identity!) {
+      TokenBalances(
+        input: {filter: {owner: {_eq: $fid}, tokenType: {_in: [ERC20]}, tokenAddress: {_in: ["0x3006424b9e166978b5afa7e1e1887acd60d35f82"]}}, blockchain: ALL, limit: 50}
       ) {
-        FarcasterFanTokenBalance {
-          balance
-          holderId
-          holderProfileName
-          holderProfileImageUrl
-          tokenEntityId
-          tokenEntityName
-          tokenEntitySymbol
-          tokenMinPriceInMoxie
+        TokenBalance {
+          amount
+          owner {
+            addresses
+            domains {
+              name
+              avatar
+            }
+            socials {
+              dappName
+              profileName
+              profileImage
+            }
+          }
+          token {
+            name
+            symbol
+            decimals
+          }
         }
       }
     }
   `;
 
-  const variables = { fid: fid };
+  const variables = { fid: `fc_fid:${fid}` };
 
   try {
     const response = await fetch(AIRSTACK_API_URL, {
@@ -272,7 +282,8 @@ async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
     }
 
     const data = await response.json();
@@ -282,7 +293,16 @@ async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
       throw new Error('GraphQL errors in the response: ' + JSON.stringify(data.errors));
     }
 
-    return data.data.FarcasterFanTokenBalances.FarcasterFanTokenBalance || [];
+    const tokens = data.data.TokenBalances.TokenBalance || [];
+
+    return tokens.map((token: any): OwnedToken => ({
+      holderId: fid,
+      holderProfileName: token.owner.socials?.[0]?.profileName || '',
+      holderProfileImageUrl: token.owner.socials?.[0]?.profileImage || '',
+      balance: token.amount,
+      tokenEntitySymbol: token.token.symbol,
+      tokenMinPriceInMoxie: '0', // This information is not available in this query
+    }));
   } catch (error) {
     console.error('Error in getOwnedFanTokens:', error);
     return [];
