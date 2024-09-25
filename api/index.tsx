@@ -398,11 +398,8 @@ app.frame('/profile', async (c) => {
         justifyContent: 'center',
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px' }}>
-          <p style={{ fontSize: '36px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
+          <p style={{ fontSize: '48px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
             {profileInfo?.farcasterSocial.profileDisplayName || 'Unknown User'}
-          </p>
-          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
-            @{profileInfo?.farcasterSocial.profileHandle || fid}
           </p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '80%' }}>
@@ -410,13 +407,13 @@ app.frame('/profile', async (c) => {
             Profile Information
           </h1>
           {profileInfo ? (
-            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
-              <p style={{ marginBottom: '10px' }}>Bio: {profileInfo.farcasterSocial.profileBio || 'No bio available'}</p>
-              <p style={{ marginBottom: '10px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
-              <p style={{ marginBottom: '10px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
-              <p style={{ marginBottom: '10px' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore?.farScore?.toFixed(2) || 'N/A'}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD', textAlign: 'center', alignItems: 'center' }}>
+              <p style={{ marginBottom: '15px', maxWidth: '80%' }}>Bio: {profileInfo.farcasterSocial.profileBio || 'No bio available'}</p>
+              <p style={{ marginBottom: '15px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+              <p style={{ marginBottom: '15px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
+              <p style={{ marginBottom: '15px' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore?.farScore?.toFixed(2) || 'N/A'}</p>
               {profileInfo.primaryDomain && (
-                <p style={{ marginBottom: '10px' }}>Primary Domain: {profileInfo.primaryDomain.name}</p>
+                <p style={{ marginBottom: '15px' }}>Primary Domain: {profileInfo.primaryDomain.name}</p>
               )}
             </div>
           ) : (
