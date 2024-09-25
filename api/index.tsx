@@ -320,42 +320,42 @@ app.frame('/profile', async (c) => {
         backgroundColor: '#1A1A1A',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
-        padding: '40px',
+        padding: '20px',
         boxSizing: 'border-box',
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
           {profileInfo?.farcasterSocial.profileImage && (
             <img 
               src={profileInfo.farcasterSocial.profileImage} 
               alt="Profile" 
-              style={{ width: '150px', height: '150px', borderRadius: '50%', marginBottom: '20px' }}
+              style={{ width: '120px', height: '120px', borderRadius: '50%', marginBottom: '15px' }}
             />
           )}
-          <p style={{ fontSize: '36px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
+          <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '5px' }}>
             {profileInfo?.farcasterSocial.profileDisplayName}
           </p>
-          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+          <p style={{ fontSize: '20px', color: '#BDBDBD', textAlign: 'center' }}>
             @{profileInfo?.farcasterSocial.profileHandle}
           </p>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '80%' }}>
-          <h1 style={{ fontSize: '36px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '800px' }}>
+          <h2 style={{ fontSize: '28px', color: '#FFD700', marginBottom: '15px', textAlign: 'center' }}>
             Profile Information
-          </h1>
+          </h2>
           {profileInfo ? (
-            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
-              <p style={{ marginBottom: '10px' }}>Bio: {profileInfo.farcasterSocial.profileBio}</p>
-              <p style={{ marginBottom: '10px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
-              <p style={{ marginBottom: '10px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
-              <p style={{ marginBottom: '10px' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '18px', color: '#BDBDBD', textAlign: 'center', width: '100%' }}>
+              <p style={{ marginBottom: '8px' }}>Bio: {profileInfo.farcasterSocial.profileBio}</p>
+              <p style={{ marginBottom: '8px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+              <p style={{ marginBottom: '8px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
+              <p style={{ marginBottom: '8px' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
               {profileInfo.primaryDomain && (
-                <p style={{ marginBottom: '10px' }}>Primary Domain: {profileInfo.primaryDomain.name}</p>
+                <p style={{ marginBottom: '8px' }}>Primary Domain: {profileInfo.primaryDomain.name}</p>
               )}
             </div>
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No profile information found</p>
+            <p style={{ fontSize: '20px', color: '#BDBDBD', textAlign: 'center' }}>No profile information found</p>
           )}
         </div>
       </div>
@@ -396,58 +396,54 @@ app.frame('/yourfantoken', async (c) => {
     image: (
       <div style={{ 
         display: 'flex', 
-        flexDirection: 'row', 
+        flexDirection: 'column', 
         width: '1200px', 
         height: '628px', 
         backgroundColor: '#1A1A1A',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
-        padding: '40px',
+        padding: '20px',
         boxSizing: 'border-box',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', width: '30%', alignItems: 'center', justifyContent: 'center' }}>
+        <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
+          Your Fan Token
+        </h1>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
           {userProfile?.profileImage && (
             <img 
               src={userProfile.profileImage} 
               alt="Profile" 
-              style={{ width: '200px', height: '200px', borderRadius: '50%', marginBottom: '20px' }}
+              style={{ width: '120px', height: '120px', borderRadius: '50%', marginBottom: '15px' }}
             />
           )}
-          {userProfile?.profileName && (
-            <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
-              {userProfile.profileName}
-            </p>
-          )}
-          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
-            FID: {fid}
+          <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
+            {userProfile?.profileName || `FID: ${fid}`}
           </p>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', width: '70%', justifyContent: 'center' }}>
-          <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px' }}>
-            Your Fan Token
-          </h1>
+          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center', marginBottom: '20px' }}>
+            Min Price: {formattedPrice} MOXIE
+          </p>
           {fanToken ? (
-            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
-              <p>Current Price: {formattedPrice} MOXIE</p>
-              <p>Reward Distribution:</p>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <p>Fans: {fanToken.rewardDistributionPercentage.creatorFans}%</p>
-                <p>Creator: {fanToken.rewardDistributionPercentage.creator}%</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+              <p style={{ fontSize: '28px', color: '#BDBDBD', textAlign: 'center', marginBottom: '15px' }}>Reward Distribution:</p>
+              <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
+                <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Fans: {fanToken.rewardDistributionPercentage.creatorFans}%</p>
+                <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Creator: {fanToken.rewardDistributionPercentage.creator}%</p>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <p>Channel: {fanToken.rewardDistributionPercentage.channelFans}%</p>
-                <p>Network: {fanToken.rewardDistributionPercentage.network}%</p>
+              <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%', marginTop: '10px' }}>
+                <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Channel: {fanToken.rewardDistributionPercentage.channelFans}%</p>
+                <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Network: {fanToken.rewardDistributionPercentage.network}%</p>
               </div>
             </div>
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD' }}>No fan token found</p>
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token found</p>
           )}
         </div>
       </div>
     ),
     intents: [
-      <Button action="/profile">Back to profile</Button>,
-      <Button action="/owned-tokens">View Owned Tokens</Button>,
+      <Button action="/">Back</Button>,
       <Button action="/yourfantoken">Refresh</Button>,
     ]
   });
