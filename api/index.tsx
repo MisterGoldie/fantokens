@@ -146,20 +146,27 @@ async function getRewardsInfo(fid: string): Promise<any> {
     console.log('Dune query result:', JSON.stringify(query_result, null, 2));
     
     if (query_result && query_result.result && Array.isArray(query_result.result.rows)) {
-      // Find the row that matches the given FID
-      const userToken = query_result.result.rows.find(row => row.fid === fid);
+      console.log('Rows in Dune query result:', query_result.result.rows.length);
       
-      if (userToken) {
+      // Filter the rows to only include the data for the specific FID
+      const userRewards = query_result.result.rows.find((row: any) => {
+        if (row && row.fid) {
+          return row.fid.toString() === fid;
+        }
+        return false;
+      });
+      
+      if (userRewards) {
+        console.log('Found rewards for FID:', fid, JSON.stringify(userRewards, null, 2));
+        // Extract only the required information
         return {
-          fid: userToken.fid,
-          name: userToken.name,
-          last_price: userToken.last_price,
-          all_earnings: userToken.all_earnings,
-          cast_earnings: userToken.cast_earnings,
-          frame_earnings: userToken.frame_earnings
+          last_price: userRewards.last_price,
+          all_earnings: userRewards.all_earnings,
+          cast_earnings: userRewards.cast_earnings,
+          frame_earnings: userRewards.frame_earnings
         };
       } else {
-        console.log(`No token found for FID: ${fid}`);
+        console.log(`No rewards found for FID: ${fid}`);
         return null;
       }
     } else {
