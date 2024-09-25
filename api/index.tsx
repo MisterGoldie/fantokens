@@ -192,18 +192,18 @@ app.frame('/check', async (c) => {
               style={{ width: '200px', height: '200px', borderRadius: '50%', marginBottom: '20px' }}
             />
           )}
-          <h2 style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center' }}>
-            FID: {fid}
-          </h2>
           {userProfile?.profileName && (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+            <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
               {userProfile.profileName}
             </p>
           )}
+          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+            FID: {fid}
+          </p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', width: '70%', justifyContent: 'center' }}>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px' }}>
-            Fan Token for FID: {fid}
+            Your Fan Token
           </h1>
           {fanToken ? (
             <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
