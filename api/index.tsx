@@ -291,12 +291,14 @@ app.frame('/profile', async (c) => {
   console.log('Entering /profile frame');
   const { fid } = c.frameData || {};
 
+  console.log(`FID: ${fid}`);
+
   if (!fid) {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '630px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#FF6B6B', textAlign: 'center' }}>Error: No FID</h1>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -305,15 +307,7 @@ app.frame('/profile', async (c) => {
     });
   }
 
-  let profileInfo: ProfileInfo | null = null;
-
-  try {
-    profileInfo = await getProfileInfo(fid.toString());
-  } catch (error) {
-    console.error('Error in getProfileInfo:', error);
-  }
-
-  const backgroundImage = 'https://bafybeidx4wcsy6err33oxki2pzx6xoddzpcf6inuvyzsgxvq4prgxyj6im.ipfs.w3s.link/Frame%2063%20(3).png';
+  const profileInfo = await getProfileInfo(fid.toString());
 
   return c.res({
     image: (
@@ -322,46 +316,46 @@ app.frame('/profile', async (c) => {
         flexDirection: 'column', 
         width: '1200px', 
         height: '628px', 
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundColor: '#1A1A1A',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
-        padding: '20px',
+        padding: '40px',
         boxSizing: 'border-box',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        textAlign: 'center'
+        justifyContent: 'center',
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '10px' }}>
-          <img 
-            src={profileInfo?.farcasterSocial.profileImage || 'https://placeholder.com/150'} 
-            alt="Profile"
-            style={{ 
-              width: '80px', 
-              height: '80px', 
-              borderRadius: '50%', 
-              marginBottom: '10px',
-              border: '2px solid white'
-            }} 
-          />
-          <h1 style={{ fontSize: '32px', marginBottom: '5px', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
-            {profileInfo?.farcasterSocial.profileDisplayName || 'Unknown'}
-          </h1>
-          <p style={{ fontSize: '20px', margin: '0', opacity: 0.8 }}>@{profileInfo?.farcasterSocial.profileHandle}</p>
-        </div>
-        
-        <div style={{ fontSize: '18px', marginBottom: '10px' }}>
-          <p style={{ margin: '5px 0' }}>Bio: {profileInfo?.farcasterSocial.profileBio || 'N/A'}</p>
-          <p style={{ margin: '5px 0' }}>Followers: {profileInfo?.farcasterSocial.followerCount || 0}</p>
-          <p style={{ margin: '5px 0' }}>Following: {profileInfo?.farcasterSocial.followingCount || 0}</p>
-          <p style={{ margin: '5px 0' }}>FarScore: {profileInfo?.farcasterSocial.farcasterScore.farScore.toFixed(2) || 'N/A'}</p>
-        </div>
-        
-        <div style={{ marginTop: '10px' }}>
-          <p style={{ fontSize: '18px', opacity: 0.7, margin: 0 }}>
-            Farcaster Profile | Powered by Airstack
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px' }}>
+          {profileInfo?.farcasterSocial.profileImage && (
+            <img 
+              src={profileInfo.farcasterSocial.profileImage} 
+              alt="Profile" 
+              style={{ width: '150px', height: '150px', borderRadius: '50%', marginBottom: '20px' }}
+            />
+          )}
+          <p style={{ fontSize: '36px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
+            {profileInfo?.farcasterSocial.profileDisplayName}
           </p>
+          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+            @{profileInfo?.farcasterSocial.profileHandle}
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '80%' }}>
+          <h1 style={{ fontSize: '36px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
+            Profile Information
+          </h1>
+          {profileInfo ? (
+            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+              <p style={{ marginBottom: '10px' }}>Bio: {profileInfo.farcasterSocial.profileBio}</p>
+              <p style={{ marginBottom: '10px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+              <p style={{ marginBottom: '10px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
+              <p style={{ marginBottom: '10px' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
+              {profileInfo.primaryDomain && (
+                <p style={{ marginBottom: '10px' }}>Primary Domain: {profileInfo.primaryDomain.name}</p>
+              )}
+            </div>
+          ) : (
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No profile information found</p>
+          )}
         </div>
       </div>
     ),
