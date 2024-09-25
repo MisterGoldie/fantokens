@@ -482,6 +482,7 @@ app.frame('/yourfantoken', async (c) => {
     ),
     intents: [
       <Button action="/">Back</Button>,
+      <Button action="/owned-tokens">Tokens Owned</Button>,
       <Button action="/yourfantoken">Refresh</Button>,
     ]
   });
@@ -562,7 +563,6 @@ app.frame('/owned-tokens', async (c) => {
     ),
     intents: [
       <Button action="/">Back</Button>,
-      <Button action="/check">Check Your Fan Token</Button>,
     ]
   });
 });
