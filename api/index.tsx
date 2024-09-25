@@ -397,7 +397,7 @@ app.frame('/yourfantoken', async (c) => {
           {rewardsInfo ? (
             <>
               <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
-                {rewardsInfo.name} (FID: {rewardsInfo.fid})
+                FID: {fid}
               </p>
               <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center', marginBottom: '20px' }}>
                 Last Price: {rewardsInfo.last_price.toFixed(6)} MOXIE
@@ -410,15 +410,15 @@ app.frame('/yourfantoken', async (c) => {
               </div>
             </>
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token or rewards information available for this FID</p>
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token or rewards information available</p>
           )}
         </div>
       </div>
     ),
     intents: [
       <Button action="/">Back</Button>,
-      <Button action="/yourfantoken">Refresh</Button>,
       <Button action="/owned-tokens">OT</Button>,
+      <Button action="/yourfantoken">Refresh</Button>,
     ]
   });
 });
