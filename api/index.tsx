@@ -146,27 +146,20 @@ async function getRewardsInfo(fid: string): Promise<any> {
     console.log('Dune query result:', JSON.stringify(query_result, null, 2));
     
     if (query_result && query_result.result && Array.isArray(query_result.result.rows)) {
-      console.log('Rows in Dune query result:', query_result.result.rows.length);
+      // Find the row that matches the given FID
+      const userToken = query_result.result.rows.find(row => row.fid === fid);
       
-      // Filter the rows to only include the data for the specific FID
-      const userRewards = query_result.result.rows.find((row: any) => {
-        if (row && row.fid) {
-          return row.fid.toString() === fid;
-        }
-        return false;
-      });
-      
-      if (userRewards) {
-        console.log('Found rewards for FID:', fid, JSON.stringify(userRewards, null, 2));
-        // Extract only the required information
+      if (userToken) {
         return {
-          last_price: userRewards.last_price,
-          all_earnings: userRewards.all_earnings,
-          cast_earnings: userRewards.cast_earnings,
-          frame_earnings: userRewards.frame_earnings
+          fid: userToken.fid,
+          name: userToken.name,
+          last_price: userToken.last_price,
+          all_earnings: userToken.all_earnings,
+          cast_earnings: userToken.cast_earnings,
+          frame_earnings: userToken.frame_earnings
         };
       } else {
-        console.log(`No rewards found for FID: ${fid}`);
+        console.log(`No token found for FID: ${fid}`);
         return null;
       }
     } else {
@@ -404,7 +397,7 @@ app.frame('/yourfantoken', async (c) => {
           {rewardsInfo ? (
             <>
               <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
-                FID: {fid}
+                {rewardsInfo.name} (FID: {rewardsInfo.fid})
               </p>
               <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center', marginBottom: '20px' }}>
                 Last Price: {rewardsInfo.last_price.toFixed(6)} MOXIE
@@ -417,15 +410,15 @@ app.frame('/yourfantoken', async (c) => {
               </div>
             </>
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token or rewards information available</p>
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token or rewards information available for this FID</p>
           )}
         </div>
       </div>
     ),
     intents: [
       <Button action="/">Back</Button>,
-      <Button action="/owned-tokens">OT</Button>,
       <Button action="/yourfantoken">Refresh</Button>,
+      <Button action="/owned-tokens">OT</Button>,
     ]
   });
 });
