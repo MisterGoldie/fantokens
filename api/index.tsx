@@ -16,7 +16,8 @@ if (!NEYNAR_API_KEY) {
 
 export const app = new Frog({
   basePath: '/api',
-  imageOptions: { width: 1000, height: 1000 }, // Changed to 1:1 aspect ratio
+  imageOptions: { width: 1000, height: 1000 },
+  imageAspectRatio: '1:1',
   title: 'Farcaster Fan Token Tracker',
   hub: AIRSTACK_API_KEY ? {
     apiUrl: "https://hubs.airstack.xyz",
@@ -26,7 +27,9 @@ export const app = new Frog({
       }
     }
   } : undefined
-}).use(
+});
+
+app.use(
   neynar({
     apiKey: NEYNAR_API_KEY,
     features: ['interactor', 'cast'],
@@ -125,8 +128,6 @@ async function getFanTokenInfo(fid: string): Promise<FanTokenInfo[]> {
   }
 }
 
-const backgroundImageUrl = 'https://bafybeie3sl2oiahjedpkqxh5k6r2lse5bf77nwcirvtifzs43kcufesdnu.ipfs.w3s.link/Frame%2064.png';
-
 app.frame('/', (c) => {
   return c.res({
     image: (
@@ -136,9 +137,6 @@ app.frame('/', (c) => {
         alignItems: 'center',
         width: '100%',
         height: '100%',
-        backgroundImage: `url(${backgroundImageUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
         backgroundColor: '#1DA1F2',
       }}>
         <h1 style={{ fontSize: '48px', color: 'white', textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
@@ -155,9 +153,8 @@ app.frame('/', (c) => {
 app.frame('/check', async (c) => {
   console.log('Entering /check frame');
   const { fid } = c.frameData || {};
-  const { displayName, pfpUrl } = c.var.interactor || {};
 
-  console.log(`FID: ${fid}, Display Name: ${displayName}, PFP URL: ${pfpUrl}`);
+  console.log(`FID: ${fid}`);
 
   if (!fid) {
     console.error('No FID found in frameData');
@@ -174,14 +171,12 @@ app.frame('/check', async (c) => {
   }
 
   let fanTokens: FanTokenInfo[] = [];
-  let errorMessage = '';
 
   try {
     fanTokens = await getFanTokenInfo(fid.toString());
     console.log('Fan tokens retrieved:', JSON.stringify(fanTokens, null, 2));
   } catch (error) {
     console.error('Error in getFanTokenInfo:', error);
-    errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
   }
 
   return c.res({
@@ -190,104 +185,32 @@ app.frame('/check', async (c) => {
         display: 'flex', 
         flexDirection: 'column', 
         alignItems: 'center', 
-        justifyContent: 'flex-start', 
+        justifyContent: 'center', 
         width: '100%', 
         height: '100%', 
-        backgroundImage: `url(${backgroundImageUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        padding: '20px', 
-        boxSizing: 'border-box',
+        backgroundColor: '#1DA1F2',
+        color: 'white',
         fontFamily: 'Arial, sans-serif',
+        padding: '20px',
       }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '20px',
-          width: '100%',
-        }}>
-          {pfpUrl ? (
-            <img 
-              src={pfpUrl} 
-              alt="Profile" 
-              style={{ 
-                width: '60px', 
-                height: '60px', 
-                borderRadius: '50%',
-                border: '2px solid white',
-                marginRight: '10px',
-              }}
-            />
-          ) : (
-            <div style={{ 
-              width: '60px', 
-              height: '60px', 
-              borderRadius: '50%', 
-              backgroundColor: '#ccc', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              border: '2px solid white',
-              fontSize: '24px',
-              color: '#333',
-              marginRight: '10px',
-            }}>
-              {displayName ? displayName.charAt(0).toUpperCase() : 'U'}
-            </div>
-          )}
-          <div>
-            <p style={{ 
-              fontSize: '24px', 
-              color: 'white', 
-              textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
-              margin: '0',
-            }}>
-              FID: {fid}
-            </p>
-            <p style={{ 
-              fontSize: '18px', 
-              color: 'white', 
-              textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
-              margin: '0',
-            }}>
-              {displayName}
-            </p>
-          </div>
-        </div>
-        
-        {errorMessage ? (
-          <p style={{ fontSize: '24px', color: 'red', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>Error: {errorMessage}</p>
-        ) : fanTokens.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch', width: '100%' }}>
-            <h2 style={{ fontSize: '28px', marginBottom: '10px', color: 'white', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', textAlign: 'center' }}>
-              Your Fan Tokens
-            </h2>
+        <h2 style={{ fontSize: '28px', marginBottom: '20px', color: 'white', textShadow: '1px 1px 2px rgba(0,0,0,0.5)', textAlign: 'center' }}>
+          Fan Tokens for FID: {fid}
+        </h2>
+        {fanTokens.length > 0 ? (
+          <div style={{ width: '100%' }}>
             {fanTokens.map((token, index) => (
               <div key={index} style={{ 
-                fontSize: '16px', 
-                marginBottom: '10px', 
-                color: 'white', 
-                textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                padding: '10px',
-                borderRadius: '10px',
-                display: 'flex',
-                flexDirection: 'column',
+                marginBottom: '20px', 
+                padding: '10px', 
+                backgroundColor: 'rgba(255,255,255,0.1)', 
+                borderRadius: '10px' 
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span>{token.entityName} ({token.entitySymbol})</span>
-                  <span>Supply: {(Number(token.auctionSupply) / 10**token.decimals).toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span>Min Price: {token.minPriceInMoxie} MOXIE</span>
-                  <span>Status: {token.status}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span>Start: {new Date(token.estimatedStartTimestamp).toLocaleString()}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
-                  <span>End: {new Date(token.estimatedEndTimestamp).toLocaleString()}</span>
-                </div>
+                <p style={{ fontSize: '24px', marginBottom: '10px' }}>{token.entityName} ({token.entitySymbol})</p>
+                <p>Supply: {(Number(token.auctionSupply) / 10**token.decimals).toFixed(2)}</p>
+                <p>Min Price: {token.minPriceInMoxie} MOXIE</p>
+                <p>Status: {token.status}</p>
+                <p>Start: {new Date(token.estimatedStartTimestamp).toLocaleString()}</p>
+                <p>End: {new Date(token.estimatedEndTimestamp).toLocaleString()}</p>
                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                   <span>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
                   <span>Creator: {token.rewardDistributionPercentage.creator}%</span>
@@ -298,7 +221,7 @@ app.frame('/check', async (c) => {
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: '24px', color: 'white', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>No fan tokens found</p>
+          <p style={{ fontSize: '24px' }}>No fan tokens found</p>
         )}
       </div>
     ),
