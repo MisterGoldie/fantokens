@@ -1,10 +1,12 @@
 import { Button, Frog } from 'frog';
 import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
+import { DuneClient } from "@duneanalytics/client-sdk";
 
 const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
+const DUNE_API_KEY = process.env.DUNE_API_KEY || '';
 
 if (!AIRSTACK_API_KEY) {
   console.warn('AIRSTACK_API_KEY is not set in the environment variables');
@@ -13,6 +15,12 @@ if (!AIRSTACK_API_KEY) {
 if (!NEYNAR_API_KEY) {
   console.warn('NEYNAR_API_KEY is not set in the environment variables');
 }
+
+if (!DUNE_API_KEY) {
+  console.warn('DUNE_API_KEY is not set in the environment variables');
+}
+
+const dune = new DuneClient(DUNE_API_KEY);
 
 export const app = new Frog({
   basePath: '/api',
@@ -73,6 +81,15 @@ interface ProfileInfo {
       farScore: number;
     };
   };
+}
+
+interface OwnedToken {
+  holderId: string;
+  holderProfileName: string;
+  holderProfileImageUrl: string;
+  balance: string;
+  tokenEntitySymbol: string;
+  tokenMinPriceInMoxie: string;
 }
 
 async function getFanTokenInfo(fid: string): Promise<{ fanToken: FanTokenInfo | null, userProfile: UserProfile | null }> {
@@ -208,7 +225,21 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   }
 }
 
-async function getOwnedFanTokens(fid: string): Promise<any[]> {
+async function getRewardsInfo(fid: string): Promise<any> {
+  try {
+    const query_result = await dune.getLatestResult({queryId: 4088502});
+    if (query_result && query_result.result && query_result.result.rows) {
+      const userRewards = query_result.result.rows.find((row: any) => row.fid === fid);
+      return userRewards || null;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching rewards from Dune:', error);
+    return null;
+  }
+}
+
+async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
   const query = `
     query GetOwnedFanTokens($fid: String!) {
       FarcasterFanTokenBalances(
@@ -241,8 +272,7 @@ async function getOwnedFanTokens(fid: string): Promise<any[]> {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
@@ -387,6 +417,7 @@ app.frame('/yourfantoken', async (c) => {
   }
 
   let { fanToken, userProfile } = await getFanTokenInfo(fid.toString());
+  let rewardsInfo = await getRewardsInfo(fid.toString());
 
   // Format minPriceInMoxie
   const formattedPrice = fanToken ? Number(fanToken.minPriceInMoxie).toFixed(6) : '0';
@@ -438,6 +469,14 @@ app.frame('/yourfantoken', async (c) => {
           ) : (
             <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token found</p>
           )}
+          {rewardsInfo && (
+            <div style={{ marginTop: '20px', textAlign: 'center' }}>
+              <p style={{ fontSize: '28px', color: '#FFD700', marginBottom: '10px' }}>Rewards Information</p>
+              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Total Rewards: {rewardsInfo.totalRewards} MOXIE</p>
+              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Last Reward: {rewardsInfo.lastReward} MOXIE</p>
+              {/* Add more reward information as needed */}
+            </div>
+          )}
         </div>
       </div>
     ),
@@ -488,7 +527,7 @@ app.frame('/owned-tokens', async (c) => {
         </h1>
         <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
           {ownedTokens.length > 0 ? (
-            ownedTokens.map((token, index) => (
+            ownedTokens.map((token: OwnedToken, index: number) => (
               <div key={index} style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -527,7 +566,6 @@ app.frame('/owned-tokens', async (c) => {
     ]
   });
 });
-
 
 export const GET = handle(app);
 export const POST = handle(app);
