@@ -184,6 +184,8 @@ app.frame('/check', async (c) => {
     console.error('Error in getFanTokenInfo:', error);
   }
 
+  const token = fanTokens[0]; // Get the first token
+
   return c.res({
     image: (
       <div style={{ 
@@ -206,7 +208,7 @@ app.frame('/check', async (c) => {
         }}>
           Fan Tokens for FID: {fid}
         </h2>
-        {fanTokens.length > 0 ? (
+        {token ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '500px' }}>
             <div style={{ 
               display: 'flex',
@@ -219,12 +221,12 @@ app.frame('/check', async (c) => {
               height: '200px'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#4CAF50' }}>{fanTokens[0].entityName}</span>
-                <span style={{ fontSize: '18px', color: '#BDBDBD' }}>({fanTokens[0].entitySymbol})</span>
+                <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#4CAF50' }}>{token.entityName}</span>
+                <span style={{ fontSize: '18px', color: '#BDBDBD' }}>({token.entitySymbol})</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', marginTop: '10px' }}>
                 <span>Min Price:</span>
-                <span style={{ color: '#FFD700' }}>{fanTokens[0].minPriceInMoxie} MOXIE</span>
+                <span style={{ color: '#FFD700' }}>{token.minPriceInMoxie} MOXIE</span>
               </div>
               <div style={{ 
                 display: 'flex', 
@@ -233,12 +235,12 @@ app.frame('/check', async (c) => {
                 marginTop: '10px'
               }}>
                 <div>
-                  <div>Fans: {fanTokens[0].rewardDistributionPercentage.creatorFans}%</div>
-                  <div>Channel: {fanTokens[0].rewardDistributionPercentage.channelFans}%</div>
+                  <div>Fans: {token.rewardDistributionPercentage.creatorFans}%</div>
+                  <div>Channel: {token.rewardDistributionPercentage.channelFans}%</div>
                 </div>
                 <div>
-                  <div>Creator: {fanTokens[0].rewardDistributionPercentage.creator}%</div>
-                  <div>Network: {fanTokens[0].rewardDistributionPercentage.network}%</div>
+                  <div>Creator: {token.rewardDistributionPercentage.creator}%</div>
+                  <div>Network: {token.rewardDistributionPercentage.network}%</div>
                 </div>
               </div>
             </div>
