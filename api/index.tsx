@@ -47,35 +47,42 @@ interface FanTokenInfo {
   entityId: string;
   entityName: string;
   entitySymbol: string;
-  imageUrl: string | null;
   minPriceInMoxie: number;
   rewardDistributionPercentage: RewardDistribution;
 }
 
-async function getFanTokenInfo(fid: string): Promise<FanTokenInfo[]> {
+interface UserProfile {
+  profileName: string;
+  profileImage: string;
+}
+
+async function getFanTokenInfo(fid: string): Promise<{ fanToken: FanTokenInfo | null, userProfile: UserProfile | null }> {
   console.log(`Fetching fan token info for FID: ${fid}`);
 
   const query = `
-    query TrackFanTokenData($fid: String!) {
+    query GetFanTokenAndUserProfile($fid: String!) {
       FarcasterFanTokenAuctions(
-        input: {filter: {entityType: {_in: [USER, CHANNEL, NETWORK]}, entityId: {_eq: $fid}}, blockchain: ALL, limit: 50}
+        input: {filter: {entityType: {_in: [USER, CHANNEL, NETWORK]}, entityId: {_eq: $fid}}, blockchain: ALL, limit: 1}
       ) {
         FarcasterFanTokenAuction {
-          auctionId
-          decimals
           entityId
           entityName
           entitySymbol
           minPriceInMoxie
-          channel {
-            imageUrl
-          }
           rewardDistributionPercentage {
             channelFans
             creator
             creatorFans
             network
           }
+        }
+      }
+      Socials(
+        input: {filter: {dappName: {_eq: farcaster}, userId: {_eq: $fid}}, blockchain: ethereum}
+      ) {
+        Social {
+          profileName
+          profileImage
         }
       }
     }
@@ -104,13 +111,13 @@ async function getFanTokenInfo(fid: string): Promise<FanTokenInfo[]> {
       throw new Error('GraphQL errors in the response');
     }
 
-    return data.data?.FarcasterFanTokenAuctions?.FarcasterFanTokenAuction.map((token: any) => ({
-      ...token,
-      imageUrl: token.channel?.imageUrl || null,
-    })) || [];
+    const fanToken = data.data?.FarcasterFanTokenAuctions?.FarcasterFanTokenAuction[0] || null;
+    const userProfile = data.data?.Socials?.Social[0] || null;
+
+    return { fanToken, userProfile };
   } catch (error) {
     console.error('Error in getFanTokenInfo:', error);
-    return [];
+    return { fanToken: null, userProfile: null };
   }
 }
 
@@ -162,16 +169,7 @@ app.frame('/check', async (c) => {
     });
   }
 
-  let fanTokens: FanTokenInfo[] = [];
-
-  try {
-    fanTokens = await getFanTokenInfo(fid.toString());
-    console.log('Fan tokens retrieved:', JSON.stringify(fanTokens, null, 2));
-  } catch (error) {
-    console.error('Error in getFanTokenInfo:', error);
-  }
-
-  const token = fanTokens[0];
+  let { fanToken, userProfile } = await getFanTokenInfo(fid.toString());
 
   return c.res({
     image: (
@@ -187,9 +185,9 @@ app.frame('/check', async (c) => {
         boxSizing: 'border-box',
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', width: '30%', alignItems: 'center', justifyContent: 'center' }}>
-          {token?.imageUrl && (
+          {userProfile?.profileImage && (
             <img 
-              src={token.imageUrl} 
+              src={userProfile.profileImage} 
               alt="Profile" 
               style={{ width: '200px', height: '200px', borderRadius: '50%', marginBottom: '20px' }}
             />
@@ -197,23 +195,28 @@ app.frame('/check', async (c) => {
           <h2 style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center' }}>
             FID: {fid}
           </h2>
+          {userProfile?.profileName && (
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+              {userProfile.profileName}
+            </p>
+          )}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', width: '70%', justifyContent: 'center' }}>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px' }}>
             Fan Token for FID: {fid}
           </h1>
-          {token ? (
+          {fanToken ? (
             <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
-              <p>{token.entityName} ({token.entitySymbol})</p>
-              <p>Min Price: {token.minPriceInMoxie} MOXIE</p>
+              <p>{fanToken.entityName} ({fanToken.entitySymbol})</p>
+              <p>Min Price: {fanToken.minPriceInMoxie} MOXIE</p>
               <p>Reward Distribution:</p>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <p>Fans: {token.rewardDistributionPercentage.creatorFans}%</p>
-                <p>Creator: {token.rewardDistributionPercentage.creator}%</p>
+                <p>Fans: {fanToken.rewardDistributionPercentage.creatorFans}%</p>
+                <p>Creator: {fanToken.rewardDistributionPercentage.creator}%</p>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <p>Channel: {token.rewardDistributionPercentage.channelFans}%</p>
-                <p>Network: {token.rewardDistributionPercentage.network}%</p>
+                <p>Channel: {fanToken.rewardDistributionPercentage.channelFans}%</p>
+                <p>Network: {fanToken.rewardDistributionPercentage.network}%</p>
               </div>
             </div>
           ) : (
