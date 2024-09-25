@@ -212,25 +212,17 @@ async function getOwnedFanTokens(fid: string): Promise<any[]> {
   const query = `
     query GetOwnedFanTokens($fid: String!) {
       FarcasterFanTokenBalances(
-        input: {filter: {holderType: {_eq: USER}, holderId: {_eq: $fid}}, blockchain: ALL, limit: 50}
+        input: {filter: {holderId: {_eq: $fid}}, blockchain: ALL, limit: 50}
       ) {
         FarcasterFanTokenBalance {
           balance
-          owner {
-            userId
-            profileName
-            profileImageContentValue {
-              image {
-                small
-              }
-            }
-          }
-          token {
-            entityId
-            entityName
-            entitySymbol
-            minPriceInMoxie
-          }
+          holderId
+          holderProfileName
+          holderProfileImageUrl
+          tokenEntityId
+          tokenEntityName
+          tokenEntitySymbol
+          tokenMinPriceInMoxie
         }
       }
     }
@@ -249,14 +241,15 @@ async function getOwnedFanTokens(fid: string): Promise<any[]> {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
     }
 
     const data = await response.json();
     console.log('Owned Fan Tokens API response data:', JSON.stringify(data, null, 2));
 
     if (data.errors) {
-      throw new Error('GraphQL errors in the response');
+      throw new Error('GraphQL errors in the response: ' + JSON.stringify(data.errors));
     }
 
     return data.data.FarcasterFanTokenBalances.FarcasterFanTokenBalance || [];
@@ -508,19 +501,19 @@ app.frame('/owned-tokens', async (c) => {
                 borderRadius: '10px'
               }}>
                 <img 
-                  src={token.owner.profileImageContentValue?.image?.small || 'default-image-url'} 
+                  src={token.holderProfileImageUrl || 'default-image-url'} 
                   alt="Profile" 
                   style={{ width: '50px', height: '50px', borderRadius: '50%', marginRight: '20px' }}
                 />
                 <div>
                   <p style={{ fontSize: '24px', color: '#BDBDBD' }}>
-                    {token.owner.profileName} (@{token.owner.userId})
+                    {token.holderProfileName} (FID: {token.holderId})
                   </p>
                   <p style={{ fontSize: '20px', color: '#A9A9A9' }}>
-                    Balance: {token.balance} {token.token.entitySymbol}
+                    Balance: {token.balance} {token.tokenEntitySymbol}
                   </p>
                   <p style={{ fontSize: '18px', color: '#A9A9A9' }}>
-                    Price: {Number(token.token.minPriceInMoxie).toFixed(6)} MOXIE
+                    Price: {Number(token.tokenMinPriceInMoxie).toFixed(6)} MOXIE
                   </p>
                 </div>
               </div>
