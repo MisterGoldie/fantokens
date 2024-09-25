@@ -428,6 +428,7 @@ app.frame('/yourfantoken', async (c) => {
     ),
     intents: [
       <Button action="/">Back</Button>,
+      <Button action="/owned-tokens">OT</Button>,
       <Button action="/yourfantoken">Refresh</Button>,
     ]
   });
