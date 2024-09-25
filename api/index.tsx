@@ -156,35 +156,17 @@ app.frame('/', (c) => {
 });
 
 app.frame('/check', async (c) => {
-  console.log('Entering /check frame');
   const { fid } = c.frameData || {};
 
-  console.log(`FID: ${fid}`);
-
-  if (!fid) {
-    console.error('No FID found in frameData');
-    return c.res({
-      image: (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
-        </div>
-      ),
-      intents: [
-        <Button action="/">Back</Button>
-      ]
-    });
-  }
-
   let fanTokens: FanTokenInfo[] = [];
-
   try {
-    fanTokens = await getFanTokenInfo(fid.toString());
+    fanTokens = await getFanTokenInfo(fid?.toString() || '');
     console.log('Fan tokens retrieved:', JSON.stringify(fanTokens, null, 2));
   } catch (error) {
     console.error('Error in getFanTokenInfo:', error);
   }
 
-  const token = fanTokens[0]; // Get the first token
+  const token = fanTokens[0];
 
   return c.res({
     image: (
@@ -197,56 +179,20 @@ app.frame('/check', async (c) => {
         color: 'white',
         fontFamily: 'Arial, sans-serif',
         padding: '20px',
-        boxSizing: 'border-box',
+        justifyContent: 'center',
+        alignItems: 'center',
       }}>
-        <h2 style={{ 
-          fontSize: '32px', 
-          marginBottom: '20px', 
-          color: '#FFD700', 
-          textAlign: 'center',
-          width: '100%'
-        }}>
-          Fan Tokens for FID: {fid}
-        </h2>
+        <h1 style={{ fontSize: '48px', color: '#FFD700', textAlign: 'center' }}>
+          Fan Token for FID: {fid}
+        </h1>
         {token ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '500px' }}>
-            <div style={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              padding: '20px', 
-              backgroundColor: 'rgba(255,255,255,0.1)', 
-              borderRadius: '10px',
-              gap: '10px',
-              width: '400px',
-              height: '200px'
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#4CAF50' }}>{token.entityName}</span>
-                <span style={{ fontSize: '18px', color: '#BDBDBD' }}>({token.entitySymbol})</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '18px', marginTop: '10px' }}>
-                <span>Min Price:</span>
-                <span style={{ color: '#FFD700' }}>{token.minPriceInMoxie} MOXIE</span>
-              </div>
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between',
-                fontSize: '16px',
-                marginTop: '10px'
-              }}>
-                <div>
-                  <div>Fans: {token.rewardDistributionPercentage.creatorFans}%</div>
-                  <div>Channel: {token.rewardDistributionPercentage.channelFans}%</div>
-                </div>
-                <div>
-                  <div>Creator: {token.rewardDistributionPercentage.creator}%</div>
-                  <div>Network: {token.rewardDistributionPercentage.network}%</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+            {token.entityName} ({token.entitySymbol})
+          </p>
         ) : (
-          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan tokens found</p>
+          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+            No fan token found
+          </p>
         )}
       </div>
     ),
