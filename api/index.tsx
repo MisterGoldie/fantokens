@@ -228,11 +228,22 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
 async function getRewardsInfo(fid: string): Promise<any> {
   try {
     const query_result = await dune.getLatestResult({queryId: 4088502});
+    console.log('Dune query result:', JSON.stringify(query_result, null, 2));
+    
     if (query_result && query_result.result && query_result.result.rows) {
-      const userRewards = query_result.result.rows.find((row: any) => row.fid === fid);
-      return userRewards || null;
+      // Filter the rows to only include the data for the specific FID
+      const userRewards = query_result.result.rows.find((row: any) => row.fid.toString() === fid);
+      
+      if (userRewards) {
+        return userRewards;
+      } else {
+        console.log(`No rewards found for FID: ${fid}`);
+        return null;
+      }
+    } else {
+      console.log('No result or rows in the Dune query result');
+      return null;
     }
-    return null;
   } catch (error) {
     console.error('Error fetching rewards from Dune:', error);
     return null;
@@ -474,7 +485,7 @@ app.frame('/yourfantoken', async (c) => {
           <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center', marginBottom: '20px' }}>
             Min Price: {formattedPrice} MOXIE
           </p>
-          {fanToken ? (
+          {fanToken && (
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
               <p style={{ fontSize: '28px', color: '#BDBDBD', textAlign: 'center', marginBottom: '15px' }}>Reward Distribution:</p>
               <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
@@ -486,15 +497,13 @@ app.frame('/yourfantoken', async (c) => {
                 <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>Network: {fanToken.rewardDistributionPercentage.network}%</p>
               </div>
             </div>
-          ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token found</p>
           )}
           {rewardsInfo && (
             <div style={{ marginTop: '20px', textAlign: 'center' }}>
               <p style={{ fontSize: '28px', color: '#FFD700', marginBottom: '10px' }}>Rewards Information</p>
-              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Total Rewards: {rewardsInfo.totalRewards} MOXIE</p>
-              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Last Reward: {rewardsInfo.lastReward} MOXIE</p>
-              {/* Add more reward information as needed */}
+              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Total Rewards: {rewardsInfo.total_rewards_moxie} MOXIE</p>
+              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 24h: {rewardsInfo.rewards_last_24h_moxie} MOXIE</p>
+              <p style={{ fontSize: '24px', color: '#BDBDBD' }}>Rewards Last 7d: {rewardsInfo.rewards_last_7d_moxie} MOXIE</p>
             </div>
           )}
         </div>
@@ -502,7 +511,6 @@ app.frame('/yourfantoken', async (c) => {
     ),
     intents: [
       <Button action="/">Back</Button>,
-      <Button action="/owned-tokens">Tokens Owned</Button>,
       <Button action="/yourfantoken">Refresh</Button>,
     ]
   });
