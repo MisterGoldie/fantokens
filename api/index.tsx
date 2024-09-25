@@ -231,7 +231,7 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button action="/check">Check Fan Tokens</Button>,
+      <Button action="/profile">Your Profile</Button>,
     ],
   });
 });
@@ -308,14 +308,14 @@ app.frame('/profile', async (c) => {
       </div>
     ),
     intents: [
-      <Button action="/check">Check Fan Tokens</Button>,
+      <Button action="/yourfantoken">Your Fan Token</Button>,
     ]
   });
 });
 
 
-app.frame('/check', async (c) => {
-  console.log('Entering /check frame');
+app.frame('/yourfantoken', async (c) => {
+  console.log('Entering /yourfantoken frame');
   const { fid } = c.frameData || {};
 
   console.log(`FID: ${fid}`);
@@ -393,8 +393,8 @@ app.frame('/check', async (c) => {
       </div>
     ),
     intents: [
-      <Button action="/profile">Back</Button>,
-      <Button action="/check">Refresh</Button>,
+      <Button action="/profile">Back to profile</Button>,
+      <Button action="/yourfantoken">Refresh</Button>,
     ]
   });
 });
