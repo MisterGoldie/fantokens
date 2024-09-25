@@ -203,12 +203,18 @@ app.frame('/check', async (c) => {
             Fan Token for FID: {fid}
           </h1>
           {token ? (
-            <div style={{ fontSize: '24px', color: '#BDBDBD' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
               <p>{token.entityName} ({token.entitySymbol})</p>
               <p>Min Price: {token.minPriceInMoxie} MOXIE</p>
               <p>Reward Distribution:</p>
-              <p>Fans: {token.rewardDistributionPercentage.creatorFans}% | Creator: {token.rewardDistributionPercentage.creator}%</p>
-              <p>Channel: {token.rewardDistributionPercentage.channelFans}% | Network: {token.rewardDistributionPercentage.network}%</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <p>Fans: {token.rewardDistributionPercentage.creatorFans}%</p>
+                <p>Creator: {token.rewardDistributionPercentage.creator}%</p>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <p>Channel: {token.rewardDistributionPercentage.channelFans}%</p>
+                <p>Network: {token.rewardDistributionPercentage.network}%</p>
+              </div>
             </div>
           ) : (
             <p style={{ fontSize: '24px', color: '#BDBDBD' }}>No fan token found</p>
