@@ -480,9 +480,6 @@ app.frame('/yourfantoken', async (c) => {
         alignItems: 'center',
         justifyContent: 'center',
       }}>
-        <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
-          Your Fan Token
-        </h1>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
           {userProfile?.profileImage && (
             <img 
