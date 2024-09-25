@@ -314,7 +314,7 @@ app.frame('/profile', async (c) => {
     image: (
       <div style={{ 
         display: 'flex', 
-        flexDirection: 'row', 
+        flexDirection: 'column', 
         width: '1200px', 
         height: '628px', 
         backgroundColor: '#1A1A1A',
@@ -322,38 +322,40 @@ app.frame('/profile', async (c) => {
         fontFamily: 'Arial, sans-serif',
         padding: '40px',
         boxSizing: 'border-box',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
-        <div style={{ display: 'flex', flexDirection: 'column', width: '30%', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px' }}>
           {profileInfo?.farcasterSocial.profileImage && (
             <img 
               src={profileInfo.farcasterSocial.profileImage} 
               alt="Profile" 
-              style={{ width: '200px', height: '200px', borderRadius: '50%', marginBottom: '20px' }}
+              style={{ width: '150px', height: '150px', borderRadius: '50%', marginBottom: '20px' }}
             />
           )}
-          <p style={{ fontSize: '32px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
+          <p style={{ fontSize: '36px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
             {profileInfo?.farcasterSocial.profileDisplayName}
           </p>
           <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
             @{profileInfo?.farcasterSocial.profileHandle}
           </p>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', width: '70%', justifyContent: 'center' }}>
-          <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '80%' }}>
+          <h1 style={{ fontSize: '36px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
             Profile Information
           </h1>
           {profileInfo ? (
-            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD' }}>
-              <p>Bio: {profileInfo.farcasterSocial.profileBio}</p>
-              <p>Followers: {profileInfo.farcasterSocial.followerCount}</p>
-              <p>Following: {profileInfo.farcasterSocial.followingCount}</p>
-              <p>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+              <p style={{ marginBottom: '10px' }}>Bio: {profileInfo.farcasterSocial.profileBio}</p>
+              <p style={{ marginBottom: '10px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+              <p style={{ marginBottom: '10px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
+              <p style={{ marginBottom: '10px' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
               {profileInfo.primaryDomain && (
-                <p>Primary Domain: {profileInfo.primaryDomain.name}</p>
+                <p style={{ marginBottom: '10px' }}>Primary Domain: {profileInfo.primaryDomain.name}</p>
               )}
             </div>
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD' }}>No profile information found</p>
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No profile information found</p>
           )}
         </div>
       </div>
