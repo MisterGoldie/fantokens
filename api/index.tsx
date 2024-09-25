@@ -165,8 +165,8 @@ app.frame('/check', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -189,19 +189,17 @@ app.frame('/check', async (c) => {
       <div style={{ 
         display: 'flex', 
         flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'flex-start', 
-        width: '100%', 
-        height: '100%', 
+        width: '1200px', 
+        height: '628px', 
         backgroundColor: '#1A1A1A',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
         padding: '20px',
         boxSizing: 'border-box',
-        overflowY: 'auto',
+        overflowY: 'hidden',
       }}>
         <h2 style={{ 
-          fontSize: '28px', 
+          fontSize: '32px', 
           marginBottom: '20px', 
           color: '#FFD700', 
           textAlign: 'center',
@@ -210,44 +208,46 @@ app.frame('/check', async (c) => {
           Fan Tokens for FID: {fid}
         </h2>
         {fanTokens.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', gap: '15px' }}>
-            {fanTokens.map((token, index) => (
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: '15px', overflowY: 'auto', maxHeight: '540px' }}>
+            {fanTokens.slice(0, 6).map((token, index) => (
               <div key={index} style={{ 
                 display: 'flex',
                 flexDirection: 'column',
                 padding: '15px', 
                 backgroundColor: 'rgba(255,255,255,0.1)', 
                 borderRadius: '10px',
-                gap: '5px'
+                gap: '5px',
+                width: 'calc(33% - 10px)',
+                maxWidth: '380px'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#4CAF50' }}>{token.entityName}</span>
-                  <span style={{ fontSize: '14px', color: '#BDBDBD' }}>({token.entitySymbol})</span>
+                  <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#4CAF50' }}>{token.entityName}</span>
+                  <span style={{ fontSize: '16px', color: '#BDBDBD' }}>({token.entitySymbol})</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', marginTop: '5px' }}>
                   <span>Min Price:</span>
                   <span style={{ color: '#FFD700' }}>{token.minPriceInMoxie} MOXIE</span>
                 </div>
                 <div style={{ 
                   display: 'flex', 
-                  flexWrap: 'wrap',
-                  justifyContent: 'space-between',
+                  flexDirection: 'column',
                   gap: '5px', 
-                  fontSize: '12px',
+                  fontSize: '14px',
                   backgroundColor: 'rgba(0,0,0,0.2)',
-                  padding: '5px',
-                  borderRadius: '5px'
+                  padding: '10px',
+                  borderRadius: '5px',
+                  marginTop: '10px'
                 }}>
-                  <span style={{ flex: '0 0 48%' }}>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
-                  <span style={{ flex: '0 0 48%' }}>Creator: {token.rewardDistributionPercentage.creator}%</span>
-                  <span style={{ flex: '0 0 48%' }}>Fans: {token.rewardDistributionPercentage.creatorFans}%</span>
-                  <span style={{ flex: '0 0 48%' }}>Network: {token.rewardDistributionPercentage.network}%</span>
+                  <span>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
+                  <span>Creator: {token.rewardDistributionPercentage.creator}%</span>
+                  <span>Fans: {token.rewardDistributionPercentage.creatorFans}%</span>
+                  <span>Network: {token.rewardDistributionPercentage.network}%</span>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <p style={{ fontSize: '20px', color: '#BDBDBD', textAlign: 'center' }}>No fan tokens found</p>
+          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan tokens found</p>
         )}
       </div>
     ),
