@@ -47,7 +47,7 @@ interface FanTokenInfo {
   entityId: string;
   entityName: string;
   entitySymbol: string;
-  minPriceInMoxie: number; // Changed to number
+  minPriceInMoxie: number;
   rewardDistributionPercentage: RewardDistribution;
 }
 
@@ -287,7 +287,6 @@ app.frame('/', (c) => {
   });
 });
 
-
 app.frame('/profile', async (c) => {
   console.log('Entering /profile frame');
   const { fid } = c.frameData || {};
@@ -320,48 +319,42 @@ app.frame('/profile', async (c) => {
         backgroundColor: '#1A1A1A',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
-        padding: '20px',
+        padding: '40px',
         boxSizing: 'border-box',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px' }}>
           {profileInfo?.farcasterSocial.profileImage && (
             <img 
               src={profileInfo.farcasterSocial.profileImage} 
               alt="Profile" 
-              style={{ width: '100px', height: '100px', borderRadius: '50%', marginRight: '20px' }}
+              style={{ width: '150px', height: '150px', borderRadius: '50%', marginBottom: '20px' }}
             />
           )}
-          <div>
-            <p style={{ fontSize: '36px', color: '#FFD700', marginBottom: '5px' }}>
-              {profileInfo?.farcasterSocial.profileDisplayName}
-            </p>
-            <p style={{ fontSize: '24px', color: '#BDBDBD' }}>
-              @{profileInfo?.farcasterSocial.profileHandle}
-            </p>
-          </div>
+          <p style={{ fontSize: '36px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
+            {profileInfo?.farcasterSocial.profileDisplayName}
+          </p>
+          <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+            @{profileInfo?.farcasterSocial.profileHandle}
+          </p>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '80%' }}>
+          <h1 style={{ fontSize: '36px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
+            Profile Information
+          </h1>
           {profileInfo ? (
-            <>
-              <div style={{ width: '48%', backgroundColor: '#2A2A2A', padding: '15px', borderRadius: '10px', marginBottom: '15px' }}>
-                <h3 style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>Bio</h3>
-                <p style={{ fontSize: '20px', color: 'white' }}>{profileInfo.farcasterSocial.profileBio}</p>
-              </div>
-              <div style={{ width: '48%', backgroundColor: '#2A2A2A', padding: '15px', borderRadius: '10px', marginBottom: '15px' }}>
-                <h3 style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>Stats</h3>
-                <p style={{ fontSize: '20px', color: 'white', marginBottom: '5px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
-                <p style={{ fontSize: '20px', color: 'white', marginBottom: '5px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
-                <p style={{ fontSize: '20px', color: 'white' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>
+              <p style={{ marginBottom: '10px' }}>Bio: {profileInfo.farcasterSocial.profileBio}</p>
+              <p style={{ marginBottom: '10px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+              <p style={{ marginBottom: '10px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
+              <p style={{ marginBottom: '10px' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
               {profileInfo.primaryDomain && (
-                <div style={{ width: '100%', backgroundColor: '#2A2A2A', padding: '15px', borderRadius: '10px' }}>
-                  <h3 style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>Primary Domain</h3>
-                  <p style={{ fontSize: '20px', color: 'white' }}>{profileInfo.primaryDomain.name}</p>
-                </div>
+                <p style={{ marginBottom: '10px' }}>Primary Domain: {profileInfo.primaryDomain.name}</p>
               )}
-            </>
+            </div>
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center', width: '100%' }}>No profile information found</p>
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No profile information found</p>
           )}
         </div>
       </div>
