@@ -230,18 +230,19 @@ app.frame('/check', async (c) => {
                   <span style={{ color: '#FFD700' }}>{token.minPriceInMoxie} MOXIE</span>
                 </div>
                 <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(2, 1fr)', 
+                  display: 'flex', 
+                  flexWrap: 'wrap',
+                  justifyContent: 'space-between',
                   gap: '5px', 
                   fontSize: '12px',
                   backgroundColor: 'rgba(0,0,0,0.2)',
                   padding: '5px',
                   borderRadius: '5px'
                 }}>
-                  <span>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
-                  <span>Creator: {token.rewardDistributionPercentage.creator}%</span>
-                  <span>Fans: {token.rewardDistributionPercentage.creatorFans}%</span>
-                  <span>Network: {token.rewardDistributionPercentage.network}%</span>
+                  <span style={{ flex: '0 0 48%' }}>Channel: {token.rewardDistributionPercentage.channelFans}%</span>
+                  <span style={{ flex: '0 0 48%' }}>Creator: {token.rewardDistributionPercentage.creator}%</span>
+                  <span style={{ flex: '0 0 48%' }}>Fans: {token.rewardDistributionPercentage.creatorFans}%</span>
+                  <span style={{ flex: '0 0 48%' }}>Network: {token.rewardDistributionPercentage.network}%</span>
                 </div>
               </div>
             ))}
