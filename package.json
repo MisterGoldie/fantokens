@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@duneanalytics/client-sdk": "^0.2.4",
+    "ethers": "^6.13.2",
     "frog": "latest",
     "graphql": "^16.9.0",
     "graphql-request": "^7.1.0",

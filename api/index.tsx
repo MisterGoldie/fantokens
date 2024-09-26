@@ -2,6 +2,8 @@ import { Button, Frog } from 'frog';
 import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
 import { gql, GraphQLClient } from "graphql-request";
+import { ethers } from 'ethers';
+
 
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
@@ -448,6 +450,7 @@ app.frame('/yourfantoken', async (c) => {
   });
 });
 
+
 app.frame('/owned-tokens', async (c) => {
   console.log('Entering /owned-tokens frame');
   const { fid } = c.frameData || {};
@@ -485,16 +488,16 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
-  // Assuming profileInfo contains the user's Ethereum address
-  const userAddress = profileInfo.primaryDomain?.name || '';
-  console.log('User address:', userAddress);
+  // Assuming profileInfo contains the user's Ethereum address or ENS
+  const userAddressOrENS = profileInfo.primaryDomain?.name || '';
+  console.log('User address or ENS:', userAddressOrENS);
 
-  if (!userAddress) {
-    console.error('No Ethereum address found for user');
+  if (!userAddressOrENS) {
+    console.error('No Ethereum address or ENS found for user');
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No Ethereum address found</h1>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No Ethereum address or ENS found</h1>
         </div>
       ),
       intents: [
@@ -503,10 +506,36 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
+  // Resolve ENS to Ethereum address if necessary
+  let resolvedAddress;
+  if (userAddressOrENS.endsWith('.eth')) {
+    const provider = new ethers.JsonRpcProvider('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID');
+    try {
+      resolvedAddress = await provider.resolveName(userAddressOrENS);
+      if (!resolvedAddress) {
+        throw new Error('Failed to resolve ENS name');
+      }
+    } catch (error) {
+      console.error('Error resolving ENS:', error);
+      return c.res({
+        image: (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Failed to resolve ENS name</h1>
+          </div>
+        ),
+        intents: [
+          <Button action="/">Back</Button>
+        ]
+      });
+    }
+  } else {
+    resolvedAddress = userAddressOrENS;
+  }
+
   const vestingGraphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
 
   const vestingQuery = gql`
-    query MyQuery($beneficiary: Bytes) {
+    query MyQuery($beneficiary: Bytes!) {
       tokenLockWallets(where: {beneficiary: $beneficiary}) {
         address: id
       }
@@ -514,7 +543,7 @@ app.frame('/owned-tokens', async (c) => {
   `;
 
   const vestingVariables = {
-    beneficiary: userAddress.toLowerCase()
+    beneficiary: resolvedAddress.toLowerCase()
   };
 
   try {
