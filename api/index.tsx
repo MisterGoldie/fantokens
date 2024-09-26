@@ -20,7 +20,6 @@ type TextBoxProps = {
   value: string | number;
 };
 
-
 export const app = new Frog({
   basePath: '/api',
   imageOptions: { width: 1200, height: 628 },
@@ -67,7 +66,7 @@ interface FanTokenInfoResponse {
   }>;
 }
 
-type OwnedTokensQueryResponse = {
+interface OwnedTokensQueryResponse {
   users: Array<{
     portfolio: Array<{
       balance: string;
@@ -79,8 +78,7 @@ type OwnedTokensQueryResponse = {
       };
     }>;
   }>;
-};
-
+}
 
 interface ProfileInfo {
   primaryDomain: {
@@ -197,7 +195,6 @@ async function getFanTokenAddressFromFID(fid: string): Promise<any> {
   }
 }
 
-
 async function getFanTokenInfo(fid: string): Promise<any> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
@@ -253,7 +250,6 @@ async function getFanTokenInfo(fid: string): Promise<any> {
   }
 }
 
-
 app.frame('/', (c) => {
   return c.res({
     image: (
@@ -268,7 +264,7 @@ app.frame('/', (c) => {
         alignItems: 'center',
       }}>
         <h1 style={{ fontSize: '48px', color: '#FFD700' }}>
-          Farcaster Fan Token Tracker
+          Fan Token Tracker
         </h1>
       </div>
     ),
@@ -449,9 +445,6 @@ app.frame('/yourfantoken', async (c) => {
   });
 });
 
-
-
-
 app.frame('/owned-tokens', async (c) => {
   console.log('Entering /owned-tokens frame');
   const { fid } = c.frameData || {};
@@ -472,6 +465,8 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
+  let profileInfo = await getProfileInfo(fid.toString());
+
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
   const query = gql`
@@ -490,16 +485,17 @@ app.frame('/owned-tokens', async (c) => {
     }
   `;
 
-  // Construct user ID from FID (you may need to adjust this based on your actual FID to address conversion)
-  const userId = `0x${fid.toString().padStart(40, '0')}`;
+  const userAddress = `0x${fid.toString().padStart(40, '0')}`;
 
   const variables = {
-    userAddresses: [userId]
+    userAddresses: [userAddress]
   };
+
+  console.log('Query variables:', variables);
 
   try {
     const data = await graphQLClient.request<OwnedTokensQueryResponse>(query, variables);
-    console.log('Owned tokens data:', data);
+    console.log('Owned tokens data:', JSON.stringify(data, null, 2));
 
     const ownedTokens = data.users[0]?.portfolio || [];
 
@@ -518,12 +514,30 @@ app.frame('/owned-tokens', async (c) => {
           padding: '40px',
           boxSizing: 'border-box',
         }}>
+          <div style={{
+            width: '150px',
+            height: '150px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+            alignSelf: 'center',
+          }}>
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
             Your Owned Fan Tokens
           </h1>
           <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
             {ownedTokens.length > 0 ? (
-              ownedTokens.map((token, index) => (
+              ownedTokens.map((token: OwnedTokensQueryResponse['users'][0]['portfolio'][0], index: number) => (
                 <div key={index} style={{ 
                   display: 'flex', 
                   flexDirection: 'column',
@@ -579,7 +593,6 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
-
 
 export const GET = handle(app);
 export const POST = handle(app);
