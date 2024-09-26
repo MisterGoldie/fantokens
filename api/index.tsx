@@ -152,26 +152,23 @@ async function getRewardsInfo(fid: string): Promise<any> {
 
 async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
   const query = `
-    query GetOwnedFanTokens($fid: Identity!) {
-      Tokens(
-        input: {filter: {owner: {_eq: $fid}, tokenType: {_in: [ERC20]}, tokenAddress: {_in: ["0x3006424b9e166978b5afa7e1e1887acd60d35f82"]}}, blockchain: ALL, limit: 50}
+    query GetOwnedFanTokens($identity: Identity!) {
+      TokenBalances(
+        input: {
+          filter: {
+            owner: {_eq: $identity},
+            tokenType: {_in: [ERC20]},
+            tokenAddress: {_in: ["0x3006424b9e166978b5afa7e1e1887acd60d35f82"]}
+          },
+          blockchain: ALL,
+          limit: 50
+        }
       ) {
-        Token {
-          tokenAddress
-          tokenId
-          tokenType
-          token {
-            name
-            symbol
-            decimals
-          }
-          amount
-          formattedAmount
+        TokenBalance {
           owner {
             addresses
             domains {
               name
-              avatar
             }
             socials {
               dappName
@@ -179,12 +176,18 @@ async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
               profileImage
             }
           }
+          amount
+          formattedAmount
+          token {
+            name
+            symbol
+          }
         }
       }
     }
   `;
 
-  const variables = { fid: `fc_fid:${fid}` };
+  const variables = { identity: `fc_fid:${fid}` };
 
   try {
     const response = await fetch(AIRSTACK_API_URL, {
@@ -208,7 +211,7 @@ async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
       throw new Error('GraphQL errors in the response: ' + JSON.stringify(data.errors));
     }
 
-    const tokens = data.data.Tokens.Token || [];
+    const tokens = data.data.TokenBalances.TokenBalance || [];
 
     return tokens.map((token: any): OwnedToken => ({
       holderId: fid,
