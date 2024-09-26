@@ -219,6 +219,50 @@ async function getFarcasterAddressFromFID(fid: string): Promise<string> {
   }
 }
 
+app.frame('/', (c) => {
+  return c.res({
+    image: (
+      <div style={{
+        width: '1200px',
+        height: '628px',
+        backgroundImage: 'url(https://bafybeidaqyqtdynorxghei3q7dceyb23rlhd5txkwhj7hx37dwhidb4yyy.ipfs.w3s.link/Frame%2064%20(1).png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        fontFamily: 'Arial, sans-serif',
+        color: '#ffffff',
+        textAlign: 'center',
+      }}>
+        <h1 style={{ 
+          fontSize: '64px', 
+          color: '#FFD700', 
+          marginBottom: '20px',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+        }}>
+          Farcaster Fan Token Tracker
+        </h1>
+        <p style={{ 
+          fontSize: '24px', 
+          maxWidth: '800px', 
+          marginBottom: '40px',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          padding: '20px',
+          borderRadius: '10px'
+        }}>
+          Track and manage your Farcaster fan tokens. View your profile, check your token's performance, and see tokens you own.
+        </p>
+      </div>
+    ),
+    intents: [
+      <Button action="/profile">View Your Profile</Button>,
+    ],
+  });
+});
+
+
 app.frame('/profile', async (c) => {
   console.log('Entering /profile frame');
   const { fid } = c.frameData || {};
@@ -539,7 +583,8 @@ app.frame('/owned-tokens', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/">Back</Button>
+        <Button action="/">Home</Button>,
+        <Button action="/yourfantoken">Yours</Button>,
       ]
     });
   }
