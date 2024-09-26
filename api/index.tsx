@@ -144,23 +144,37 @@ async function getFanTokenInfo(fid: string): Promise<any> {
     
     // First, get the user's name based on their FID
     const nameQueryResult = await dune.getLatestResult({ queryId: 4003185 });
+    console.log('Name query result:', JSON.stringify(nameQueryResult, null, 2));
+
     if (!nameQueryResult.result?.rows?.length) {
-      console.log(`No user found for FID: ${fid}`);
+      console.log(`No results found in the name query`);
       return null;
     }
-    const userName = nameQueryResult.result.rows.find((row: any) => row.fid?.toString() === fid)?.name;
+
+    const userRow = nameQueryResult.result.rows.find((row: any) => row.fid?.toString() === fid);
     
-    if (!userName) {
-      console.log(`No name found for FID: ${fid}`);
+    if (!userRow) {
+      console.log(`No row found for FID: ${fid}`);
+      console.log('Available FIDs:', nameQueryResult.result.rows.map((row: any) => row.fid).join(', '));
       return null;
     }
+
+    const userName = userRow.name;
+
+    if (!userName) {
+      console.log(`Name is null or undefined for FID: ${fid}`);
+      console.log('User row:', JSON.stringify(userRow, null, 2));
+      return null;
+    }
+
+    console.log(`Found name for FID ${fid}: ${userName}`);
 
     // Now, use the user's name to get their fan token info
     const tokenQueryResult = await dune.getLatestResult({ queryId: 4058621 });
-    console.log('Dune query result:', JSON.stringify(tokenQueryResult, null, 2));
+    console.log('Token query result:', JSON.stringify(tokenQueryResult, null, 2));
 
     if (!tokenQueryResult.result?.rows?.length) {
-      console.log(`No fan token data found for user: ${userName}`);
+      console.log(`No fan token data found`);
       return null;
     }
 
@@ -168,6 +182,7 @@ async function getFanTokenInfo(fid: string): Promise<any> {
 
     if (!latestData) {
       console.log(`No specific fan token data found for user: ${userName}`);
+      console.log('Available names:', tokenQueryResult.result.rows.map((row: any) => row.name).join(', '));
       return null;
     }
 
