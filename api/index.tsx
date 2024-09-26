@@ -86,6 +86,20 @@ interface FanTokenInfoResponse {
   }>;
 }
 
+type OwnedTokensQueryResponse = {
+  users: Array<{
+    portfolio: Array<{
+      balance: string;
+      buyVolume: string;
+      sellVolume: string;
+      subjectToken: {
+        name: string;
+        symbol: string;
+      };
+    }>;
+  }>;
+};
+
 interface OwnedFanTokensResponse {
   users: Array<{
     portfolio: Array<{
@@ -550,14 +564,14 @@ app.frame('/owned-tokens', async (c) => {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
   // Query to get user's owned tokens
-  const moxieQuery = gql`
-    query GetUserTokens($userId: ID!) {
-      users(where: {id: $userId}) {
-        id
+  const ownedTokensQuery = gql`
+    query MyQuery($userAddresses: [ID!]) {
+      users(where: { id_in: $userAddresses }) {
         portfolio {
           balance
+          buyVolume
+          sellVolume
           subjectToken {
-            id
             name
             symbol
           }
@@ -571,10 +585,10 @@ app.frame('/owned-tokens', async (c) => {
 
   try {
     // Execute Moxie API query with proper typing
-    const moxieData = await graphQLClient.request<MoxieQueryResponse>(moxieQuery, { userId });
-    console.log('Moxie API data:', moxieData);
+    const ownedTokensData = await graphQLClient.request<OwnedTokensQueryResponse>(ownedTokensQuery, { userAddresses: [userId] });
+    console.log('Owned tokens data:', ownedTokensData);
 
-    const ownedTokens = moxieData.users[0]?.portfolio || [];
+    const ownedTokens = ownedTokensData.users[0]?.portfolio || [];
 
     return c.res({
       image: (
@@ -599,21 +613,22 @@ app.frame('/owned-tokens', async (c) => {
               ownedTokens.map((token, index) => (
                 <div key={index} style={{ 
                   display: 'flex', 
-                  alignItems: 'center', 
+                  flexDirection: 'column',
                   marginBottom: '20px', 
                   backgroundColor: 'rgba(255,255,255,0.8)',
                   padding: '10px',
                   borderRadius: '10px',
                   color: '#000000'
                 }}>
-                  <div>
-                    <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                      {token.subjectToken.name}
-                    </p>
-                    <p style={{ fontSize: '20px' }}>
-                      Balance: {parseFloat(token.balance).toFixed(2)} {token.subjectToken.symbol}
-                    </p>
-                  </div>
+                  <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                    {token.subjectToken.name} ({token.subjectToken.symbol})
+                  </p>
+                  <p style={{ fontSize: '20px' }}>
+                    Balance: {parseFloat(token.balance).toFixed(2)}
+                  </p>
+                  <p style={{ fontSize: '16px' }}>
+                    Buy Volume: {parseFloat(token.buyVolume).toFixed(2)} | Sell Volume: {parseFloat(token.sellVolume).toFixed(2)}
+                  </p>
                 </div>
               ))
             ) : (
