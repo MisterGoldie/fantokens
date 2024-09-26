@@ -53,7 +53,6 @@ interface FanTokenInfoResponse {
     name: string;
     symbol: string;
     totalSupply: string;
-    totalVolume: string;
   }>;
 }
 
@@ -202,7 +201,6 @@ async function getFanTokenInfo(fid: string): Promise<any> {
         name
         symbol
         totalSupply
-        totalVolume
       }
     }
   `;
@@ -228,7 +226,6 @@ async function getFanTokenInfo(fid: string): Promise<any> {
       symbol: tokenInfo.symbol,
       currentPriceInMoxie: parseFloat(tokenInfo.currentPriceInMoxie),
       totalSupply: parseFloat(tokenInfo.totalSupply),
-      totalVolume: parseFloat(tokenInfo.totalVolume),
       decimals: tokenAddressInfo.decimals
     };
   } catch (error) {
@@ -424,7 +421,6 @@ app.frame('/yourfantoken', async (c) => {
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Symbol: {tokenInfo.symbol}</p>
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Current Price: {tokenInfo.currentPriceInMoxie.toFixed(4)} MOXIE</p>
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Total Supply: {tokenInfo.totalSupply.toFixed(2)}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Total Volume: {tokenInfo.totalVolume.toFixed(2)} MOXIE</p>
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Address: {tokenInfo.address}</p>
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Decimals: {tokenInfo.decimals}</p>
             </div>
