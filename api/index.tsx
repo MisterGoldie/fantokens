@@ -2,13 +2,10 @@ import { Button, Frog } from 'frog';
 import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
 import { gql, GraphQLClient } from "graphql-request";
-import { ethers } from 'ethers';
 
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
 const MOXIE_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_protocol_stats_mainnet/version/latest";
-const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
-const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
 
 if (!AIRSTACK_API_KEY) {
   console.warn('AIRSTACK_API_KEY is not set in the environment variables');
@@ -18,9 +15,6 @@ if (!NEYNAR_API_KEY) {
   console.warn('NEYNAR_API_KEY is not set in the environment variables');
 }   
 
-if (!INFURA_API_KEY) {
-  console.warn('INFURA_API_KEY is not set in the environment variables');
-}
 type TextBoxProps = {
   label: string;
   value: string | number;
@@ -47,46 +41,6 @@ app.use(
     features: ['interactor', 'cast'],
   })
 );
-
-interface FanTokenAddressResponse {
-  subjectTokens: Array<{
-    address: string;
-    name: string;
-    symbol: string;
-    decimals: number;
-  }>;
-}
-
-interface FanTokenInfoResponse {
-  subjectTokens: Array<{
-    currentPriceInMoxie: string;
-    id: string;
-    name: string;
-    symbol: string;
-    portfolio: Array<{
-      balance: string;
-      user: {
-        id: string;
-      };
-    }>;
-  }>;
-}
-
-interface VestingDataResponse {
-  tokenLockWallets: Array<{
-    address: string;
-  }>;
-}
-
-interface TokenBalancesResponse {
-  subjectTokens: Array<{
-    id: string;
-    name: string;
-    symbol: string;
-    totalSupply: string;
-    currentPriceInMoxie: string;
-  }>;
-}
 
 interface ProfileInfo {
   primaryDomain: {
@@ -188,7 +142,7 @@ async function getFanTokenAddressFromFID(fid: string): Promise<any> {
   };
 
   try {
-    const data = await graphQLClient.request<FanTokenAddressResponse>(query, variables);
+    const data = await graphQLClient.request<any>(query, variables);
     console.log('Fan token address query response:', JSON.stringify(data, null, 2));
 
     if (!data.subjectTokens || data.subjectTokens.length === 0) {
@@ -236,7 +190,7 @@ async function getFanTokenInfo(fid: string): Promise<any> {
   };
 
   try {
-    const data = await graphQLClient.request<FanTokenInfoResponse>(query, variables);
+    const data = await graphQLClient.request<any>(query, variables);
     console.log('Moxie API response:', JSON.stringify(data, null, 2));
 
     if (!data.subjectTokens || data.subjectTokens.length === 0) {
@@ -257,6 +211,190 @@ async function getFanTokenInfo(fid: string): Promise<any> {
     return null;
   }
 }
+
+app.frame('/owned-tokens', async (c) => {
+  console.log('Entering /owned-tokens frame');
+  const { fid } = c.frameData || {};
+
+  console.log(`FID: ${fid}`);
+
+  if (!fid) {
+    console.error('No FID found in frameData');
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
+  }
+
+  let profileInfo = await getProfileInfo(fid.toString());
+  console.log('Profile info:', JSON.stringify(profileInfo, null, 2));
+
+  if (!profileInfo) {
+    console.error('Failed to retrieve profile info');
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Failed to retrieve profile info</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
+  }
+
+  const moxieGraphQLClient = new GraphQLClient(MOXIE_API_URL);
+
+  const userPortfolioQuery = gql`
+    query GetUserPortfolio($fid: String!) {
+      users(where: { id: $fid }) {
+        portfolio {
+          balance
+          buyVolume
+          sellVolume
+          subjectToken {
+            name
+            symbol
+          }
+        }
+      }
+    }
+  `;
+
+  const userPortfolioVariables = {
+    fid: fid.toString()
+  };
+
+  console.log('Moxie API URL:', MOXIE_API_URL);
+  console.log('GraphQL Query:', userPortfolioQuery);
+  console.log('Query Variables:', JSON.stringify(userPortfolioVariables, null, 2));
+
+  try {
+    console.log('Sending request to Moxie API...');
+    const portfolioData = await moxieGraphQLClient.request<any>(userPortfolioQuery, userPortfolioVariables);
+    console.log('Moxie API Response:', JSON.stringify(portfolioData, null, 2));
+
+    if (!portfolioData.users || portfolioData.users.length === 0) {
+      console.warn('No user data found in Moxie API response');
+      return c.res({
+        image: (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this user</h1>
+          </div>
+        ),
+        intents: [
+          <Button action="/">Back</Button>
+        ]
+      });
+    }
+
+    const ownedTokens = portfolioData.users[0]?.portfolio || [];
+
+    return c.res({
+      image: (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          color: 'white',
+          fontFamily: 'Arial, sans-serif',
+          padding: '40px',
+          boxSizing: 'border-box',
+        }}>
+          <div style={{
+            width: '150px',
+            height: '150px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+            alignSelf: 'center',
+          }}>
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
+            Your Owned Fan Tokens
+          </h1>
+          <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
+            {ownedTokens.length > 0 ? (
+              ownedTokens.map((token: any, index: number) => (
+                <div key={index} style={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  marginBottom: '20px', 
+                  backgroundColor: 'rgba(255,255,255,0.8)',
+                  padding: '10px',
+                  borderRadius: '10px',
+                  color: '#000000'
+                }}>
+                  <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                    {token.subjectToken.name} ({token.subjectToken.symbol})
+                  </p>
+                  <p style={{ fontSize: '20px' }}>
+                    Balance: {parseFloat(token.balance) / 1e18} tokens
+                  </p>
+                  <p style={{ fontSize: '20px' }}>
+                    Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
+                  </p>
+                  <p style={{ fontSize: '20px' }}>
+                    Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p style={{ fontSize: '24px', color: '#FFFFFF', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '10px' }}>No owned fan tokens found</p>
+            )}
+          </div>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>,
+        <Button action="/yourfantoken">Your Fan Token</Button>,
+      ]
+    });
+  } catch (error) {
+    console.error('Error fetching data from Moxie API:', error);
+    
+    let errorMessage: string;
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      console.error('Error details:', error.stack);
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = 'An unknown error occurred';
+    }
+
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan tokens: {errorMessage}</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
+  }
+});
+
 
 app.frame('/', (c) => {
   return c.res({
@@ -513,9 +651,28 @@ app.frame('/owned-tokens', async (c) => {
     fid: fid.toString()
   };
 
+  console.log('Moxie API URL:', MOXIE_API_URL);
+  console.log('GraphQL Query:', userPortfolioQuery);
+  console.log('Query Variables:', JSON.stringify(userPortfolioVariables, null, 2));
+
   try {
+    console.log('Sending request to Moxie API...');
     const portfolioData = await moxieGraphQLClient.request<any>(userPortfolioQuery, userPortfolioVariables);
-    console.log('User portfolio data:', JSON.stringify(portfolioData, null, 2));
+    console.log('Moxie API Response:', JSON.stringify(portfolioData, null, 2));
+
+    if (!portfolioData.users || portfolioData.users.length === 0) {
+      console.warn('No user data found in Moxie API response');
+      return c.res({
+        image: (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this user</h1>
+          </div>
+        ),
+        intents: [
+          <Button action="/">Back</Button>
+        ]
+      });
+    }
 
     const ownedTokens = portfolioData.users[0]?.portfolio || [];
 
@@ -593,17 +750,12 @@ app.frame('/owned-tokens', async (c) => {
       ]
     });
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('Error fetching data from Moxie API:', error);
     
     let errorMessage: string;
     if (error instanceof Error) {
-      if (error.message.includes('rate limit')) {
-        errorMessage = 'API rate limit exceeded. Please try again later.';
-      } else if (error.message.includes('network')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else {
-        errorMessage = error.message;
-      }
+      errorMessage = error.message;
+      console.error('Error details:', error.stack);
     } else if (typeof error === 'string') {
       errorMessage = error;
     } else {
@@ -613,7 +765,7 @@ app.frame('/owned-tokens', async (c) => {
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: {errorMessage}</h1>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan tokens: {errorMessage}</h1>
         </div>
       ),
       intents: [
