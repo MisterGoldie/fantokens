@@ -422,11 +422,25 @@ app.frame('/yourfantoken', async (c) => {
 
   return c.res({
     image: (
-      <div style={{ display: 'flex', flexDirection: 'column', width: '1200px', height: '628px', backgroundColor: '#273444', color: '#d3dce6', fontFamily: 'Montserrat, sans-serif', padding: '20px', boxSizing: 'border-box', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        width: '1200px', 
+        height: '628px', 
+        backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        color: '#d3dce6', 
+        fontFamily: 'Montserrat, sans-serif', 
+        padding: '20px', 
+        boxSizing: 'border-box', 
+        alignItems: 'center', 
+        justifyContent: 'center' 
+      }}>
         <h1 style={{ fontSize: '56px', color: '#A36EFD', marginBottom: '20px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.1rem' }}>
           Your Fan Token
         </h1>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px', backgroundColor: 'rgba(39, 52, 68, 0.8)', padding: '20px', borderRadius: '16px' }}>
           {tokenInfo ? (
             <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '2px solid #ff7849', padding: '30px', borderRadius: '32px' }}>
               <p style={{ fontSize: '32px', color: '#A36EFD', marginBottom: '15px', textAlign: 'center' }}>FID: {fid}</p>
@@ -448,7 +462,6 @@ app.frame('/yourfantoken', async (c) => {
     ]
   });
 });
-
 
 
 app.frame('/owned-tokens', async (c) => {
