@@ -4,11 +4,11 @@ import { neynar } from 'frog/middlewares';
 import { gql, GraphQLClient } from "graphql-request";
 import { ethers } from 'ethers';
 
-
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
 const MOXIE_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_protocol_stats_mainnet/version/latest";
 const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
+const INFURA_API_KEY = process.env.INFURA_API_KEY || '';
 
 if (!AIRSTACK_API_KEY) {
   console.warn('AIRSTACK_API_KEY is not set in the environment variables');
@@ -18,6 +18,9 @@ if (!NEYNAR_API_KEY) {
   console.warn('NEYNAR_API_KEY is not set in the environment variables');
 }   
 
+if (!INFURA_API_KEY) {
+  console.warn('INFURA_API_KEY is not set in the environment variables');
+}
 type TextBoxProps = {
   label: string;
   value: string | number;
@@ -509,7 +512,7 @@ app.frame('/owned-tokens', async (c) => {
   // Resolve ENS to Ethereum address if necessary
   let resolvedAddress;
   if (userAddressOrENS.endsWith('.eth')) {
-    const provider = new ethers.JsonRpcProvider('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID');
+    const provider = new ethers.JsonRpcProvider(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`);
     try {
       resolvedAddress = await provider.resolveName(userAddressOrENS);
       if (!resolvedAddress) {
