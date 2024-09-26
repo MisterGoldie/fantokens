@@ -515,8 +515,8 @@ app.frame('/owned-tokens', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -525,7 +525,6 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
-  // Note: You'll need to implement getOwnedFanTokens function
   const ownedTokens = await getOwnedFanTokens(fid.toString());
 
   return c.res({
@@ -535,7 +534,9 @@ app.frame('/owned-tokens', async (c) => {
         flexDirection: 'column', 
         width: '1200px', 
         height: '628px', 
-        backgroundColor: '#1A1A1A',
+        backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
         color: 'white',
         fontFamily: 'Arial, sans-serif',
         padding: '40px',
@@ -551,33 +552,34 @@ app.frame('/owned-tokens', async (c) => {
                 display: 'flex', 
                 alignItems: 'center', 
                 marginBottom: '20px', 
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: 'rgba(255,255,255,0.8)',
                 padding: '10px',
-                borderRadius: '10px'
+                borderRadius: '10px',
+                color: '#000000'
               }}>
                 <img 
-                  src={token.holderProfileImageUrl || 'default-image-url'} 
+                  src={token.holderProfileImageUrl || '/api/placeholder/50/50'} 
                   alt="Profile" 
                   style={{ width: '50px', height: '50px', borderRadius: '50%', marginRight: '20px' }}
                 />
                 <div>
-                  <p style={{ fontSize: '24px', color: '#BDBDBD' }}>
+                  <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
                     {token.holderProfileName || `FID: ${token.holderId}`}
                   </p>
-                  <p style={{ fontSize: '20px', color: '#A9A9A9' }}>
+                  <p style={{ fontSize: '20px' }}>
                     Balance: {token.balance} {token.tokenEntitySymbol}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No owned fan tokens found</p>
+            <p style={{ fontSize: '24px', color: '#FFFFFF', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '10px' }}>No owned fan tokens found</p>
           )}
         </div>
       </div>
     ),
     intents: [
-      <Button action="/">back</Button>,
+      <Button action="/">Back</Button>,
       <Button action="/yourfantoken">Your Fan Token</Button>,
     ]
   });
