@@ -1,12 +1,11 @@
 import { Button, Frog } from 'frog';
 import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
-import { DuneClient } from "@duneanalytics/client-sdk";
+import { gql, GraphQLClient } from "graphql-request";
 
-const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
-const DUNE_API_KEY = process.env.DUNE_API_KEY || '';
+const MOXIE_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_protocol_stats_mainnet/version/latest";
 
 if (!AIRSTACK_API_KEY) {
   console.warn('AIRSTACK_API_KEY is not set in the environment variables');
@@ -14,10 +13,6 @@ if (!AIRSTACK_API_KEY) {
 
 if (!NEYNAR_API_KEY) {
   console.warn('NEYNAR_API_KEY is not set in the environment variables');
-}
-
-if (!DUNE_API_KEY) {
-  console.warn('DUNE_API_KEY is not set in the environment variables');
 }
 
 export const app = new Frog({
@@ -42,6 +37,37 @@ app.use(
   })
 );
 
+interface FanTokenAddressResponse {
+  subjectTokens: Array<{
+    address: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+  }>;
+}
+
+interface FanTokenInfoResponse {
+  subjectTokens: Array<{
+    currentPriceInMoxie: string;
+    id: string;
+    name: string;
+    symbol: string;
+    totalSupply: string;
+    totalVolume: string;
+  }>;
+}
+
+interface OwnedFanTokenResponse {
+  subjectTokens: Array<{
+    address: any;
+    id: string;
+    name: string;
+    symbol: string;
+    decimals: number;
+    currentPriceInMoxie: string;
+  }>;
+}
+
 interface ProfileInfo {
   primaryDomain: {
     name: string;
@@ -61,17 +87,15 @@ interface ProfileInfo {
   };
 }
 
-interface OwnedToken {
-  holderId: string;
-  holderProfileName: string;
-  holderProfileImageUrl: string;
-  balance: string;
-  tokenEntitySymbol: string;
-  tokenMinPriceInMoxie: string;
-}
-
 async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
-  const query = `
+  const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
+  const graphQLClient = new GraphQLClient(AIRSTACK_API_URL, {
+    headers: {
+      'Authorization': AIRSTACK_API_KEY,
+    },
+  });
+
+  const query = gql`
     query GetProfileInfo($identity: Identity!) {
       Wallet(input: { identity: $identity }) {
         primaryDomain {
@@ -105,28 +129,15 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   const variables = { identity: `fc_fid:${fid}` };
 
   try {
-    const response = await fetch(AIRSTACK_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': AIRSTACK_API_KEY,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await graphQLClient.request<any>(query, variables);
     console.log('Profile API response data:', JSON.stringify(data, null, 2));
 
-    if (data.errors) {
-      throw new Error('GraphQL errors in the response');
+    if (!data.Wallet || !data.farcasterSocials.Social[0]) {
+      throw new Error('Incomplete data in the response');
     }
 
-    const wallet = data.data.Wallet;
-    const social = data.data.farcasterSocials.Social[0];
+    const wallet = data.Wallet;
+    const social = data.farcasterSocials.Social[0];
 
     return {
       primaryDomain: wallet.primaryDomain,
@@ -138,141 +149,134 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   }
 }
 
-async function getFanTokenInfo(fid: string): Promise<any> {
-  try {
-    const dune = new DuneClient(DUNE_API_KEY);
-    
-    // First, get the user's name based on their FID
-    const nameQueryResult = await dune.getLatestResult({ queryId: 4003185 });
-    console.log('Name query result:', JSON.stringify(nameQueryResult, null, 2));
+async function getFanTokenAddressFromFID(fid: string): Promise<any> {
+  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
-    if (!nameQueryResult.result?.rows?.length) {
-      console.log(`No results found in the name query`);
-      return null;
-    }
-
-    const userRow = nameQueryResult.result.rows.find((row: any) => row.fid?.toString() === fid);
-    
-    if (!userRow) {
-      console.log(`No row found for FID: ${fid}`);
-      console.log('Available FIDs:', nameQueryResult.result.rows.map((row: any) => row.fid).join(', '));
-      return null;
-    }
-
-    const userName = userRow.name;
-
-    if (!userName) {
-      console.log(`Name is null or undefined for FID: ${fid}`);
-      console.log('User row:', JSON.stringify(userRow, null, 2));
-      return null;
-    }
-
-    console.log(`Found name for FID ${fid}: ${userName}`);
-
-    // Now, use the user's name to get their fan token info
-    const tokenQueryResult = await dune.getLatestResult({ queryId: 4058621 });
-    console.log('Token query result:', JSON.stringify(tokenQueryResult, null, 2));
-
-    if (!tokenQueryResult.result?.rows?.length) {
-      console.log(`No fan token data found`);
-      return null;
-    }
-
-    const latestData = tokenQueryResult.result.rows.find((row: any) => row.name === userName);
-
-    if (!latestData) {
-      console.log(`No specific fan token data found for user: ${userName}`);
-      console.log('Available names:', tokenQueryResult.result.rows.map((row: any) => row.name).join(', '));
-      return null;
-    }
-
-    return {
-      entityName: latestData.name,
-      entitySymbol: latestData.symbol,
-      lastBuyPrice: latestData.unit_price,
-      totalBuyShares: latestData.total_buy,
-      totalVolume: latestData.volume,
-      lastBuyTime: latestData.call_block_time
-    };
-  } catch (error) {
-    console.error('Error fetching fan token info from Dune:', error);
-    return null;
-  }
-}
-
-async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
-  const query = `
-    query GetOwnedFanTokens($identity: Identity!) {
-      TokenBalances(
-        input: {
-          filter: {
-            owner: {_eq: $identity},
-            tokenType: {_in: [ERC20]},
-            tokenAddress: {_in: ["0x3006424b9e166978b5afa7e1e1887acd60d35f82"]}
-          },
-          blockchain: ALL,
-          limit: 50
-        }
-      ) {
-        TokenBalance {
-          owner {
-            addresses
-            domains {
-              name
-            }
-            socials {
-              dappName
-              profileName
-              profileImage
-            }
-          }
-          amount
-          formattedAmount
-          token {
-            name
-            symbol
-          }
-        }
+  const query = gql`
+    query MyQuery($symbol_starts_with: String) {
+      subjectTokens(where: {symbol_starts_with: $symbol_starts_with}) {
+        address: id
+        name
+        symbol
+        decimals
       }
     }
   `;
 
-  const variables = { identity: `fc_fid:${fid}` };
+  const variables = {
+    symbol_starts_with: `fid:${fid}`
+  };
 
   try {
-    const response = await fetch(AIRSTACK_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': AIRSTACK_API_KEY,
-      },
-      body: JSON.stringify({ query, variables }),
-    });
+    const data = await graphQLClient.request<FanTokenAddressResponse>(query, variables);
+    console.log('Fan token address query response:', JSON.stringify(data, null, 2));
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP error! status: ${response.status}, details: ${errorText}`);
+    if (!data.subjectTokens || data.subjectTokens.length === 0) {
+      console.log(`No fan token found for FID: ${fid}`);
+      return null;
     }
 
-    const data = await response.json();
-    console.log('Owned Fan Tokens API response data:', JSON.stringify(data, null, 2));
+    return data.subjectTokens[0];
+  } catch (error) {
+    console.error('Error fetching fan token address from Moxie API:', error);
+    return null;
+  }
+}
 
-    if (data.errors) {
-      throw new Error('GraphQL errors in the response: ' + JSON.stringify(data.errors));
+async function getFanTokenInfo(fid: string): Promise<any> {
+  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
+
+  // First, get the fan token address from FID
+  const tokenAddressInfo = await getFanTokenAddressFromFID(fid);
+  
+  if (!tokenAddressInfo) {
+    console.log(`No fan token found for FID: ${fid}`);
+    return null;
+  }
+
+  const query = gql`
+    query MyQuery($fanTokenAddress: ID) {
+      subjectTokens(where: { id: $fanTokenAddress }) {
+        currentPriceInMoxie
+        id
+        name
+        symbol
+        totalSupply
+        totalVolume
+      }
+    }
+  `;
+
+  const variables = {
+    fanTokenAddress: tokenAddressInfo.address.toLowerCase()
+  };
+
+  try {
+    const data = await graphQLClient.request<FanTokenInfoResponse>(query, variables);
+    console.log('Moxie API response:', JSON.stringify(data, null, 2));
+
+    if (!data.subjectTokens || data.subjectTokens.length === 0) {
+      console.log(`No fan token information found for address: ${tokenAddressInfo.address}`);
+      return null;
     }
 
-    const tokens = data.data.TokenBalances.TokenBalance || [];
+    const tokenInfo = data.subjectTokens[0];
 
-    return tokens.map((token: any): OwnedToken => ({
-      holderId: fid,
-      holderProfileName: token.owner.socials?.[0]?.profileName || '',
-      holderProfileImageUrl: token.owner.socials?.[0]?.profileImage || '',
-      balance: token.formattedAmount || token.amount,
-      tokenEntitySymbol: token.token.symbol,
-      tokenMinPriceInMoxie: '0', // This information is not available in this query
+    return {
+      address: tokenInfo.id,
+      name: tokenInfo.name,
+      symbol: tokenInfo.symbol,
+      currentPriceInMoxie: parseFloat(tokenInfo.currentPriceInMoxie),
+      totalSupply: parseFloat(tokenInfo.totalSupply),
+      totalVolume: parseFloat(tokenInfo.totalVolume),
+      decimals: tokenAddressInfo.decimals
+    };
+  } catch (error) {
+    console.error('Error fetching fan token info from Moxie API:', error);
+    return null;
+  }
+}
+
+async function getOwnedFanTokens(fid: string): Promise<any[]> {
+  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
+
+  const query = gql`
+    query MyQuery($symbol_starts_with: String) {
+      subjectTokens(where: {symbol_starts_with: $symbol_starts_with}) {
+        address: id
+        name
+        symbol
+        decimals
+        currentPriceInMoxie
+      }
+    }
+  `;
+
+  const variables = {
+    symbol_starts_with: "fid:"
+  };
+
+  try {
+    const data = await graphQLClient.request<OwnedFanTokenResponse>(query, variables);
+    console.log('Owned fan tokens query response:', JSON.stringify(data, null, 2));
+
+    if (!data.subjectTokens || data.subjectTokens.length === 0) {
+      console.log(`No fan tokens found`);
+      return [];
+    }
+
+    // Filter tokens to only include those owned by the given FID
+    const ownedTokens = data.subjectTokens.filter(token => token.symbol.toLowerCase() === `fid:${fid}`);
+
+    return ownedTokens.map(token => ({
+      address: token.address,
+      name: token.name,
+      symbol: token.symbol,
+      decimals: token.decimals,
+      currentPriceInMoxie: parseFloat(token.currentPriceInMoxie)
     }));
   } catch (error) {
-    console.error('Error in getOwnedFanTokens:', error);
+    console.error('Error fetching owned fan tokens from Moxie API:', error);
     return [];
   }
 }
@@ -291,12 +295,22 @@ app.frame('/', (c) => {
         color: 'white',
         fontFamily: 'Arial, sans-serif',
       }}>
-        <h1 style={{ fontSize: '48px', color: 'white', textShadow: '2px 2px 4px rgba(0,0,0,0.5)', marginBottom: '20px' }}>
+        <h1 style={{ fontSize: '48px', color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.5)', marginBottom: '20px' }}>
           Farcaster Fan Token Tracker
         </h1>
-        <p style={{ fontSize: '24px', color: '#A9A9A9', textAlign: 'center' }}>
-          Check your fan tokens and their details
+        <p style={{ fontSize: '24px', color: '#A9A9A9', textAlign: 'center', maxWidth: '80%', marginBottom: '40px' }}>
+          Track your fan tokens, view your profile, and explore the Farcaster ecosystem
         </p>
+        <div style={{
+          backgroundColor: '#FFD700',
+          padding: '10px 20px',
+          borderRadius: '20px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        }}>
+          <p style={{ fontSize: '20px', color: '#1A1A1A', fontWeight: 'bold' }}>
+            Get Started
+          </p>
+        </div>
       </div>
     ),
     intents: [
@@ -406,12 +420,13 @@ app.frame('/yourfantoken', async (c) => {
           {tokenInfo ? (
             <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '1px solid #ff7849', padding: '20px', borderRadius: '32px' }}>
               <p style={{ fontSize: '24px', color: '#ff7849', marginBottom: '10px' }}>FID: {fid}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Entity Name: {tokenInfo.entityName}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Entity Symbol: {tokenInfo.entitySymbol}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Last Buy Price: {tokenInfo.lastBuyPrice.toFixed(4)} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Total Buy Shares: {tokenInfo.totalBuyShares}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Name: {tokenInfo.name}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Symbol: {tokenInfo.symbol}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Current Price: {tokenInfo.currentPriceInMoxie.toFixed(4)} MOXIE</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Total Supply: {tokenInfo.totalSupply.toFixed(2)}</p>
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Total Volume: {tokenInfo.totalVolume.toFixed(2)} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Last Buy Time: {new Date(tokenInfo.lastBuyTime).toLocaleString()}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Address: {tokenInfo.address}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Decimals: {tokenInfo.decimals}</p>
             </div>
           ) : (
             <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>No fan token information available for this FID</p>
@@ -447,6 +462,7 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
+  // Note: You'll need to implement getOwnedFanTokens function
   const ownedTokens = await getOwnedFanTokens(fid.toString());
 
   return c.res({
@@ -466,8 +482,8 @@ app.frame('/owned-tokens', async (c) => {
           Your Owned Fan Tokens
         </h1>
         <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
-          {ownedTokens.length > 0 ? (
-            ownedTokens.map((token: OwnedToken, index: number) => (
+          {ownedTokens && ownedTokens.length > 0 ? (
+            ownedTokens.map((token: any, index: number) => (
               <div key={index} style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -499,7 +515,7 @@ app.frame('/owned-tokens', async (c) => {
     ),
     intents: [
       <Button action="/">Back</Button>,
-      <Button action="/check">Check Your Fan Token</Button>,
+      <Button action="/yourfantoken">Your Fan Token</Button>,
     ]
   });
 });
