@@ -403,7 +403,6 @@ app.frame('/profile', async (c) => {
   });
 });
 
-
 app.frame('/yourfantoken', async (c) => {
   console.log('Entering /yourfantoken frame');
   const { fid } = c.frameData || {};
@@ -453,7 +452,8 @@ app.frame('/yourfantoken', async (c) => {
     image: (
       <div style={{ 
         display: 'flex', 
-        flexDirection: 'column', 
+        flexDirection: 'column',
+        alignItems: 'center',
         justifyContent: 'center',
         width: '1200px', 
         height: '628px', 
@@ -464,8 +464,25 @@ app.frame('/yourfantoken', async (c) => {
         color: '#000000',
         padding: '20px',
         boxSizing: 'border-box',
-        position: 'relative',
       }}>
+        <div style={{
+          width: '150px',
+          height: '150px',
+          borderRadius: '50%',
+          overflow: 'hidden',
+          backgroundColor: '#FFA500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '20px',
+        }}>
+          <img 
+            src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+            alt="Profile" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </div>
+        
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
@@ -477,26 +494,6 @@ app.frame('/yourfantoken', async (c) => {
           <TextBox label="FID" value={fid.toString()} />
           <TextBox label="Holders" value={tokenInfo ? tokenInfo.holdersCount.toString() : 'N/A'} />
           <TextBox label="Name" value={profileInfo?.farcasterSocial?.profileDisplayName || 'N/A'} />
-        </div>
-        
-        <div style={{
-          position: 'absolute',
-          bottom: '160px',
-          right: '130px',
-          width: '120px',
-          height: '120px',
-          borderRadius: '50%',
-          overflow: 'hidden',
-          backgroundColor: '#FFA500',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          <img 
-            src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/120/120'} 
-            alt="Profile" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
         </div>
       </div>
     ),
