@@ -23,8 +23,12 @@ type TextBoxProps = {
 // Type definitions
 interface TokenHolding {
   balance: string;
-  user: {
-    id: string;
+  buyVolume: string;
+  sellVolume: string;
+  subjectToken: {
+    name: string;
+    symbol: string;
+    currentPriceInMoxie: string;
   };
 }
 
@@ -271,6 +275,48 @@ async function getFarcasterAddressFromFID(fid: string): Promise<string> {
   }
 }
 
+async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | null> {
+  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
+
+  const query = gql`
+    query MyQuery($userAddresses: [ID!]) {
+      users(where: { id_in: $userAddresses }) {
+        portfolio {
+          balance
+          buyVolume
+          sellVolume
+          subjectToken {
+            name
+            symbol
+            currentPriceInMoxie
+          }
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    userAddresses: [userAddress.toLowerCase()]
+  };
+
+  try {
+    const data = await graphQLClient.request<any>(query, variables);
+    console.log('Moxie API response for owned tokens:', JSON.stringify(data, null, 2));
+
+    if (!data.users || data.users.length === 0 || !data.users[0].portfolio) {
+      console.log(`No fan tokens found for address: ${userAddress}`);
+      return null;
+    }
+
+    return data.users[0].portfolio;
+  } catch (error) {
+    console.error('Error fetching owned fan tokens from Moxie API:', error);
+    return null;
+  }
+}
+
+// Frame definitions start here
+
 app.frame('/', (c) => {
   return c.res({
     image: (
@@ -487,16 +533,16 @@ app.frame('/owned-tokens', async (c) => {
   }
 
   try {
-    let tokenInfo = await getFanTokenInfo(fid.toString());
-    let profileInfo = await getProfileInfo(fid.toString());
     let userAddress = await getFarcasterAddressFromFID(fid.toString());
+    let ownedTokens = await getOwnedFanTokens(userAddress);
+    let profileInfo = await getProfileInfo(fid.toString());
 
-    if (!tokenInfo || !tokenInfo.subjectTokens || tokenInfo.subjectTokens.length === 0) {
-      console.warn(`No fan token information found for FID ${fid}`);
+    if (!ownedTokens || ownedTokens.length === 0) {
+      console.warn(`No fan tokens found for address ${userAddress}`);
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan token found for this user</h1>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this user</h1>
           </div>
         ),
         intents: [
@@ -505,12 +551,8 @@ app.frame('/owned-tokens', async (c) => {
       });
     }
 
-    const userToken = tokenInfo.subjectTokens[0];
-    
-    // Filter the portfolio to get only the current user's holdings
-    const userHoldings = userToken.portfolio.filter((holding: TokenHolding) => 
-      holding.user.id.toLowerCase() === userAddress.toLowerCase()
-    );
+    // Filter out the user's own token
+    const otherOwnedTokens = ownedTokens.filter(token => !token.subjectToken.symbol.startsWith(`fid:${fid}`));
 
     return c.res({
       image: (
@@ -546,11 +588,11 @@ app.frame('/owned-tokens', async (c) => {
             />
           </div>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
-            Your Owned Fan Tokens
+            Other Fan Tokens You Own
           </h1>
           <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
-            {userHoldings.length > 0 ? (
-              userHoldings.map((holding: TokenHolding, index: number) => (
+            {otherOwnedTokens.length > 0 ? (
+              otherOwnedTokens.map((token, index) => (
                 <div key={index} style={{ 
                   display: 'flex', 
                   flexDirection: 'column',
@@ -561,13 +603,19 @@ app.frame('/owned-tokens', async (c) => {
                   color: '#000000'
                 }}>
                   <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                    {userToken.name} ({userToken.symbol})
+                    {token.subjectToken.name} ({token.subjectToken.symbol})
                   </p>
                   <p style={{ fontSize: '20px' }}>
-                    Balance: {parseFloat(holding.balance) / 1e18} tokens
+                    Balance: {parseFloat(token.balance) / 1e18} tokens
                   </p>
                   <p style={{ fontSize: '20px' }}>
-                    Current Price: {parseFloat(userToken.currentPriceInMoxie).toFixed(6)} MOXIE
+                    Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
+                  </p>
+                  <p style={{ fontSize: '20px' }}>
+                    Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
+                  </p>
+                  <p style={{ fontSize: '20px' }}>
+                    Current Price: {parseFloat(token.subjectToken.currentPriceInMoxie).toFixed(6)} MOXIE
                   </p>
                 </div>
               ))
@@ -580,7 +628,7 @@ app.frame('/owned-tokens', async (c) => {
                 padding: '20px', 
                 borderRadius: '10px' 
               }}>
-                You don't own any fan tokens yet.
+                You don't own any other fan tokens yet.
               </div>
             )}
           </div>
