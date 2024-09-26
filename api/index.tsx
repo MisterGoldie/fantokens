@@ -491,93 +491,33 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
-  // Assuming profileInfo contains the user's Ethereum address or ENS
-  const userAddressOrENS = profileInfo.primaryDomain?.name || '';
-  console.log('User address or ENS:', userAddressOrENS);
+  const moxieGraphQLClient = new GraphQLClient(MOXIE_API_URL);
 
-  if (!userAddressOrENS) {
-    console.error('No Ethereum address or ENS found for user');
-    return c.res({
-      image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No Ethereum address or ENS found</h1>
-        </div>
-      ),
-      intents: [
-        <Button action="/">Back</Button>
-      ]
-    });
-  }
-
-  // Resolve ENS to Ethereum address if necessary
-  let resolvedAddress;
-  if (userAddressOrENS.endsWith('.eth')) {
-    const provider = new ethers.JsonRpcProvider(`https://mainnet.infura.io/v3/${INFURA_API_KEY}`);
-    try {
-      resolvedAddress = await provider.resolveName(userAddressOrENS);
-      if (!resolvedAddress) {
-        throw new Error('Failed to resolve ENS name');
-      }
-    } catch (error) {
-      console.error('Error resolving ENS:', error);
-      return c.res({
-        image: (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Failed to resolve ENS name</h1>
-          </div>
-        ),
-        intents: [
-          <Button action="/">Back</Button>
-        ]
-      });
-    }
-  } else {
-    resolvedAddress = userAddressOrENS;
-  }
-
-  const vestingGraphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
-
-  const vestingQuery = gql`
-    query MyQuery($beneficiary: Bytes!) {
-      tokenLockWallets(where: {beneficiary: $beneficiary}) {
-        address: id
+  const userPortfolioQuery = gql`
+    query GetUserPortfolio($fid: String!) {
+      users(where: { id: $fid }) {
+        portfolio {
+          balance
+          buyVolume
+          sellVolume
+          subjectToken {
+            name
+            symbol
+          }
+        }
       }
     }
   `;
 
-  const vestingVariables = {
-    beneficiary: resolvedAddress.toLowerCase()
+  const userPortfolioVariables = {
+    fid: fid.toString()
   };
 
   try {
-    const vestingData = await vestingGraphQLClient.request<VestingDataResponse>(vestingQuery, vestingVariables);
-    console.log('Vesting contract addresses:', JSON.stringify(vestingData, null, 2));
+    const portfolioData = await moxieGraphQLClient.request<any>(userPortfolioQuery, userPortfolioVariables);
+    console.log('User portfolio data:', JSON.stringify(portfolioData, null, 2));
 
-    const vestingAddresses = vestingData.tokenLockWallets.map((wallet) => wallet.address);
-
-    // Now use these vesting addresses to query for token balances
-    const moxieGraphQLClient = new GraphQLClient(MOXIE_API_URL);
-
-    const tokenBalancesQuery = gql`
-      query GetTokenBalances($addresses: [Bytes!]!) {
-        subjectTokens(where: { id_in: $addresses }) {
-          id
-          name
-          symbol
-          totalSupply
-          currentPriceInMoxie
-        }
-      }
-    `;
-
-    const tokenBalancesVariables = {
-      addresses: vestingAddresses
-    };
-
-    const tokenBalancesData = await moxieGraphQLClient.request<TokenBalancesResponse>(tokenBalancesQuery, tokenBalancesVariables);
-    console.log('Token balances:', JSON.stringify(tokenBalancesData, null, 2));
-
-    const ownedTokens = tokenBalancesData.subjectTokens || [];
+    const ownedTokens = portfolioData.users[0]?.portfolio || [];
 
     return c.res({
       image: (
@@ -617,7 +557,7 @@ app.frame('/owned-tokens', async (c) => {
           </h1>
           <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
             {ownedTokens.length > 0 ? (
-              ownedTokens.map((token, index) => (
+              ownedTokens.map((token: any, index: number) => (
                 <div key={index} style={{ 
                   display: 'flex', 
                   flexDirection: 'column',
@@ -628,13 +568,16 @@ app.frame('/owned-tokens', async (c) => {
                   color: '#000000'
                 }}>
                   <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                    {token.name} ({token.symbol})
+                    {token.subjectToken.name} ({token.subjectToken.symbol})
                   </p>
                   <p style={{ fontSize: '20px' }}>
-                    Total Supply: {parseFloat(token.totalSupply).toFixed(2)}
+                    Balance: {parseFloat(token.balance) / 1e18} tokens
                   </p>
                   <p style={{ fontSize: '20px' }}>
-                    Current Price: {parseFloat(token.currentPriceInMoxie).toFixed(6)} MOXIE
+                    Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
+                  </p>
+                  <p style={{ fontSize: '20px' }}>
+                    Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
                   </p>
                 </div>
               ))
