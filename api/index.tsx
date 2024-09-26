@@ -426,7 +426,6 @@ app.frame('/yourfantoken', async (c) => {
   let tokenInfo = await getFanTokenInfo(fid.toString());
   let profileInfo = await getProfileInfo(fid.toString());
 
-  // Use a regular function declaration instead of an arrow function
   function TextBox({ label, value }: TextBoxProps) {
     return (
       <div style={{
@@ -461,15 +460,15 @@ app.frame('/yourfantoken', async (c) => {
         backgroundPosition: 'center',
         fontFamily: 'Arial, sans-serif',
         color: '#000000',
-        position: 'relative'
+        padding: '20px',
+        boxSizing: 'border-box',
       }}>
         <div style={{
-          position: 'absolute',
-          top: '50px',
-          left: '50px',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
-          gap: '10px'
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'flex-start',
+          alignItems: 'flex-start',
+          marginBottom: 'auto',
         }}>
           <TextBox label="Current Price" value={tokenInfo ? tokenInfo.currentPriceInMoxie.toFixed(2) : 'N/A'} />
           <TextBox label="FID" value={fid.toString()} />
@@ -478,9 +477,8 @@ app.frame('/yourfantoken', async (c) => {
         </div>
         
         <div style={{
-          position: 'absolute',
-          bottom: '50px',
-          right: '50px',
+          alignSelf: 'flex-end',
+          marginLeft: 'auto',
           width: '150px',
           height: '150px',
           borderRadius: '50%',
