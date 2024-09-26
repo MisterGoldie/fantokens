@@ -1,6 +1,7 @@
 import { Button, Frog } from 'frog';
 import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
+import { DuneClient } from "@duneanalytics/client-sdk";
 
 const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
@@ -139,25 +140,10 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
 
 async function getRewardsInfo(fid: string): Promise<any> {
   try {
-    const meta = {
-      "x-dune-api-key": DUNE_API_KEY
-    };
-    const header = new Headers(meta);
-    const latest_response = await fetch(`https://api.dune.com/api/v1/query/3509966/results?&filters=query_fid=${fid}`, {
-      method: 'GET',
-      headers: header,
-    });
-
-    if (!latest_response.ok) {
-      throw new Error(`HTTP error! status: ${latest_response.status}`);
-    }
-
-    const body = await latest_response.text();
-    const recs = JSON.parse(body).result.rows[0]; // will only be one row in the result, for the filtered fid
-
-    console.log('Dune query result:', JSON.stringify(recs, null, 2));
-    
-    return recs;
+    const dune = new DuneClient(DUNE_API_KEY);
+    const query_result = await dune.getLatestResult({queryId: 4003185});
+    console.log('Dune query result:', JSON.stringify(query_result, null, 2));
+    return query_result;
   } catch (error) {
     console.error('Error fetching rewards from Dune:', error);
     return null;
@@ -237,6 +223,7 @@ async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
     return [];
   }
 }
+
 app.frame('/', (c) => {
   return c.res({
     image: (
