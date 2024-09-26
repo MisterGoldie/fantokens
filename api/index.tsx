@@ -466,6 +466,7 @@ app.frame('/owned-tokens', async (c) => {
   }
 
   let profileInfo = await getProfileInfo(fid.toString());
+  console.log('Profile info:', JSON.stringify(profileInfo, null, 2));
 
   if (!profileInfo) {
     console.error('Failed to retrieve profile info');
@@ -481,16 +482,16 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
-  // Assuming the Wallet object in profileInfo contains the Ethereum address
-  // You might need to adjust this based on the actual structure of profileInfo
-  const userAddress = profileInfo.primaryDomain?.name || '';
+  // Use Farcaster handle instead of Ethereum address
+  const userHandle = profileInfo.farcasterSocial?.profileHandle || '';
+  console.log('User handle:', userHandle);
 
-  if (!userAddress) {
-    console.error('No wallet address found for user');
+  if (!userHandle) {
+    console.error('No Farcaster handle found for user');
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No wallet address found</h1>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No Farcaster handle found</h1>
         </div>
       ),
       intents: [
@@ -502,8 +503,8 @@ app.frame('/owned-tokens', async (c) => {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
   const query = gql`
-    query MyQuery($userAddresses: [ID!]) {
-      users(where: { id_in: $userAddresses }) {
+    query MyQuery($userHandle: String!) {
+      users(where: { farcasterHandle: $userHandle }) {
         portfolio {
           balance
           buyVolume
@@ -518,10 +519,11 @@ app.frame('/owned-tokens', async (c) => {
   `;
 
   const variables = {
-    userAddresses: [userAddress]
+    userHandle: userHandle
   };
 
-  console.log('Query variables:', variables);
+  console.log('GraphQL query:', query);
+  console.log('GraphQL variables:', variables);
 
   try {
     const data = await graphQLClient.request<OwnedTokensQueryResponse>(query, variables);
@@ -567,7 +569,7 @@ app.frame('/owned-tokens', async (c) => {
           </h1>
           <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
             {ownedTokens.length > 0 ? (
-              ownedTokens.map((token: OwnedTokensQueryResponse['users'][0]['portfolio'][0], index: number) => (
+              ownedTokens.map((token, index) => (
                 <div key={index} style={{ 
                   display: 'flex', 
                   flexDirection: 'column',
@@ -604,7 +606,13 @@ app.frame('/owned-tokens', async (c) => {
     
     let errorMessage: string;
     if (error instanceof Error) {
-      errorMessage = error.message;
+      if (error.message.includes('rate limit')) {
+        errorMessage = 'API rate limit exceeded. Please try again later.';
+      } else if (error.message.includes('network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else {
+        errorMessage = error.message;
+      }
     } else if (typeof error === 'string') {
       errorMessage = error;
     } else {
