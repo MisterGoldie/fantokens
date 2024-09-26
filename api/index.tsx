@@ -287,44 +287,6 @@ async function getOwnedFanTokens(fid: string): Promise<any[]> {
   }
 }
 
-app.frame('/', (c) => {
-  return c.res({
-    image: (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        width: '1200px',
-        height: '628px',
-        backgroundColor: '#1A1A1A',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif',
-      }}>
-        <h1 style={{ fontSize: '48px', color: '#FFD700', textShadow: '2px 2px 4px rgba(0,0,0,0.5)', marginBottom: '20px' }}>
-          Farcaster Fan Token Tracker
-        </h1>
-        <p style={{ fontSize: '24px', color: '#A9A9A9', textAlign: 'center', maxWidth: '80%', marginBottom: '40px' }}>
-          Track your fan tokens, view your profile, and explore the Farcaster ecosystem
-        </p>
-        <div style={{
-          backgroundColor: '#FFD700',
-          padding: '10px 20px',
-          borderRadius: '20px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        }}>
-          <p style={{ fontSize: '20px', color: '#1A1A1A', fontWeight: 'bold' }}>
-            Get Started
-          </p>
-        </div>
-      </div>
-    ),
-    intents: [
-      <Button action="/profile">Your Profile</Button>,
-    ],
-  });
-});
-
 app.frame('/profile', async (c) => {
   console.log('Entering /profile frame');
   const { fid } = c.frameData || {};
