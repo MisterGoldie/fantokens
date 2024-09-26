@@ -13,7 +13,12 @@ if (!AIRSTACK_API_KEY) {
 
 if (!NEYNAR_API_KEY) {
   console.warn('NEYNAR_API_KEY is not set in the environment variables');
-}
+}   
+
+type TextBoxProps = {
+  label: string;
+  value: string | number;
+};
 
 export const app = new Frog({
   basePath: '/api',
@@ -408,8 +413,8 @@ app.frame('/yourfantoken', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#273444' }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: '#ff49db', textAlign: 'center', fontFamily: 'Montserrat, sans-serif' }}>Error: No FID</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -419,6 +424,30 @@ app.frame('/yourfantoken', async (c) => {
   }
 
   let tokenInfo = await getFanTokenInfo(fid.toString());
+  let profileInfo = await getProfileInfo(fid.toString());
+
+  // Use a regular function declaration instead of an arrow function
+  function TextBox({ label, value }: TextBoxProps) {
+    return (
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        padding: '10px',
+        margin: '5px',
+        borderRadius: '5px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '200px',
+        height: '80px'
+      }}>
+        <div style={{ fontWeight: 'bold' }}>{label}</div>
+        <div>{value}</div>
+      </div>
+    );
+  }
 
   return c.res({
     image: (
@@ -430,28 +459,42 @@ app.frame('/yourfantoken', async (c) => {
         backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        color: '#d3dce6', 
-        fontFamily: 'Montserrat, sans-serif', 
-        padding: '20px', 
-        boxSizing: 'border-box', 
-        alignItems: 'center', 
-        justifyContent: 'center' 
+        fontFamily: 'Arial, sans-serif',
+        color: '#000000',
+        position: 'relative'
       }}>
-        <h1 style={{ fontSize: '56px', color: '#A36EFD', marginBottom: '20px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.1rem' }}>
-          Your Fan Token
-        </h1>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px', backgroundColor: 'rgba(39, 52, 68, 0.8)', padding: '20px', borderRadius: '16px' }}>
-          {tokenInfo ? (
-            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '2px solid #ff7849', padding: '30px', borderRadius: '32px' }}>
-              <p style={{ fontSize: '32px', color: '#A36EFD', marginBottom: '15px', textAlign: 'center' }}>FID: {fid}</p>
-              <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>Name: {tokenInfo.name}</p>
-              <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>Symbol: {tokenInfo.symbol}</p>
-              <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>Current Price: {tokenInfo.currentPriceInMoxie.toFixed(4)} MOXIE</p>
-              <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>Number of Holders: {tokenInfo.holdersCount}</p>
-            </div>
-          ) : (
-            <p style={{ fontSize: '28px', color: '#d3dce6', textAlign: 'center' }}>No fan token information available for this FID</p>
-          )}
+        <div style={{
+          position: 'absolute',
+          top: '50px',
+          left: '50px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: '10px'
+        }}>
+          <TextBox label="Current Price" value={tokenInfo ? tokenInfo.currentPriceInMoxie.toFixed(2) : 'N/A'} />
+          <TextBox label="FID" value={fid.toString()} />
+          <TextBox label="Holders" value={tokenInfo ? tokenInfo.holdersCount.toString() : 'N/A'} />
+          <TextBox label="Name" value={profileInfo?.farcasterSocial?.profileDisplayName || 'N/A'} />
+        </div>
+        
+        <div style={{
+          position: 'absolute',
+          bottom: '50px',
+          right: '50px',
+          width: '150px',
+          height: '150px',
+          borderRadius: '50%',
+          overflow: 'hidden',
+          backgroundColor: '#FFA500',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <img 
+            src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+            alt="Profile" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         </div>
       </div>
     ),
@@ -462,7 +505,6 @@ app.frame('/yourfantoken', async (c) => {
     ]
   });
 });
-
 
 app.frame('/owned-tokens', async (c) => {
   console.log('Entering /owned-tokens frame');
