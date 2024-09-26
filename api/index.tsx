@@ -631,37 +631,69 @@ app.frame('/owned-tokens', async (c) => {
 
   const moxieGraphQLClient = new GraphQLClient(MOXIE_API_URL);
 
-  const userPortfolioQuery = gql`
-    query GetUserPortfolio($fid: String!) {
+  const userQuery = gql`
+    query GetUser($fid: String!) {
       users(where: { id: $fid }) {
-        portfolio {
-          balance
-          buyVolume
-          sellVolume
-          subjectToken {
-            name
-            symbol
-          }
-        }
+        id
+        username
       }
     }
   `;
 
-  const userPortfolioVariables = {
+  const userQueryVariables = {
     fid: fid.toString()
   };
 
   console.log('Moxie API URL:', MOXIE_API_URL);
-  console.log('GraphQL Query:', userPortfolioQuery);
-  console.log('Query Variables:', JSON.stringify(userPortfolioVariables, null, 2));
+  console.log('User Query:', userQuery);
+  console.log('User Query Variables:', JSON.stringify(userQueryVariables, null, 2));
 
   try {
-    console.log('Sending request to Moxie API...');
-    const portfolioData = await moxieGraphQLClient.request<any>(userPortfolioQuery, userPortfolioVariables);
-    console.log('Moxie API Response:', JSON.stringify(portfolioData, null, 2));
+    console.log('Sending user query to Moxie API...');
+    const userData = await moxieGraphQLClient.request<any>(userQuery, userQueryVariables);
+    console.log('Moxie API User Response:', JSON.stringify(userData, null, 2));
 
-    if (!portfolioData.users || portfolioData.users.length === 0) {
-      console.warn('No user data found in Moxie API response');
+    if (!userData.users || userData.users.length === 0) {
+      console.warn('User not found in Moxie API');
+      return c.res({
+        image: (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>User not found in Moxie database</h1>
+          </div>
+        ),
+        intents: [
+          <Button action="/">Back</Button>
+        ]
+      });
+    }
+
+    const portfolioQuery = gql`
+      query GetUserPortfolio($fid: String!) {
+        users(where: { id: $fid }) {
+          portfolio {
+            balance
+            buyVolume
+            sellVolume
+            subjectToken {
+              name
+              symbol
+            }
+          }
+        }
+      }
+    `;
+
+    console.log('Portfolio Query:', portfolioQuery);
+    console.log('Portfolio Query Variables:', JSON.stringify(userQueryVariables, null, 2));
+
+    console.log('Sending portfolio query to Moxie API...');
+    const portfolioData = await moxieGraphQLClient.request<any>(portfolioQuery, userQueryVariables);
+    console.log('Moxie API Portfolio Response:', JSON.stringify(portfolioData, null, 2));
+
+    const ownedTokens = portfolioData.users[0]?.portfolio || [];
+
+    if (ownedTokens.length === 0) {
+      console.warn('No fan tokens found for user');
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
@@ -673,8 +705,6 @@ app.frame('/owned-tokens', async (c) => {
         ]
       });
     }
-
-    const ownedTokens = portfolioData.users[0]?.portfolio || [];
 
     return c.res({
       image: (
@@ -713,34 +743,30 @@ app.frame('/owned-tokens', async (c) => {
             Your Owned Fan Tokens
           </h1>
           <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
-            {ownedTokens.length > 0 ? (
-              ownedTokens.map((token: any, index: number) => (
-                <div key={index} style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  marginBottom: '20px', 
-                  backgroundColor: 'rgba(255,255,255,0.8)',
-                  padding: '10px',
-                  borderRadius: '10px',
-                  color: '#000000'
-                }}>
-                  <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                    {token.subjectToken.name} ({token.subjectToken.symbol})
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Balance: {parseFloat(token.balance) / 1e18} tokens
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p style={{ fontSize: '24px', color: '#FFFFFF', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '10px' }}>No owned fan tokens found</p>
-            )}
+            {ownedTokens.map((token: any, index: number) => (
+              <div key={index} style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                marginBottom: '20px', 
+                backgroundColor: 'rgba(255,255,255,0.8)',
+                padding: '10px',
+                borderRadius: '10px',
+                color: '#000000'
+              }}>
+                <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                  {token.subjectToken.name} ({token.subjectToken.symbol})
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Balance: {parseFloat(token.balance) / 1e18} tokens
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       ),
