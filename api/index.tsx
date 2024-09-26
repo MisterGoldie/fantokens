@@ -435,7 +435,7 @@ app.frame('/yourfantoken', async (c) => {
         margin: '5px',
         borderRadius: '10px',
         fontFamily: 'Arial, sans-serif',
-        fontSize: '24px',
+        fontSize: '48px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
