@@ -403,6 +403,7 @@ app.frame('/profile', async (c) => {
   });
 });
 
+
 app.frame('/yourfantoken', async (c) => {
   console.log('Entering /yourfantoken frame');
   const { fid } = c.frameData || {};
@@ -432,15 +433,15 @@ app.frame('/yourfantoken', async (c) => {
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
         padding: '10px',
         margin: '5px',
-        borderRadius: '5px',
+        borderRadius: '10px',
         fontFamily: 'Arial, sans-serif',
-        fontSize: '20px',
+        fontSize: '24px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '200px',
-        height: '80px'
+        width: '230px',
+        height: '100px'
       }}>
         <div style={{ fontWeight: 'bold' }}>{label}</div>
         <div>{value}</div>
@@ -462,13 +463,17 @@ app.frame('/yourfantoken', async (c) => {
         color: '#000000',
         padding: '20px',
         boxSizing: 'border-box',
+        position: 'relative',
       }}>
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
           justifyContent: 'flex-start',
           alignItems: 'flex-start',
-          marginBottom: 'auto',
+          position: 'absolute',
+          bottom: '20px',
+          left: '20px',
+          width: '100%',
         }}>
           <TextBox label="Current Price" value={tokenInfo ? tokenInfo.currentPriceInMoxie.toFixed(2) : 'N/A'} />
           <TextBox label="FID" value={fid.toString()} />
@@ -477,10 +482,11 @@ app.frame('/yourfantoken', async (c) => {
         </div>
         
         <div style={{
-          alignSelf: 'flex-end',
-          marginLeft: 'auto',
-          width: '150px',
-          height: '150px',
+          position: 'absolute',
+          bottom: '190px',
+          right: '90px',
+          width: '120px',
+          height: '120px',
           borderRadius: '50%',
           overflow: 'hidden',
           backgroundColor: '#FFA500',
@@ -489,7 +495,7 @@ app.frame('/yourfantoken', async (c) => {
           justifyContent: 'center'
         }}>
           <img 
-            src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+            src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/120/120'} 
             alt="Profile" 
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
