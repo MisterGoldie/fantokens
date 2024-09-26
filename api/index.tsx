@@ -141,30 +141,44 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
 async function getFanTokenInfo(fid: string): Promise<any> {
   try {
     const dune = new DuneClient(DUNE_API_KEY);
-    const query_result = await dune.getLatestResult({queryId: 4003185}); // Make sure this queryId is correct for your new query
-    console.log('Dune query result:', JSON.stringify(query_result, null, 2));
-
-    // Add null check here
-    if (!query_result || !query_result.result || !query_result.result.rows) {
-      console.log(`No fan token auction data found for FID: ${fid}`);
+    
+    // First, get the user's name based on their FID
+    const nameQueryResult = await dune.getLatestResult({ queryId: 4003185 });
+    if (!nameQueryResult.result?.rows?.length) {
+      console.log(`No user found for FID: ${fid}`);
+      return null;
+    }
+    const userName = nameQueryResult.result.rows.find((row: any) => row.fid?.toString() === fid)?.name;
+    
+    if (!userName) {
+      console.log(`No name found for FID: ${fid}`);
       return null;
     }
 
-    // The query returns all fan token auctions, so we need to find the one for this FID
-    const userAuction = query_result.result.rows.find((row: any) => row.entityName === `fid:${fid}`);
+    // Now, use the user's name to get their fan token info
+    const tokenQueryResult = await dune.getLatestResult({ queryId: 4058621 });
+    console.log('Dune query result:', JSON.stringify(tokenQueryResult, null, 2));
 
-    if (userAuction) {
-      return {
-        entityName: userAuction.entityName,
-        entitySymbol: userAuction.entitySymbol,
-        auctionId: userAuction.auctionId,
-        minBiddingEth: userAuction.min_bidding_eth,
-        minPriceMoxie: userAuction.min_price_moxie
-      };
-    } else {
-      console.log(`No fan token auction found for FID: ${fid}`);
+    if (!tokenQueryResult.result?.rows?.length) {
+      console.log(`No fan token data found for user: ${userName}`);
       return null;
     }
+
+    const latestData = tokenQueryResult.result.rows.find((row: any) => row.name === userName);
+
+    if (!latestData) {
+      console.log(`No specific fan token data found for user: ${userName}`);
+      return null;
+    }
+
+    return {
+      entityName: latestData.name,
+      entitySymbol: latestData.symbol,
+      lastBuyPrice: latestData.unit_price,
+      totalBuyShares: latestData.total_buy,
+      totalVolume: latestData.volume,
+      lastBuyTime: latestData.call_block_time
+    };
   } catch (error) {
     console.error('Error fetching fan token info from Dune:', error);
     return null;
@@ -379,9 +393,10 @@ app.frame('/yourfantoken', async (c) => {
               <p style={{ fontSize: '24px', color: '#ff7849', marginBottom: '10px' }}>FID: {fid}</p>
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Entity Name: {tokenInfo.entityName}</p>
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Entity Symbol: {tokenInfo.entitySymbol}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Auction ID: {tokenInfo.auctionId}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Min Bidding (ETH): {tokenInfo.minBiddingEth.toFixed(6)}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Min Price (MOXIE): {tokenInfo.minPriceMoxie.toFixed(6)}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Last Buy Price: {tokenInfo.lastBuyPrice.toFixed(4)} MOXIE</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Total Buy Shares: {tokenInfo.totalBuyShares}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Total Volume: {tokenInfo.totalVolume.toFixed(2)} MOXIE</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Last Buy Time: {new Date(tokenInfo.lastBuyTime).toLocaleString()}</p>
             </div>
           ) : (
             <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>No fan token information available for this FID</p>
