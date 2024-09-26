@@ -467,6 +467,38 @@ app.frame('/owned-tokens', async (c) => {
 
   let profileInfo = await getProfileInfo(fid.toString());
 
+  if (!profileInfo) {
+    console.error('Failed to retrieve profile info');
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Failed to retrieve profile info</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
+  }
+
+  // Assuming the Wallet object in profileInfo contains the Ethereum address
+  // You might need to adjust this based on the actual structure of profileInfo
+  const userAddress = profileInfo.primaryDomain?.name || '';
+
+  if (!userAddress) {
+    console.error('No wallet address found for user');
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No wallet address found</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
+  }
+
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
   const query = gql`
@@ -484,8 +516,6 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
   `;
-
-  const userAddress = `0x${fid.toString().padStart(40, '0')}`;
 
   const variables = {
     userAddresses: [userAddress]
