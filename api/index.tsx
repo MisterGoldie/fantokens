@@ -20,25 +20,6 @@ type TextBoxProps = {
   value: string | number;
 };
 
-type VestingQueryResponse = {
-  tokenLockWallets: Array<{
-    address: string;
-  }>;
-};
-
-type MoxieQueryResponse = {
-  users: Array<{
-    id: string;
-    portfolio: Array<{
-      balance: string;
-      subjectToken: {
-        id: string;
-        name: string;
-        symbol: string;
-      };
-    }>;
-  }>;
-};
 
 export const app = new Frog({
   basePath: '/api',
@@ -100,19 +81,6 @@ type OwnedTokensQueryResponse = {
   }>;
 };
 
-interface OwnedFanTokensResponse {
-  users: Array<{
-    portfolio: Array<{
-      balance: string;
-      buyVolume: string;
-      sellVolume: string;
-      subjectToken: {
-        name: string;
-        symbol: string;
-      };
-    }>;
-  }>;
-}
 
 interface ProfileInfo {
   primaryDomain: {
@@ -285,50 +253,6 @@ async function getFanTokenInfo(fid: string): Promise<any> {
   }
 }
 
-async function getOwnedFanTokens(userAddress: string): Promise<any[]> {
-  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
-
-  const query = gql`
-    query MyQuery($userAddresses: [ID!]) {
-      users(where: { id_in: $userAddresses }) {
-        portfolio {
-          balance
-          buyVolume
-          sellVolume
-          subjectToken {
-            name
-            symbol
-          }
-        }
-      }
-    }
-  `;
-
-  const variables = {
-    userAddresses: [userAddress]
-  };
-
-  try {
-    const data = await graphQLClient.request<OwnedFanTokensResponse>(query, variables);
-    console.log('Owned fan tokens query response:', JSON.stringify(data, null, 2));
-
-    if (!data.users || data.users.length === 0 || !data.users[0].portfolio) {
-      console.log(`No fan tokens found for user address: ${userAddress}`);
-      return [];
-    }
-
-    return data.users[0].portfolio.map(token => ({
-      name: token.subjectToken.name,
-      symbol: token.subjectToken.symbol,
-      balance: parseFloat(token.balance),
-      buyVolume: parseFloat(token.buyVolume),
-      sellVolume: parseFloat(token.sellVolume)
-    }));
-  } catch (error) {
-    console.error('Error fetching owned fan tokens from Moxie API:', error);
-    return [];
-  }
-}
 
 app.frame('/', (c) => {
   return c.res({
@@ -540,6 +464,8 @@ app.frame('/yourfantoken', async (c) => {
 });
 
 
+
+
 app.frame('/owned-tokens', async (c) => {
   console.log('Entering /owned-tokens frame');
   const { fid } = c.frameData || {};
@@ -560,11 +486,9 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
-  // Create GraphQL client
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
-  // Query to get user's owned tokens
-  const ownedTokensQuery = gql`
+  const query = gql`
     query MyQuery($userAddresses: [ID!]) {
       users(where: { id_in: $userAddresses }) {
         portfolio {
@@ -580,15 +504,18 @@ app.frame('/owned-tokens', async (c) => {
     }
   `;
 
-  // Construct user ID from FID (assuming it's in the format "0x" + fid padded to 64 characters)
-  const userId = "0x" + fid.toString().padStart(64, "0");
+  // Construct user ID from FID (you may need to adjust this based on your actual FID to address conversion)
+  const userId = `0x${fid.toString().padStart(40, '0')}`;
+
+  const variables = {
+    userAddresses: [userId]
+  };
 
   try {
-    // Execute Moxie API query with proper typing
-    const ownedTokensData = await graphQLClient.request<OwnedTokensQueryResponse>(ownedTokensQuery, { userAddresses: [userId] });
-    console.log('Owned tokens data:', ownedTokensData);
+    const data = await graphQLClient.request<OwnedTokensQueryResponse>(query, variables);
+    console.log('Owned tokens data:', data);
 
-    const ownedTokens = ownedTokensData.users[0]?.portfolio || [];
+    const ownedTokens = data.users[0]?.portfolio || [];
 
     return c.res({
       image: (
@@ -644,10 +571,20 @@ app.frame('/owned-tokens', async (c) => {
     });
   } catch (error) {
     console.error('Error fetching data:', error);
+    
+    let errorMessage: string;
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = 'An unknown error occurred';
+    }
+
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching data</h1>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: {errorMessage}</h1>
         </div>
       ),
       intents: [
