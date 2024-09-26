@@ -138,14 +138,35 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   }
 }
 
-async function getRewardsInfo(fid: string): Promise<any> {
+async function getFanTokenInfo(fid: string): Promise<any> {
   try {
     const dune = new DuneClient(DUNE_API_KEY);
-    const query_result = await dune.getLatestResult({queryId: 4003185});
+    const query_result = await dune.getLatestResult({queryId: 4003185}); // Make sure this queryId is correct for your new query
     console.log('Dune query result:', JSON.stringify(query_result, null, 2));
-    return query_result;
+
+    // Add null check here
+    if (!query_result || !query_result.result || !query_result.result.rows) {
+      console.log(`No fan token auction data found for FID: ${fid}`);
+      return null;
+    }
+
+    // The query returns all fan token auctions, so we need to find the one for this FID
+    const userAuction = query_result.result.rows.find((row: any) => row.entityName === `fid:${fid}`);
+
+    if (userAuction) {
+      return {
+        entityName: userAuction.entityName,
+        entitySymbol: userAuction.entitySymbol,
+        auctionId: userAuction.auctionId,
+        minBiddingEth: userAuction.min_bidding_eth,
+        minPriceMoxie: userAuction.min_price_moxie
+      };
+    } else {
+      console.log(`No fan token auction found for FID: ${fid}`);
+      return null;
+    }
   } catch (error) {
-    console.error('Error fetching rewards from Dune:', error);
+    console.error('Error fetching fan token info from Dune:', error);
     return null;
   }
 }
@@ -344,7 +365,7 @@ app.frame('/yourfantoken', async (c) => {
     });
   }
 
-  let tokenInfo = await getRewardsInfo(fid.toString());
+  let tokenInfo = await getFanTokenInfo(fid.toString());
 
   return c.res({
     image: (
@@ -355,11 +376,12 @@ app.frame('/yourfantoken', async (c) => {
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
           {tokenInfo ? (
             <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '1px solid #ff7849', padding: '20px', borderRadius: '32px' }}>
-              <p style={{ fontSize: '24px', color: '#ff7849', marginBottom: '10px' }}>FID: {tokenInfo.query_fid}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Last Price: {tokenInfo.last_price?.toFixed(6) || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>All Earnings: {tokenInfo.all_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Cast Earnings: {tokenInfo.cast_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Frame Earnings: {tokenInfo.frame_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
+              <p style={{ fontSize: '24px', color: '#ff7849', marginBottom: '10px' }}>FID: {fid}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Entity Name: {tokenInfo.entityName}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Entity Symbol: {tokenInfo.entitySymbol}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Auction ID: {tokenInfo.auctionId}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Min Bidding (ETH): {tokenInfo.minBiddingEth.toFixed(6)}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Min Price (MOXIE): {tokenInfo.minPriceMoxie.toFixed(6)}</p>
             </div>
           ) : (
             <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>No fan token information available for this FID</p>
