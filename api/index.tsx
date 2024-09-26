@@ -331,8 +331,8 @@ app.frame('/yourfantoken', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
+        <div className="flex flex-col items-center justify-center w-[1200px] h-[628px] bg-gray-dark">
+          <h1 className="text-5xl mb-5 text-pink text-center">Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -345,34 +345,21 @@ app.frame('/yourfantoken', async (c) => {
 
   return c.res({
     image: (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        width: '1200px', 
-        height: '628px', 
-        backgroundColor: '#1A1A1A',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif',
-        padding: '20px',
-        boxSizing: 'border-box',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
+      <div className="flex flex-col w-[1200px] h-[628px] bg-gray-dark text-gray-light font-sans p-5 items-center justify-center">
+        <h1 className="text-5xl text-orange mb-5 text-center">
           Your Fan Token
         </h1>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
+        <div className="flex flex-col items-center w-full overflow-y-auto max-h-[500px]">
           {tokenInfo ? (
-            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '1px solid #FFD700', padding: '20px', borderRadius: '10px' }}>
-              <p style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>FID: {tokenInfo.query_fid}</p>
-              <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Last Price: {tokenInfo.last_price?.toFixed(6) || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#BDBDBD' }}>All Earnings: {tokenInfo.all_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Cast Earnings: {tokenInfo.cast_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Frame Earnings: {tokenInfo.frame_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
-              {/* Add more fields as needed */}
+            <div className="flex flex-col text-center border border-orange p-5 rounded-4xl">
+              <p className="text-2xl text-orange mb-2">FID: {tokenInfo.query_fid}</p>
+              <p className="text-lg text-gray-light">Last Price: {tokenInfo.last_price?.toFixed(6) || 'N/A'} MOXIE</p>
+              <p className="text-lg text-gray-light">All Earnings: {tokenInfo.all_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
+              <p className="text-lg text-gray-light">Cast Earnings: {tokenInfo.cast_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
+              <p className="text-lg text-gray-light">Frame Earnings: {tokenInfo.frame_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
             </div>
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token information available for this FID</p>
+            <p className="text-2xl text-gray-light text-center">No fan token information available for this FID</p>
           )}
         </div>
       </div>
