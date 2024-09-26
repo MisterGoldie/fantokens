@@ -1,6 +1,7 @@
 import { Button, Frog } from 'frog';
 import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
+import { DuneClient } from "@duneanalytics/client-sdk";
 
 const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
@@ -18,6 +19,8 @@ if (!NEYNAR_API_KEY) {
 if (!DUNE_API_KEY) {
   console.warn('DUNE_API_KEY is not set in the environment variables');
 }
+
+const dune = new DuneClient(DUNE_API_KEY);
 
 export const app = new Frog({
   basePath: '/api',
@@ -137,32 +140,6 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   }
 }
 
-async function getRewardsInfo(fid: string): Promise<any> {
-  try {
-    const meta = {
-      "x-dune-api-key": DUNE_API_KEY
-    };
-    const header = new Headers(meta);
-    const latest_response = await fetch(`https://api.dune.com/api/v1/query/3509966/results?&filters=query_fid=${fid}`, {
-      method: 'GET',
-      headers: header,
-    });
-
-    if (!latest_response.ok) {
-      throw new Error(`HTTP error! status: ${latest_response.status}`);
-    }
-
-    const body = await latest_response.text();
-    const recs = JSON.parse(body).result.rows[0]; // will only be one row in the result, for the filtered fid
-
-    console.log('Dune query result:', JSON.stringify(recs, null, 2));
-    
-    return recs;
-  } catch (error) {
-    console.error('Error fetching rewards from Dune:', error);
-    return null;
-  }
-}
 
 async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
   const query = `
@@ -237,6 +214,23 @@ async function getOwnedFanTokens(fid: string): Promise<OwnedToken[]> {
     return [];
   }
 }
+
+async function getFanTokenPrice(fid: string): Promise<number | null> {
+  try {
+    const query_result = await dune.getLatestResult({queryId: 4003185});
+    console.log('Dune query result:', JSON.stringify(query_result, null, 2));
+    
+    // Assuming the query result contains an array of rows, find the one matching the FID
+    const userTokenInfo = query_result.result.rows.find((row: any) => row.fid === fid);
+    
+    return userTokenInfo ? userTokenInfo.price : null;
+  } catch (error) {
+    console.error('Error fetching fan token price from Dune:', error);
+    return null;
+  }
+}
+
+
 app.frame('/', (c) => {
   return c.res({
     image: (
@@ -262,6 +256,74 @@ app.frame('/', (c) => {
     intents: [
       <Button action="/profile">Your Profile</Button>,
     ],
+  });
+});
+
+app.frame('/yourfantoken', async (c) => {
+  console.log('Entering /yourfantoken frame');
+  const { fid } = c.frameData || {};
+
+  console.log(`FID: ${fid}`);
+
+  if (!fid) {
+    console.error('No FID found in frameData');
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
+  }
+
+  let tokenPrice = await getFanTokenPrice(fid.toString());
+  let profileInfo = await getProfileInfo(fid.toString());
+
+  return c.res({
+    image: (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        width: '1200px', 
+        height: '628px', 
+        backgroundColor: '#1A1A1A',
+        color: 'white',
+        fontFamily: 'Arial, sans-serif',
+        padding: '20px',
+        boxSizing: 'border-box',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
+          Your Fan Token
+        </h1>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
+          {tokenPrice !== null ? (
+            <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '1px solid #FFD700', padding: '20px', borderRadius: '10px' }}>
+              <p style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>FID: {fid}</p>
+              <p style={{ fontSize: '36px', color: '#BDBDBD', marginBottom: '20px' }}>Price: {tokenPrice.toFixed(6)} MOXIE</p>
+              {profileInfo && (
+                <>
+                  <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+                  <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
+                  <p style={{ fontSize: '18px', color: '#BDBDBD' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
+                </>
+              )}
+            </div>
+          ) : (
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token price available for this FID</p>
+          )}
+        </div>
+      </div>
+    ),
+    intents: [
+      <Button action="/">Back</Button>,
+      <Button action="/yourfantoken">Refresh</Button>,
+      <Button action="/owned-tokens">OFT</Button>,
+    ]
   });
 });
 
@@ -354,7 +416,8 @@ app.frame('/yourfantoken', async (c) => {
     });
   }
 
-  let tokenInfo = await getRewardsInfo(fid.toString());
+  let tokenPrice = await getFanTokenPrice(fid.toString());
+  let profileInfo = await getProfileInfo(fid.toString());
 
   return c.res({
     image: (
@@ -375,17 +438,20 @@ app.frame('/yourfantoken', async (c) => {
           Your Fan Token
         </h1>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
-          {tokenInfo ? (
+          {tokenPrice !== null ? (
             <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '1px solid #FFD700', padding: '20px', borderRadius: '10px' }}>
-              <p style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>FID: {tokenInfo.query_fid}</p>
-              <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Last Price: {tokenInfo.last_price?.toFixed(6) || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#BDBDBD' }}>All Earnings: {tokenInfo.all_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Cast Earnings: {tokenInfo.cast_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Frame Earnings: {tokenInfo.frame_earnings?.toFixed(6) || 'N/A'} MOXIE</p>
-              {/* Add more fields as needed */}
+              <p style={{ fontSize: '24px', color: '#FFD700', marginBottom: '10px' }}>FID: {fid}</p>
+              <p style={{ fontSize: '36px', color: '#BDBDBD', marginBottom: '20px' }}>Price: {tokenPrice.toFixed(6)} MOXIE</p>
+              {profileInfo && (
+                <>
+                  <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
+                  <p style={{ fontSize: '18px', color: '#BDBDBD' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
+                  <p style={{ fontSize: '18px', color: '#BDBDBD' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore.farScore.toFixed(2)}</p>
+                </>
+              )}
             </div>
           ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token information available for this FID</p>
+            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No fan token price available for this FID</p>
           )}
         </div>
       </div>
