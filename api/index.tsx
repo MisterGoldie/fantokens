@@ -61,14 +61,17 @@ interface FanTokenInfoResponse {
   }>;
 }
 
-interface OwnedFanTokenResponse {
-  subjectTokens: Array<{
-    address: any;
-    id: string;
-    name: string;
-    symbol: string;
-    decimals: number;
-    currentPriceInMoxie: string;
+interface OwnedFanTokensResponse {
+  users: Array<{
+    portfolio: Array<{
+      balance: string;
+      buyVolume: string;
+      sellVolume: string;
+      subjectToken: {
+        name: string;
+        symbol: string;
+      };
+    }>;
   }>;
 }
 
@@ -243,43 +246,44 @@ async function getFanTokenInfo(fid: string): Promise<any> {
   }
 }
 
-async function getOwnedFanTokens(fid: string): Promise<any[]> {
+async function getOwnedFanTokens(userAddress: string): Promise<any[]> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
   const query = gql`
-    query MyQuery($symbol_starts_with: String) {
-      subjectTokens(where: {symbol_starts_with: $symbol_starts_with}) {
-        address: id
-        name
-        symbol
-        decimals
-        currentPriceInMoxie
+    query MyQuery($userAddresses: [ID!]) {
+      users(where: { id_in: $userAddresses }) {
+        portfolio {
+          balance
+          buyVolume
+          sellVolume
+          subjectToken {
+            name
+            symbol
+          }
+        }
       }
     }
   `;
 
   const variables = {
-    symbol_starts_with: "fid:"
+    userAddresses: [userAddress]
   };
 
   try {
-    const data = await graphQLClient.request<OwnedFanTokenResponse>(query, variables);
+    const data = await graphQLClient.request<OwnedFanTokensResponse>(query, variables);
     console.log('Owned fan tokens query response:', JSON.stringify(data, null, 2));
 
-    if (!data.subjectTokens || data.subjectTokens.length === 0) {
-      console.log(`No fan tokens found`);
+    if (!data.users || data.users.length === 0 || !data.users[0].portfolio) {
+      console.log(`No fan tokens found for user address: ${userAddress}`);
       return [];
     }
 
-    // Filter tokens to only include those owned by the given FID
-    const ownedTokens = data.subjectTokens.filter(token => token.symbol.toLowerCase() === `fid:${fid}`);
-
-    return ownedTokens.map(token => ({
-      address: token.address,
-      name: token.name,
-      symbol: token.symbol,
-      decimals: token.decimals,
-      currentPriceInMoxie: parseFloat(token.currentPriceInMoxie)
+    return data.users[0].portfolio.map(token => ({
+      name: token.subjectToken.name,
+      symbol: token.subjectToken.symbol,
+      balance: parseFloat(token.balance),
+      buyVolume: parseFloat(token.buyVolume),
+      sellVolume: parseFloat(token.sellVolume)
     }));
   } catch (error) {
     console.error('Error fetching owned fan tokens from Moxie API:', error);
@@ -517,7 +521,7 @@ app.frame('/owned-tokens', async (c) => {
       </div>
     ),
     intents: [
-      <Button action="/">Back</Button>,
+      <Button action="/">back</Button>,
       <Button action="/yourfantoken">Your Fan Token</Button>,
     ]
   });
