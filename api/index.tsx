@@ -52,7 +52,12 @@ interface FanTokenInfoResponse {
     id: string;
     name: string;
     symbol: string;
-    totalSupply: string;
+    portfolio: Array<{
+      balance: string;
+      user: {
+        id: string;
+      };
+    }>;
   }>;
 }
 
@@ -182,6 +187,7 @@ async function getFanTokenAddressFromFID(fid: string): Promise<any> {
   }
 }
 
+
 async function getFanTokenInfo(fid: string): Promise<any> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
@@ -200,7 +206,12 @@ async function getFanTokenInfo(fid: string): Promise<any> {
         id
         name
         symbol
-        totalSupply
+        portfolio {
+          balance
+          user {
+            id
+          }
+        }
       }
     }
   `;
@@ -221,12 +232,10 @@ async function getFanTokenInfo(fid: string): Promise<any> {
     const tokenInfo = data.subjectTokens[0];
 
     return {
-      address: tokenInfo.id,
       name: tokenInfo.name,
       symbol: tokenInfo.symbol,
       currentPriceInMoxie: parseFloat(tokenInfo.currentPriceInMoxie),
-      totalSupply: parseFloat(tokenInfo.totalSupply),
-      decimals: tokenAddressInfo.decimals
+      holdersCount: tokenInfo.portfolio.length
     };
   } catch (error) {
     console.error('Error fetching fan token info from Moxie API:', error);
@@ -420,9 +429,7 @@ app.frame('/yourfantoken', async (c) => {
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Name: {tokenInfo.name}</p>
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Symbol: {tokenInfo.symbol}</p>
               <p style={{ fontSize: '18px', color: '#d3dce6' }}>Current Price: {tokenInfo.currentPriceInMoxie.toFixed(4)} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Total Supply: {tokenInfo.totalSupply.toFixed(2)}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Address: {tokenInfo.address}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Decimals: {tokenInfo.decimals}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Number of Holders: {tokenInfo.holdersCount}</p>
             </div>
           ) : (
             <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>No fan token information available for this FID</p>
