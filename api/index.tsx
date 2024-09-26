@@ -23,21 +23,13 @@ type TextBoxProps = {
 // Type definitions
 interface TokenHolding {
   balance: string;
-  user: {
-    id: string;
+  buyVolume: string;
+  sellVolume: string;
+  subjectToken: {
+    name: string;
+    symbol: string;
+    currentPriceInMoxie: string;
   };
-}
-
-interface SubjectToken {
-  currentPriceInMoxie: string;
-  id: string;
-  name: string;
-  symbol: string;
-  portfolio: TokenHolding[];
-}
-
-interface TokenInfo {
-  subjectTokens: SubjectToken[];
 }
 
 interface ProfileInfo {
@@ -140,62 +132,20 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   }
 }
 
-async function getFanTokenAddressFromFID(fid: string): Promise<any> {
+async function getFanTokenInfo(userAddress: string): Promise<TokenHolding[] | null> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
   const query = gql`
-    query MyQuery($symbol_starts_with: String) {
-      subjectTokens(where: {symbol_starts_with: $symbol_starts_with}) {
-        address: id
-        name
-        symbol
-        decimals
-      }
-    }
-  `;
-
-  const variables = {
-    symbol_starts_with: `fid:${fid}`
-  };
-
-  try {
-    const data = await graphQLClient.request<any>(query, variables);
-    console.log('Fan token address query response:', JSON.stringify(data, null, 2));
-
-    if (!data.subjectTokens || data.subjectTokens.length === 0) {
-      console.log(`No fan token found for FID: ${fid}`);
-      return null;
-    }
-
-    return data.subjectTokens[0];
-  } catch (error) {
-    console.error('Error fetching fan token address from Moxie API:', error);
-    return null;
-  }
-}
-
-async function getFanTokenInfo(fid: string): Promise<TokenInfo | null> {
-  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
-
-  // First, get the fan token address from FID
-  const tokenAddressInfo = await getFanTokenAddressFromFID(fid);
-  
-  if (!tokenAddressInfo) {
-    console.log(`No fan token found for FID: ${fid}`);
-    return null;
-  }
-
-  const query = gql`
-    query MyQuery($fanTokenAddress: ID) {
-      subjectTokens(where: { id: $fanTokenAddress }) {
-        currentPriceInMoxie
-        id
-        name
-        symbol
+    query MyQuery($userAddresses: [ID!]) {
+      users(where: { id_in: $userAddresses }) {
         portfolio {
           balance
-          user {
-            id
+          buyVolume
+          sellVolume
+          subjectToken {
+            name
+            symbol
+            currentPriceInMoxie
           }
         }
       }
@@ -203,21 +153,19 @@ async function getFanTokenInfo(fid: string): Promise<TokenInfo | null> {
   `;
 
   const variables = {
-    fanTokenAddress: tokenAddressInfo.address.toLowerCase()
+    userAddresses: [userAddress.toLowerCase()]
   };
 
   try {
     const data = await graphQLClient.request<any>(query, variables);
     console.log('Moxie API response:', JSON.stringify(data, null, 2));
 
-    if (!data.subjectTokens || data.subjectTokens.length === 0) {
-      console.log(`No fan token information found for address: ${tokenAddressInfo.address}`);
+    if (!data.users || data.users.length === 0 || !data.users[0].portfolio) {
+      console.log(`No fan tokens found for address: ${userAddress}`);
       return null;
     }
 
-    return {
-      subjectTokens: data.subjectTokens
-    };
+    return data.users[0].portfolio;
   } catch (error) {
     console.error('Error fetching fan token info from Moxie API:', error);
     return null;
@@ -270,30 +218,6 @@ async function getFarcasterAddressFromFID(fid: string): Promise<string> {
     throw error;
   }
 }
-
-app.frame('/', (c) => {
-  return c.res({
-    image: (
-      <div style={{
-        width: '1200px',
-        height: '628px',
-        backgroundColor: '#1A1A1A',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}>
-        <h1 style={{ fontSize: '48px', color: '#FFD700' }}>
-          Fan Token Tracker
-        </h1>
-      </div>
-    ),
-    intents: [
-      <Button action="/profile">Your Profile</Button>,
-    ],
-  });
-});
 
 app.frame('/profile', async (c) => {
   console.log('Entering /profile frame');
@@ -384,86 +308,104 @@ app.frame('/yourfantoken', async (c) => {
     });
   }
 
-  let tokenInfo = await getFanTokenInfo(fid.toString());
-  let profileInfo = await getProfileInfo(fid.toString());
+  try {
+    let userAddress = await getFarcasterAddressFromFID(fid.toString());
+    let tokenInfo = await getFanTokenInfo(userAddress);
+    let profileInfo = await getProfileInfo(fid.toString());
 
-  function TextBox({ label, value }: TextBoxProps) {
-    return (
-      <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        padding: '10px',
-        margin: '5px',
-        borderRadius: '10px',
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '230px',
-        height: '100px'
-      }}>
-        <div style={{ fontWeight: 'bold' }}>{label}</div>
-        <div>{value}</div>
-      </div>
-    );
+    function TextBox({ label, value }: TextBoxProps) {
+      return (
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '10px',
+          margin: '5px',
+          borderRadius: '10px',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '230px',
+          height: '100px'
+        }}>
+          <div style={{ fontWeight: 'bold' }}>{label}</div>
+          <div>{value}</div>
+        </div>
+      );
+    }
+
+    // Find the user's own token (assuming it's the first one that starts with "fid:")
+    const ownToken = tokenInfo ? tokenInfo.find(token => token.subjectToken.symbol.startsWith('fid:')) : null;
+
+    return c.res({
+      image: (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: 'url(https://bafybeidaqyqtdynorxghei3q7dceyb23rlhd5txkwhj7hx37dwhidb4yyy.ipfs.w3s.link/Frame%2064%20(1).png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          fontFamily: 'Arial, sans-serif',
+          color: '#000000',
+          padding: '20px',
+          boxSizing: 'border-box',
+        }}>
+          <div style={{
+            width: '150px',
+            height: '150px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+          }}>
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+          }}>
+            <TextBox label="Current Price" value={ownToken ? parseFloat(ownToken.subjectToken.currentPriceInMoxie).toFixed(2) : 'N/A'} />
+            <TextBox label="FID" value={fid.toString()} />
+            <TextBox label="Holders" value={tokenInfo ? tokenInfo.length.toString() : 'N/A'} />
+            <TextBox label="Name" value={profileInfo?.farcasterSocial?.profileDisplayName || 'N/A'} />
+          </div>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>,
+        <Button action="/yourfantoken">Refresh</Button>,
+        <Button action="/owned-tokens">Owned</Button>,
+      ]
+    });
+  } catch (error) {
+    console.error('Error in /yourfantoken frame:', error);
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token info</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
   }
-
-  return c.res({
-    image: (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '1200px', 
-        height: '628px', 
-        backgroundImage: 'url(https://bafybeidaqyqtdynorxghei3q7dceyb23rlhd5txkwhj7hx37dwhidb4yyy.ipfs.w3s.link/Frame%2064%20(1).png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        fontFamily: 'Arial, sans-serif',
-        color: '#000000',
-        padding: '20px',
-        boxSizing: 'border-box',
-      }}>
-        <div style={{
-          width: '150px',
-          height: '150px',
-          borderRadius: '50%',
-          overflow: 'hidden',
-          backgroundColor: '#FFA500',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '20px',
-        }}>
-          <img 
-            src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-            alt="Profile" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        </div>
-        
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-        }}>
-          <TextBox label="Current Price" value={tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A'} />
-          <TextBox label="FID" value={fid.toString()} />
-          <TextBox label="Holders" value={tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A'} />
-          <TextBox label="Name" value={profileInfo?.farcasterSocial?.profileDisplayName || 'N/A'} />
-        </div>
-      </div>
-    ),
-    intents: [
-      <Button action="/">Back</Button>,
-      <Button action="/yourfantoken">Refresh</Button>,
-      <Button action="/owned-tokens">Owned</Button>,
-    ]
-  });
 });
 
 app.frame('/owned-tokens', async (c) => {
@@ -487,16 +429,16 @@ app.frame('/owned-tokens', async (c) => {
   }
 
   try {
-    let tokenInfo = await getFanTokenInfo(fid.toString());
-    let profileInfo = await getProfileInfo(fid.toString());
     let userAddress = await getFarcasterAddressFromFID(fid.toString());
+    let ownedTokens = await getFanTokenInfo(userAddress);
+    let profileInfo = await getProfileInfo(fid.toString());
 
-    if (!tokenInfo || !tokenInfo.subjectTokens || tokenInfo.subjectTokens.length === 0) {
-      console.warn(`No fan token information found for FID ${fid}`);
+    if (!ownedTokens || ownedTokens.length === 0) {
+      console.warn(`No fan tokens found for FID ${fid}`);
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan token found for this user</h1>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this user</h1>
           </div>
         ),
         intents: [
@@ -504,13 +446,6 @@ app.frame('/owned-tokens', async (c) => {
         ]
       });
     }
-
-    const userToken = tokenInfo.subjectTokens[0];
-    
-    // Filter the portfolio to get only the current user's holdings
-    const userHoldings = userToken.portfolio.filter((holding: TokenHolding) => 
-      holding.user.id.toLowerCase() === userAddress.toLowerCase()
-    );
 
     return c.res({
       image: (
@@ -549,40 +484,33 @@ app.frame('/owned-tokens', async (c) => {
             Your Owned Fan Tokens
           </h1>
           <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
-            {userHoldings.length > 0 ? (
-              userHoldings.map((holding: TokenHolding, index: number) => (
-                <div key={index} style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  marginBottom: '20px', 
-                  backgroundColor: 'rgba(255,255,255,0.8)',
-                  padding: '10px',
-                  borderRadius: '10px',
-                  color: '#000000'
-                }}>
-                  <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                    {userToken.name} ({userToken.symbol})
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Balance: {parseFloat(holding.balance) / 1e18} tokens
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Current Price: {parseFloat(userToken.currentPriceInMoxie).toFixed(6)} MOXIE
-                  </p>
-                </div>
-              ))
-            ) : (
-              <div style={{ 
-                fontSize: '24px', 
-                color: '#FFFFFF', 
-                textAlign: 'center', 
-                backgroundColor: 'rgba(0,0,0,0.5)', 
-                padding: '20px', 
-                borderRadius: '10px' 
+            {ownedTokens.map((token: any, index: number) => (
+              <div key={index} style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                marginBottom: '20px', 
+                backgroundColor: 'rgba(255,255,255,0.8)',
+                padding: '10px',
+                borderRadius: '10px',
+                color: '#000000'
               }}>
-                You don't own any fan tokens yet.
+                <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                  {token.subjectToken.name} ({token.subjectToken.symbol})
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Balance: {parseFloat(token.balance) / 1e18} tokens
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Current Price: {parseFloat(token.subjectToken.currentPriceInMoxie).toFixed(6)} MOXIE
+                </p>
               </div>
-            )}
+            ))}
           </div>
         </div>
       ),
