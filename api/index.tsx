@@ -26,6 +26,19 @@ type VestingQueryResponse = {
   }>;
 };
 
+type MoxieQueryResponse = {
+  users: Array<{
+    id: string;
+    portfolio: Array<{
+      balance: string;
+      subjectToken: {
+        id: string;
+        name: string;
+        symbol: string;
+      };
+    }>;
+  }>;
+};
 
 export const app = new Frog({
   basePath: '/api',
@@ -512,6 +525,7 @@ app.frame('/yourfantoken', async (c) => {
   });
 });
 
+
 app.frame('/owned-tokens', async (c) => {
   console.log('Entering /owned-tokens frame');
   const { fid } = c.frameData || {};
@@ -535,33 +549,32 @@ app.frame('/owned-tokens', async (c) => {
   // Create GraphQL client
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
-  // Query to get vesting contract address
-  const vestingQuery = gql`
-    query MyQuery($beneficiary: Bytes) {
-      tokenLockWallets(where: {beneficiary: $beneficiary}) {
-        address: id
+  // Query to get user's owned tokens
+  const moxieQuery = gql`
+    query GetUserTokens($userId: ID!) {
+      users(where: {id: $userId}) {
+        id
+        portfolio {
+          balance
+          subjectToken {
+            id
+            name
+            symbol
+          }
+        }
       }
     }
   `;
 
-  // Construct beneficiary address from FID (assuming it's in the format "0x" + fid padded to 64 characters)
-  const beneficiary = "0x" + fid.toString().padStart(64, "0");
+  // Construct user ID from FID (assuming it's in the format "0x" + fid padded to 64 characters)
+  const userId = "0x" + fid.toString().padStart(64, "0");
 
   try {
-    // Execute vesting contract query with proper typing
-    const vestingData = await graphQLClient.request<VestingQueryResponse>(vestingQuery, { beneficiary });
-    console.log('Vesting contract data:', vestingData);
+    // Execute Moxie API query with proper typing
+    const moxieData = await graphQLClient.request<MoxieQueryResponse>(moxieQuery, { userId });
+    console.log('Moxie API data:', moxieData);
 
-    // Extract vesting contract address
-    const vestingContractAddress = vestingData.tokenLockWallets[0]?.address;
-
-    if (!vestingContractAddress) {
-      console.error('No vesting contract found for this FID');
-      // Handle the case where no vesting contract is found
-    }
-
-    // Now fetch owned tokens using the vesting contract address
-    const ownedTokens = await getOwnedFanTokens(vestingContractAddress || fid.toString());
+    const ownedTokens = moxieData.users[0]?.portfolio || [];
 
     return c.res({
       image: (
@@ -582,8 +595,8 @@ app.frame('/owned-tokens', async (c) => {
             Your Owned Fan Tokens
           </h1>
           <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
-            {ownedTokens && ownedTokens.length > 0 ? (
-              ownedTokens.map((token: any, index: number) => (
+            {ownedTokens.length > 0 ? (
+              ownedTokens.map((token, index) => (
                 <div key={index} style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
@@ -593,17 +606,12 @@ app.frame('/owned-tokens', async (c) => {
                   borderRadius: '10px',
                   color: '#000000'
                 }}>
-                  <img 
-                    src={token.holderProfileImageUrl || '/api/placeholder/50/50'} 
-                    alt="Profile" 
-                    style={{ width: '50px', height: '50px', borderRadius: '50%', marginRight: '20px' }}
-                  />
                   <div>
                     <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                      {token.holderProfileName || `FID: ${token.holderId}`}
+                      {token.subjectToken.name}
                     </p>
                     <p style={{ fontSize: '20px' }}>
-                      Balance: {token.balance} {token.tokenEntitySymbol}
+                      Balance: {parseFloat(token.balance).toFixed(2)} {token.subjectToken.symbol}
                     </p>
                   </div>
                 </div>
