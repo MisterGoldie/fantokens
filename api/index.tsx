@@ -258,6 +258,8 @@ app.frame('/', (c) => {
     ),
     intents: [
       <Button action="/profile">View Your Profile</Button>,
+      <Button action="/yourfantoken">Your Fan Token</Button>,
+      <Button action="/owned-tokens">Owned Tokens</Button>,
     ],
   });
 });
@@ -583,8 +585,7 @@ app.frame('/owned-tokens', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/">Home</Button>,
-        <Button action="/yourfantoken">Yours</Button>,
+        <Button action="/">Back</Button>
       ]
     });
   }
