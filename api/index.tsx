@@ -6,6 +6,7 @@ import { gql, GraphQLClient } from "graphql-request";
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
 const MOXIE_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_protocol_stats_mainnet/version/latest";
+const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
 
 if (!AIRSTACK_API_KEY) {
   console.warn('AIRSTACK_API_KEY is not set in the environment variables');
@@ -66,17 +67,19 @@ interface FanTokenInfoResponse {
   }>;
 }
 
-interface OwnedTokensQueryResponse {
-  users: Array<{
-    portfolio: Array<{
-      balance: string;
-      buyVolume: string;
-      sellVolume: string;
-      subjectToken: {
-        name: string;
-        symbol: string;
-      };
-    }>;
+interface VestingDataResponse {
+  tokenLockWallets: Array<{
+    address: string;
+  }>;
+}
+
+interface TokenBalancesResponse {
+  subjectTokens: Array<{
+    id: string;
+    name: string;
+    symbol: string;
+    totalSupply: string;
+    currentPriceInMoxie: string;
   }>;
 }
 
@@ -455,7 +458,7 @@ app.frame('/owned-tokens', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
           <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
         </div>
       ),
@@ -472,7 +475,7 @@ app.frame('/owned-tokens', async (c) => {
     console.error('Failed to retrieve profile info');
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
           <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Failed to retrieve profile info</h1>
         </div>
       ),
@@ -482,16 +485,16 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
-  // Use Farcaster handle instead of Ethereum address
-  const userHandle = profileInfo.farcasterSocial?.profileHandle || '';
-  console.log('User handle:', userHandle);
+  // Assuming profileInfo contains the user's Ethereum address
+  const userAddress = profileInfo.primaryDomain?.name || '';
+  console.log('User address:', userAddress);
 
-  if (!userHandle) {
-    console.error('No Farcaster handle found for user');
+  if (!userAddress) {
+    console.error('No Ethereum address found for user');
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No Farcaster handle found</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No Ethereum address found</h1>
         </div>
       ),
       intents: [
@@ -500,36 +503,49 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
-  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
+  const vestingGraphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
 
-  const query = gql`
-    query MyQuery($userHandle: String!) {
-      users(where: { farcasterHandle: $userHandle }) {
-        portfolio {
-          balance
-          buyVolume
-          sellVolume
-          subjectToken {
-            name
-            symbol
-          }
-        }
+  const vestingQuery = gql`
+    query MyQuery($beneficiary: Bytes) {
+      tokenLockWallets(where: {beneficiary: $beneficiary}) {
+        address: id
       }
     }
   `;
 
-  const variables = {
-    userHandle: userHandle
+  const vestingVariables = {
+    beneficiary: userAddress.toLowerCase()
   };
 
-  console.log('GraphQL query:', query);
-  console.log('GraphQL variables:', variables);
-
   try {
-    const data = await graphQLClient.request<OwnedTokensQueryResponse>(query, variables);
-    console.log('Owned tokens data:', JSON.stringify(data, null, 2));
+    const vestingData = await vestingGraphQLClient.request<VestingDataResponse>(vestingQuery, vestingVariables);
+    console.log('Vesting contract addresses:', JSON.stringify(vestingData, null, 2));
 
-    const ownedTokens = data.users[0]?.portfolio || [];
+    const vestingAddresses = vestingData.tokenLockWallets.map((wallet) => wallet.address);
+
+    // Now use these vesting addresses to query for token balances
+    const moxieGraphQLClient = new GraphQLClient(MOXIE_API_URL);
+
+    const tokenBalancesQuery = gql`
+      query GetTokenBalances($addresses: [Bytes!]!) {
+        subjectTokens(where: { id_in: $addresses }) {
+          id
+          name
+          symbol
+          totalSupply
+          currentPriceInMoxie
+        }
+      }
+    `;
+
+    const tokenBalancesVariables = {
+      addresses: vestingAddresses
+    };
+
+    const tokenBalancesData = await moxieGraphQLClient.request<TokenBalancesResponse>(tokenBalancesQuery, tokenBalancesVariables);
+    console.log('Token balances:', JSON.stringify(tokenBalancesData, null, 2));
+
+    const ownedTokens = tokenBalancesData.subjectTokens || [];
 
     return c.res({
       image: (
@@ -580,13 +596,13 @@ app.frame('/owned-tokens', async (c) => {
                   color: '#000000'
                 }}>
                   <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                    {token.subjectToken.name} ({token.subjectToken.symbol})
+                    {token.name} ({token.symbol})
                   </p>
                   <p style={{ fontSize: '20px' }}>
-                    Balance: {parseFloat(token.balance).toFixed(2)}
+                    Total Supply: {parseFloat(token.totalSupply).toFixed(2)}
                   </p>
-                  <p style={{ fontSize: '16px' }}>
-                    Buy Volume: {parseFloat(token.buyVolume).toFixed(2)} | Sell Volume: {parseFloat(token.sellVolume).toFixed(2)}
+                  <p style={{ fontSize: '20px' }}>
+                    Current Price: {parseFloat(token.currentPriceInMoxie).toFixed(6)} MOXIE
                   </p>
                 </div>
               ))
@@ -621,7 +637,7 @@ app.frame('/owned-tokens', async (c) => {
 
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
           <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: {errorMessage}</h1>
         </div>
       ),
