@@ -612,49 +612,25 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
-  let profileInfo = await getProfileInfo(fid.toString());
-  console.log('Profile info:', JSON.stringify(profileInfo, null, 2));
-
-  if (!profileInfo) {
-    console.error('Failed to retrieve profile info');
-    return c.res({
-      image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Failed to retrieve profile info</h1>
-        </div>
-      ),
-      intents: [
-        <Button action="/">Back</Button>
-      ]
-    });
-  }
-
   const moxieGraphQLClient = new GraphQLClient(MOXIE_API_URL);
 
-  const userQuery = gql`
-    query GetUser($fid: String!) {
-      users(where: { id: $fid }) {
-        id
-        username
-      }
-    }
-  `;
-
-  const userQueryVariables = {
-    fid: fid.toString()
-  };
-
-  console.log('Moxie API URL:', MOXIE_API_URL);
-  console.log('User Query:', userQuery);
-  console.log('User Query Variables:', JSON.stringify(userQueryVariables, null, 2));
-
   try {
-    console.log('Sending user query to Moxie API...');
-    const userData = await moxieGraphQLClient.request<any>(userQuery, userQueryVariables);
+    // User query
+    const userQuery = gql`
+      query GetUser($fid: String!) {
+        users(where: { id: $fid }) {
+          id
+          username
+        }
+      }
+    `;
+
+    console.log('Checking if user exists in Moxie API...');
+    const userData = await moxieGraphQLClient.request<any>(userQuery, { fid: fid.toString() });
     console.log('Moxie API User Response:', JSON.stringify(userData, null, 2));
 
     if (!userData.users || userData.users.length === 0) {
-      console.warn('User not found in Moxie API');
+      console.warn(`User with FID ${fid} not found in Moxie API`);
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
@@ -667,6 +643,7 @@ app.frame('/owned-tokens', async (c) => {
       });
     }
 
+    // Portfolio query
     const portfolioQuery = gql`
       query GetUserPortfolio($fid: String!) {
         users(where: { id: $fid }) {
@@ -683,17 +660,14 @@ app.frame('/owned-tokens', async (c) => {
       }
     `;
 
-    console.log('Portfolio Query:', portfolioQuery);
-    console.log('Portfolio Query Variables:', JSON.stringify(userQueryVariables, null, 2));
-
-    console.log('Sending portfolio query to Moxie API...');
-    const portfolioData = await moxieGraphQLClient.request<any>(portfolioQuery, userQueryVariables);
+    console.log('Fetching user portfolio from Moxie API...');
+    const portfolioData = await moxieGraphQLClient.request<any>(portfolioQuery, { fid: fid.toString() });
     console.log('Moxie API Portfolio Response:', JSON.stringify(portfolioData, null, 2));
 
     const ownedTokens = portfolioData.users[0]?.portfolio || [];
 
     if (ownedTokens.length === 0) {
-      console.warn('No fan tokens found for user');
+      console.warn(`No fan tokens found for user with FID ${fid}`);
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
@@ -706,6 +680,7 @@ app.frame('/owned-tokens', async (c) => {
       });
     }
 
+    // Display owned tokens
     return c.res({
       image: (
         <div style={{ 
@@ -721,24 +696,6 @@ app.frame('/owned-tokens', async (c) => {
           padding: '40px',
           boxSizing: 'border-box',
         }}>
-          <div style={{
-            width: '150px',
-            height: '150px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            backgroundColor: '#FFA500',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '20px',
-            alignSelf: 'center',
-          }}>
-            <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-              alt="Profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </div>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
             Your Owned Fan Tokens
           </h1>
