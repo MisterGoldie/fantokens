@@ -20,6 +20,13 @@ type TextBoxProps = {
   value: string | number;
 };
 
+type VestingQueryResponse = {
+  tokenLockWallets: Array<{
+    address: string;
+  }>;
+};
+
+
 export const app = new Frog({
   basePath: '/api',
   imageOptions: { width: 1200, height: 628 },
@@ -525,64 +532,106 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 
-  const ownedTokens = await getOwnedFanTokens(fid.toString());
+  // Create GraphQL client
+  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
-  return c.res({
-    image: (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        width: '1200px', 
-        height: '628px', 
-        backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif',
-        padding: '40px',
-        boxSizing: 'border-box',
-      }}>
-        <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
-          Your Owned Fan Tokens
-        </h1>
-        <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
-          {ownedTokens && ownedTokens.length > 0 ? (
-            ownedTokens.map((token: any, index: number) => (
-              <div key={index} style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                marginBottom: '20px', 
-                backgroundColor: 'rgba(255,255,255,0.8)',
-                padding: '10px',
-                borderRadius: '10px',
-                color: '#000000'
-              }}>
-                <img 
-                  src={token.holderProfileImageUrl || '/api/placeholder/50/50'} 
-                  alt="Profile" 
-                  style={{ width: '50px', height: '50px', borderRadius: '50%', marginRight: '20px' }}
-                />
-                <div>
-                  <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                    {token.holderProfileName || `FID: ${token.holderId}`}
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Balance: {token.balance} {token.tokenEntitySymbol}
-                  </p>
+  // Query to get vesting contract address
+  const vestingQuery = gql`
+    query MyQuery($beneficiary: Bytes) {
+      tokenLockWallets(where: {beneficiary: $beneficiary}) {
+        address: id
+      }
+    }
+  `;
+
+  // Construct beneficiary address from FID (assuming it's in the format "0x" + fid padded to 64 characters)
+  const beneficiary = "0x" + fid.toString().padStart(64, "0");
+
+  try {
+    // Execute vesting contract query with proper typing
+    const vestingData = await graphQLClient.request<VestingQueryResponse>(vestingQuery, { beneficiary });
+    console.log('Vesting contract data:', vestingData);
+
+    // Extract vesting contract address
+    const vestingContractAddress = vestingData.tokenLockWallets[0]?.address;
+
+    if (!vestingContractAddress) {
+      console.error('No vesting contract found for this FID');
+      // Handle the case where no vesting contract is found
+    }
+
+    // Now fetch owned tokens using the vesting contract address
+    const ownedTokens = await getOwnedFanTokens(vestingContractAddress || fid.toString());
+
+    return c.res({
+      image: (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          color: 'white',
+          fontFamily: 'Arial, sans-serif',
+          padding: '40px',
+          boxSizing: 'border-box',
+        }}>
+          <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
+            Your Owned Fan Tokens
+          </h1>
+          <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
+            {ownedTokens && ownedTokens.length > 0 ? (
+              ownedTokens.map((token: any, index: number) => (
+                <div key={index} style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  marginBottom: '20px', 
+                  backgroundColor: 'rgba(255,255,255,0.8)',
+                  padding: '10px',
+                  borderRadius: '10px',
+                  color: '#000000'
+                }}>
+                  <img 
+                    src={token.holderProfileImageUrl || '/api/placeholder/50/50'} 
+                    alt="Profile" 
+                    style={{ width: '50px', height: '50px', borderRadius: '50%', marginRight: '20px' }}
+                  />
+                  <div>
+                    <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                      {token.holderProfileName || `FID: ${token.holderId}`}
+                    </p>
+                    <p style={{ fontSize: '20px' }}>
+                      Balance: {token.balance} {token.tokenEntitySymbol}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p style={{ fontSize: '24px', color: '#FFFFFF', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '10px' }}>No owned fan tokens found</p>
-          )}
+              ))
+            ) : (
+              <p style={{ fontSize: '24px', color: '#FFFFFF', textAlign: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '10px' }}>No owned fan tokens found</p>
+            )}
+          </div>
         </div>
-      </div>
-    ),
-    intents: [
-      <Button action="/">Back</Button>,
-      <Button action="/yourfantoken">Your Fan Token</Button>,
-    ]
-  });
+      ),
+      intents: [
+        <Button action="/">Back</Button>,
+        <Button action="/yourfantoken">Your Fan Token</Button>,
+      ]
+    });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching data</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>
+      ]
+    });
+  }
 });
 
 export const GET = handle(app);
