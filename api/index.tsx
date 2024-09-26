@@ -426,14 +426,14 @@ app.frame('/yourfantoken', async (c) => {
         <h1 style={{ fontSize: '48px', color: '#ff7849', marginBottom: '20px', textAlign: 'center' }}>
           Your Fan Token
         </h1>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
           {tokenInfo ? (
             <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '1px solid #ff7849', padding: '20px', borderRadius: '32px' }}>
-              <p style={{ fontSize: '24px', color: '#ff7849', marginBottom: '10px' }}>FID: {fid}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Name: {tokenInfo.name}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Symbol: {tokenInfo.symbol}</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Current Price: {tokenInfo.currentPriceInMoxie.toFixed(4)} MOXIE</p>
-              <p style={{ fontSize: '18px', color: '#d3dce6' }}>Number of Holders: {tokenInfo.holdersCount}</p>
+              <p style={{ fontSize: '24px', color: '#ff7849', marginBottom: '10px', textAlign: 'center' }}>FID: {fid}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6', textAlign: 'center' }}>Name: {tokenInfo.name}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6', textAlign: 'center' }}>Symbol: {tokenInfo.symbol}</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6', textAlign: 'center' }}>Current Price: {tokenInfo.currentPriceInMoxie.toFixed(4)} MOXIE</p>
+              <p style={{ fontSize: '18px', color: '#d3dce6', textAlign: 'center' }}>Number of Holders: {tokenInfo.holdersCount}</p>
             </div>
           ) : (
             <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>No fan token information available for this FID</p>
@@ -448,6 +448,7 @@ app.frame('/yourfantoken', async (c) => {
     ]
   });
 });
+
 
 app.frame('/owned-tokens', async (c) => {
   console.log('Entering /owned-tokens frame');
