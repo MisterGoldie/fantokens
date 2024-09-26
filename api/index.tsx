@@ -454,6 +454,7 @@ app.frame('/yourfantoken', async (c) => {
       <div style={{ 
         display: 'flex', 
         flexDirection: 'column', 
+        justifyContent: 'center',
         width: '1200px', 
         height: '628px', 
         backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
@@ -468,11 +469,8 @@ app.frame('/yourfantoken', async (c) => {
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
-          justifyContent: 'flex-start',
-          alignItems: 'flex-start',
-          position: 'absolute',
-          bottom: '20px',
-          left: '20px',
+          justifyContent: 'center',
+          alignItems: 'center',
           width: '100%',
         }}>
           <TextBox label="Current Price" value={tokenInfo ? tokenInfo.currentPriceInMoxie.toFixed(2) : 'N/A'} />
@@ -483,8 +481,8 @@ app.frame('/yourfantoken', async (c) => {
         
         <div style={{
           position: 'absolute',
-          bottom: '190px',
-          right: '90px',
+          bottom: '160px',
+          right: '130px',
           width: '120px',
           height: '120px',
           borderRadius: '50%',
