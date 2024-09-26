@@ -423,13 +423,13 @@ app.frame('/yourfantoken', async (c) => {
   return c.res({
     image: (
       <div style={{ display: 'flex', flexDirection: 'column', width: '1200px', height: '628px', backgroundColor: '#273444', color: '#d3dce6', fontFamily: 'Montserrat, sans-serif', padding: '20px', boxSizing: 'border-box', alignItems: 'center', justifyContent: 'center' }}>
-        <h1 style={{ fontSize: '56px', color: '#FF6600', marginBottom: '20px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.1rem' }}>
+        <h1 style={{ fontSize: '56px', color: '#A36EFD', marginBottom: '20px', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.1rem' }}>
           Your Fan Token
         </h1>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', overflowY: 'auto', maxHeight: '500px' }}>
           {tokenInfo ? (
             <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'center', border: '2px solid #ff7849', padding: '30px', borderRadius: '32px' }}>
-              <p style={{ fontSize: '32px', color: '#FF6600', marginBottom: '15px', textAlign: 'center' }}>FID: {fid}</p>
+              <p style={{ fontSize: '32px', color: '#A36EFD', marginBottom: '15px', textAlign: 'center' }}>FID: {fid}</p>
               <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>Name: {tokenInfo.name}</p>
               <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>Symbol: {tokenInfo.symbol}</p>
               <p style={{ fontSize: '24px', color: '#d3dce6', textAlign: 'center' }}>Current Price: {tokenInfo.currentPriceInMoxie.toFixed(4)} MOXIE</p>
@@ -444,7 +444,7 @@ app.frame('/yourfantoken', async (c) => {
     intents: [
       <Button action="/">Back</Button>,
       <Button action="/yourfantoken">Refresh</Button>,
-      <Button action="/owned-tokens">OFT</Button>,
+      <Button action="/owned-tokens">Owned</Button>,
     ]
   });
 });
