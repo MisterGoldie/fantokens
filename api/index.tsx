@@ -570,7 +570,18 @@ app.frame('/owned-tokens', async (c) => {
     const formatNumber = (value: number | string | null | undefined): string => {
       if (value === null || value === undefined) return 'N/A';
       const num = typeof value === 'string' ? parseFloat(value) : value;
-      return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      
+      if (num >= 1e9) {
+        return (num / 1e9).toFixed(2) + 'B';
+      } else if (num >= 1e6) {
+        return (num / 1e6).toFixed(2) + 'M';
+      } else if (num >= 1e3) {
+        return (num / 1e3).toFixed(2) + 'K';
+      } else if (num > 0 && num < 1) {
+        return num.toExponential(2);
+      } else {
+        return num.toFixed(2);
+      }
     };
 
     function TextBox({ label, value }: TextBoxProps) {
