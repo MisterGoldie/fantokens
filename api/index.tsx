@@ -416,7 +416,7 @@ app.frame('/', (c) => {
 
 app.frame('/yourfantoken', async (c) => {
   console.log('Entering /yourfantoken frame');
-  const { fid } = c.frameData || {};
+  const { fid } = c.frameData ?? {};
 
   console.log(`FID: ${fid}`);
 
@@ -434,98 +434,192 @@ app.frame('/yourfantoken', async (c) => {
     });
   }
 
-  let tokenInfo = await getFanTokenInfo(fid.toString());
-  let profileInfo = await getProfileInfo(fid.toString());
-  let powerboostScore = await getPowerboostScore(fid.toString());
+  try {
+    let tokenInfo = await getFanTokenInfo(fid.toString());
+    let profileInfo = await getProfileInfo(fid.toString());
+    let powerboostScore = await getPowerboostScore(fid.toString());
 
-  function TextBox({ label, value }: TextBoxProps) {
-    return (
-      <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        padding: '15px',
-        margin: '10px',
-        borderRadius: '15px',
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '28px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '300px',
-        height: '130px',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-      }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-        <div style={{ fontSize: '32px' }}>{value}</div>
-      </div>
-    );
+    function TextBox({ label, value }: TextBoxProps) {
+      return (
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '15px',
+          margin: '10px',
+          borderRadius: '15px',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '28px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '300px',
+          height: '130px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
+          <div style={{ fontSize: '32px' }}>{value}</div>
+        </div>
+      );
+    }
+
+    return c.res({
+      image: (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: 'url(https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          fontFamily: 'Arial, sans-serif',
+          color: '#000000',
+          padding: '20px',
+          boxSizing: 'border-box',
+        }}>
+          <div style={{
+            width: '180px',
+            height: '180px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+            boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
+          }}>
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          
+          <h1 style={{ 
+            fontSize: '48px', 
+            fontWeight: 'bold', 
+            textAlign: 'center', 
+            margin: '10px 0 20px',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            My Fan Token
+          </h1>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: '1000px',
+          }}>
+            <TextBox label="Current Price" value={tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A'} />
+            <TextBox label="Powerboost" value={powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A'} />
+            <TextBox label="Holders" value={tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A'} />
+          </div>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>,
+        <Button action="/yourfantoken">Refresh</Button>,
+        <Button action="/owned-tokens">Fan Tokens Owned</Button>,
+        <Button action="/share-fantoken">Share</Button>,
+      ],
+    });
+  } catch (error) {
+    console.error('Error fetching fan token data:', error);
+    
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Home</Button>
+      ]
+    });
+  }
+});
+
+app.frame('/share-fantoken', async (c) => {
+  console.log('Entering /share-fantoken frame');
+  const { fid } = c.frameData ?? {};
+
+  if (!fid) {
+    console.error('No FID found in frameData for sharing');
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID for Sharing</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/yourfantoken">Back to My Fan Token</Button>
+      ]
+    });
   }
 
-  return c.res({
-    image: (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '1200px', 
-        height: '628px', 
-        backgroundImage: 'url(https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        fontFamily: 'Arial, sans-serif',
-        color: '#000000',
-        padding: '20px',
-        boxSizing: 'border-box',
-      }}>
-        <div style={{
-          width: '180px',
-          height: '180px',
-          borderRadius: '50%',
-          overflow: 'hidden',
-          backgroundColor: '#FFA500',
-          display: 'flex',
+  try {
+    let tokenInfo = await getFanTokenInfo(fid.toString());
+    let profileInfo = await getProfileInfo(fid.toString());
+    let powerboostScore = await getPowerboostScore(fid.toString());
+
+    const username = profileInfo?.farcasterSocial?.profileDisplayName || 'Unknown User';
+    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
+    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
+    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
+
+    const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}`;
+
+    return c.res({
+      image: (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: '20px',
-          boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: 'url(https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          fontFamily: 'Arial, sans-serif',
+          color: '#000000',
+          padding: '20px',
+          boxSizing: 'border-box',
         }}>
-          <img 
-            src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-            alt="Profile" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
+          <h1 style={{ fontSize: '48px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
+            {username}'s Fan Token Stats
+          </h1>
+          <div style={{ fontSize: '36px', marginBottom: '10px' }}>Current Price: {currentPrice} MOXIE</div>
+          <div style={{ fontSize: '36px', marginBottom: '10px' }}>Powerboost: {powerboost}</div>
+          <div style={{ fontSize: '36px', marginBottom: '10px' }}>Holders: {holders}</div>
+          <div style={{ fontSize: '24px', marginTop: '20px', textAlign: 'center' }}>
+            {shareText}
+          </div>
         </div>
-        
-        <h1 style={{ 
-          fontSize: '48px', 
-          fontWeight: 'bold', 
-          textAlign: 'center', 
-          margin: '10px 0 20px',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          My Fan Token
-        </h1>
-        
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          width: '100%',
-          maxWidth: '1000px',
-        }}>
-          <TextBox label="Current Price" value={tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A'} />
-          <TextBox label="Powerboost" value={powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A'} />
-          <TextBox label="Holders" value={tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A'} />
+      ),
+      intents: [
+        <Button action="/yourfantoken">Back to My Fan Token</Button>
+      ],
+    });
+  } catch (error) {
+    console.error('Error fetching fan token data for sharing:', error);
+    
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error sharing fan token data. Please try again.</h1>
         </div>
-      </div>
-    ),
-    intents: [
-      <Button action="/">Back</Button>,
-      <Button action="/yourfantoken">Refresh</Button>,
-      <Button action="/owned-tokens">Fan Tokens Owned</Button>,
-    ]
-  });
+      ),
+      intents: [
+        <Button action="/yourfantoken">Back to My Fan Token</Button>
+      ]
+    });
+  }
 });
 
 app.frame('/owned-tokens', async (c) => {
