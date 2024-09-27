@@ -472,7 +472,7 @@ app.frame('/yourfantoken', async (c) => {
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
     // Construct the share URL as a Farcaster frame
-    const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/share'); // Replace with your actual domain
+    const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/share');
     shareUrl.searchParams.append('fid', fid.toString());
     shareUrl.searchParams.append('bg', encodeURIComponent(backgroundImage));
     
@@ -522,7 +522,7 @@ app.frame('/yourfantoken', async (c) => {
             margin: '10px 0 20px',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
-            {username}'s Fan Token
+            My Fan Token
           </h1>
           
           <div style={{
