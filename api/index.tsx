@@ -460,7 +460,7 @@ app.frame('/yourfantoken', async (c) => {
         justifyContent: 'center',
         width: '1200px', 
         height: '628px', 
-        backgroundImage: 'url(https://bafybeidaqyqtdynorxghei3q7dceyb23rlhd5txkwhj7hx37dwhidb4yyy.ipfs.w3s.link/Frame%2064%20(1).png)',
+        backgroundImage: 'url(https://bafybeihhrwt2hycmk56mbp47ace367k46tdospavko6ydos3gczlyvvl34.ipfs.w3s.link/Group%2059%20(6).png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         fontFamily: 'Arial, sans-serif',
