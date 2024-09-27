@@ -46,6 +46,7 @@ interface TokenInfo {
 
 interface ProfileInfo {
   farcasterSocial: {
+    profileName: string;
     profileDisplayName: string;
     profileImage: string;
     profileBio: string;
@@ -489,7 +490,7 @@ app.frame('/yourfantoken', async (c) => {
     let profileInfo = await getProfileInfo(fid.toString());
     let powerboostScore = await getPowerboostScore(fid.toString());
 
-    const username = profileInfo?.farcasterSocial?.profileDisplayName || 'Unknown User';
+    const username = profileInfo?.farcasterSocial?.profileName || 'Unknown User';
     const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
@@ -549,7 +550,7 @@ app.frame('/yourfantoken', async (c) => {
             color: '#ffffff',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
-            My Fan Token
+            {username}'s Fan Token
           </h1>
           
           <div style={{
@@ -588,6 +589,7 @@ app.frame('/yourfantoken', async (c) => {
   }
 });
 
+
 app.frame('/shared', (c) => {
   const queryParams = c.req.query();
   const username = queryParams['username'] ?? 'Unknown User';
@@ -620,6 +622,9 @@ app.frame('/shared', (c) => {
   }
 
   const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+
+  const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
+  const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(c.url)}`;
 
   return c.res({
     image: (
@@ -681,12 +686,13 @@ app.frame('/shared', (c) => {
         </div>
         
         <p style={{ fontSize: '24px', textAlign: 'center', maxWidth: '800px', marginTop: '20px', color: '#ffffff' }}>
-          Check your own fan token stats by clicking the button below!
+          Check your own fan token stats or recast this!
         </p>
       </div>
     ),
     intents: [
       <Button action="/yourfantoken">Check My Fan Token</Button>,
+      <Button.Link href={farcasterShareURL}>Recast</Button.Link>,
     ],
   });
 });
