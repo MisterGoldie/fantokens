@@ -462,6 +462,23 @@ app.frame('/yourfantoken', async (c) => {
       );
     }
 
+    const username = profileInfo?.farcasterSocial?.profileDisplayName || 'Unknown User';
+    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
+    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
+    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
+
+    const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}`;
+    
+    const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+
+    // Construct the share URL as a Farcaster frame
+    const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/share'); // Replace with your actual domain
+    shareUrl.searchParams.append('fid', fid.toString());
+    shareUrl.searchParams.append('bg', encodeURIComponent(backgroundImage));
+    
+    // Construct the Farcaster share URL
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl.toString())}`;
+
     return c.res({
       image: (
         <div style={{ 
@@ -471,7 +488,7 @@ app.frame('/yourfantoken', async (c) => {
           justifyContent: 'center',
           width: '1200px', 
           height: '628px', 
-          backgroundImage: 'url(https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png)',
+          backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           fontFamily: 'Arial, sans-serif',
@@ -505,7 +522,7 @@ app.frame('/yourfantoken', async (c) => {
             margin: '10px 0 20px',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
-            My Fan Token
+            {username}'s Fan Token
           </h1>
           
           <div style={{
@@ -515,9 +532,9 @@ app.frame('/yourfantoken', async (c) => {
             width: '100%',
             maxWidth: '1000px',
           }}>
-            <TextBox label="Current Price" value={tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A'} />
-            <TextBox label="Powerboost" value={powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A'} />
-            <TextBox label="Holders" value={tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A'} />
+            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+            <TextBox label="Powerboost" value={powerboost} />
+            <TextBox label="Holders" value={holders} />
           </div>
         </div>
       ),
@@ -525,7 +542,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
         <Button action="/owned-tokens">Fan Tokens Owned</Button>,
-        <Button action="/share-fantoken">Share</Button>,
+        <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ],
     });
   } catch (error) {
@@ -539,86 +556,6 @@ app.frame('/yourfantoken', async (c) => {
       ),
       intents: [
         <Button action="/">Home</Button>
-      ]
-    });
-  }
-});
-
-app.frame('/share-fantoken', async (c) => {
-  console.log('Entering /share-fantoken frame');
-  const { fid } = c.frameData ?? {};
-
-  if (!fid) {
-    console.error('No FID found in frameData for sharing');
-    return c.res({
-      image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
-          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID for Sharing</h1>
-        </div>
-      ),
-      intents: [
-        <Button action="/yourfantoken">Back to My Fan Token</Button>
-      ]
-    });
-  }
-
-  try {
-    let tokenInfo = await getFanTokenInfo(fid.toString());
-    let profileInfo = await getProfileInfo(fid.toString());
-    let powerboostScore = await getPowerboostScore(fid.toString());
-
-    const username = profileInfo?.farcasterSocial?.profileDisplayName || 'Unknown User';
-    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
-    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
-    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
-
-    const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}`;
-
-    return c.res({
-      image: (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '1200px', 
-          height: '628px', 
-          backgroundImage: 'url(https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          fontFamily: 'Arial, sans-serif',
-          color: '#000000',
-          padding: '20px',
-          boxSizing: 'border-box',
-        }}>
-          <h1 style={{ fontSize: '48px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
-            {username}'s Fan Token Stats
-          </h1>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ fontSize: '36px', marginBottom: '10px' }}>Current Price: {currentPrice} MOXIE</div>
-            <div style={{ fontSize: '36px', marginBottom: '10px' }}>Powerboost: {powerboost}</div>
-            <div style={{ fontSize: '36px', marginBottom: '10px' }}>Holders: {holders}</div>
-          </div>
-          <div style={{ fontSize: '24px', marginTop: '20px', textAlign: 'center' }}>
-            {shareText}
-          </div>
-        </div>
-      ),
-      intents: [
-        <Button action="/yourfantoken">Back to My Fan Token</Button>
-      ],
-    });
-  } catch (error) {
-    console.error('Error fetching fan token data for sharing:', error);
-    
-    return c.res({
-      image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error sharing fan token data. Please try again.</h1>
-        </div>
-      ),
-      intents: [
-        <Button action="/yourfantoken">Back to My Fan Token</Button>
       ]
     });
   }
