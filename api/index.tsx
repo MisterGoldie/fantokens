@@ -416,12 +416,12 @@ app.frame('/', (c) => {
 
 app.frame('/yourfantoken', async (c) => {
   console.log('Entering /yourfantoken frame');
-  const { fid } = c.frameData ?? {};
+  const fid = c.frameData?.fid ?? c.req.query('fid');
 
   console.log(`FID: ${fid}`);
 
   if (!fid) {
-    console.error('No FID found in frameData');
+    console.error('No FID found');
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
@@ -474,66 +474,68 @@ app.frame('/yourfantoken', async (c) => {
     // Construct the Farcaster share URL with frame metadata
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=https://fantokens-kappa.vercel.app/api/yourfantoken?fid=${fid}`;
 
-    return c.res({
-      image: (
-        <div style={{ 
-          display: 'flex', 
+    const image = (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '1200px', 
+        height: '628px', 
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        fontFamily: 'Arial, sans-serif',
+        color: '#000000',
+        padding: '20px',
+        boxSizing: 'border-box',
+      }}>
+        <div style={{
+          display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          width: '1200px', 
-          height: '628px', 
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          fontFamily: 'Arial, sans-serif',
-          color: '#000000',
-          padding: '20px',
-          boxSizing: 'border-box',
+          width: '180px',
+          height: '180px',
+          borderRadius: '50%',
+          overflow: 'hidden',
+          backgroundColor: '#FFA500',
+          marginBottom: '20px',
+          boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
         }}>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '180px',
-            height: '180px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            backgroundColor: '#FFA500',
-            marginBottom: '20px',
-            boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
-          }}>
-            <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-              alt="Profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </div>
-          
-          <h1 style={{ 
-            fontSize: '48px', 
-            fontWeight: 'bold', 
-            textAlign: 'center', 
-            margin: '10px 0 20px',
-            color: '#ffffff',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            My Fan Token
-          </h1>
-          
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
-            maxWidth: '1000px',
-          }}>
-            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
-            <TextBox label="Powerboost" value={powerboost} />
-            <TextBox label="Holders" value={holders} />
-          </div>
+          <img 
+            src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+            alt="Profile" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         </div>
-      ),
+        
+        <h1 style={{ 
+          fontSize: '48px', 
+          fontWeight: 'bold', 
+          textAlign: 'center', 
+          margin: '10px 0 20px',
+          color: '#ffffff',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          My Fan Token
+        </h1>
+        
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          maxWidth: '1000px',
+        }}>
+          <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+          <TextBox label="Powerboost" value={powerboost} />
+          <TextBox label="Holders" value={holders} />
+        </div>
+      </div>
+    );
+
+    return c.res({
+      image,
       intents: [
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
