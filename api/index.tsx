@@ -598,7 +598,7 @@ app.frame('/share', async (c) => {
     return c.res({
       image: (
         <div style={{ 
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: `url(https://bafybeifvbn5nlf26wq7hw67i4rjulvnckidt7n2f334xvqzbviy3gq3iay.ipfs.w3s.link/Group%2061%20(1).png)`,
           width: '1200px',
           height: '628px',
           display: 'flex',
