@@ -593,7 +593,7 @@ app.frame('/owned-tokens', async (c) => {
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
-        <div style={{
+        <div style={{ 
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           padding: '10px',
           margin: '5px',
@@ -606,7 +606,7 @@ app.frame('/owned-tokens', async (c) => {
           justifyContent: 'center',
           width: '230px',
           height: '100px',
-          boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)', // box shadow around flexboxes
+          //add shadow for flexBoxes here 
         }}>
           <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
           <div style={{ color: '#000000' }}>{value}</div>
