@@ -416,6 +416,10 @@ app.frame('/', (c) => {
 
 app.frame('/yourfantoken', async (c) => {
   console.log('Entering /yourfantoken frame');
+  console.log('Request method:', c.req.method);
+  console.log('Query parameters:', c.req.query());
+  console.log('Frame data:', c.frameData);
+
   const fid = c.frameData?.fid ?? c.req.query('fid');
 
   console.log(`FID: ${fid}`);
@@ -435,9 +439,17 @@ app.frame('/yourfantoken', async (c) => {
   }
 
   try {
+    console.log('Fetching token info for FID:', fid);
     let tokenInfo = await getFanTokenInfo(fid.toString());
+    console.log('Token info:', tokenInfo);
+
+    console.log('Fetching profile info for FID:', fid);
     let profileInfo = await getProfileInfo(fid.toString());
+    console.log('Profile info:', profileInfo);
+
+    console.log('Fetching powerboost score for FID:', fid);
     let powerboostScore = await getPowerboostScore(fid.toString());
+    console.log('Powerboost score:', powerboostScore);
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -474,6 +486,7 @@ app.frame('/yourfantoken', async (c) => {
     // Construct the Farcaster share URL with frame metadata
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=https://fantokens-kappa.vercel.app/api/yourfantoken?fid=${fid}`;
 
+    console.log('Generating image');
     const image = (
       <div style={{ 
         display: 'flex', 
@@ -534,6 +547,7 @@ app.frame('/yourfantoken', async (c) => {
       </div>
     );
 
+    console.log('Sending response');
     return c.res({
       image,
       intents: [
@@ -543,13 +557,15 @@ app.frame('/yourfantoken', async (c) => {
         <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ],
     });
-  } catch (error) {
-    console.error('Error fetching fan token data:', error);
+  } catch (error: unknown) {
+    console.error('Error in /yourfantoken:', error);
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: {errorMessage}</h1>
         </div>
       ),
       intents: [
