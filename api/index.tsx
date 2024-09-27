@@ -631,8 +631,8 @@ app.frame('/owned-tokens', async (c) => {
           boxSizing: 'border-box',
         }}>
           <div style={{
-            width: '160px',
-            height: '160px',
+            width: '130px',
+            height: '130px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#FFA500',
@@ -656,7 +656,7 @@ app.frame('/owned-tokens', async (c) => {
           </div>
           <h1 style={{ 
             fontSize: '48px', 
-            color: '#FFD700', 
+            color: '#000000', 
             marginBottom: '20px', 
             textAlign: 'center',
             textShadow: '0 0 10px rgba(128, 0, 128, 0.5)' // Purple text shadow for profile name
