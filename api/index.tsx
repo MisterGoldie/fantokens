@@ -536,7 +536,6 @@ app.frame('/owned-tokens', async (c) => {
   try {
     const userAddress = "0xB57381C7eD83BB9031a786d2C691cc6C7C2207a4";
     let ownedTokens = await getOwnedFanTokens(userAddress);
-    let profileInfo = await getProfileInfo(fid.toString());
 
     if (!ownedTokens || ownedTokens.length === 0) {
       console.warn(`No fan tokens found for address ${userAddress}`);
@@ -553,6 +552,8 @@ app.frame('/owned-tokens', async (c) => {
     }
 
     const token = ownedTokens[currentIndex];
+    const tokenFid = token.subjectToken.symbol.split(':')[1]; // Assuming the symbol is in the format "fid:307834"
+    let tokenProfileInfo = await getProfileInfo(tokenFid);
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -605,8 +606,8 @@ app.frame('/owned-tokens', async (c) => {
             marginBottom: '20px',
           }}>
             <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-              alt="Profile" 
+              src={tokenProfileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Token Profile" 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
@@ -658,6 +659,7 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
+
 
 export const GET = handle(app);
 export const POST = handle(app);
