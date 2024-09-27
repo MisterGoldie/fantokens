@@ -491,7 +491,7 @@ app.frame('/owned-tokens', async (c) => {
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
+          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -516,7 +516,7 @@ app.frame('/owned-tokens', async (c) => {
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this user</h1>
+            <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this user</h1>
           </div>
         ),
         intents: [
@@ -564,23 +564,23 @@ app.frame('/owned-tokens', async (c) => {
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
-        <div style={{ 
+        <div style={{
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          padding: '10px',
-          margin: '5px',
-          borderRadius: '10px',
+          padding: '15px',
+          margin: '10px',
+          borderRadius: '15px',
           fontFamily: 'Arial, sans-serif',
-          fontSize: '24px',
+          fontSize: '28px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '230px',
-          height: '100px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          width: '300px',
+          height: '130px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         }}>
-          <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
-          <div style={{ color: '#000000' }}>{value}</div>
+          <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#000000' }}>{label}</div>
+          <div style={{ fontSize: '32px', color: '#000000' }}>{value}</div>
         </div>
       );
     }
@@ -599,12 +599,12 @@ app.frame('/owned-tokens', async (c) => {
           backgroundPosition: 'center',
           color: 'white',
           fontFamily: 'Arial, sans-serif',
-          padding: '40px',
+          padding: '20px',
           boxSizing: 'border-box',
         }}>
           <div style={{
-            width: '130px',
-            height: '130px',
+            width: '180px',
+            height: '180px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#FFA500',
@@ -612,35 +612,45 @@ app.frame('/owned-tokens', async (c) => {
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '20px',
-            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
+            boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
             {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
               <img 
                 src={tokenProfileInfo.farcasterSocial.profileImage}
                 alt="Token Profile" 
-                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <div style={{ width: '150px', height: '150px', backgroundColor: '#FFA500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '100%', height: '100%', backgroundColor: '#FFA500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: '24px', color: '#ffffff' }}>No Image</span>
               </div>
             )}
           </div>
           <h1 style={{ 
             fontSize: '48px', 
+            fontWeight: 'bold',
             color: '#000000', 
             marginBottom: '20px', 
             textAlign: 'center',
-            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            Fan Tokens I Own
+          </h1>
+          <h2 style={{ 
+            fontSize: '36px', 
+            color: '#000000', 
+            marginBottom: '20px', 
+            textAlign: 'center',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
             {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
-          </h1>
+          </h2>
           <div style={{
             display: 'flex',
-            flexWrap: 'wrap',
             justifyContent: 'center',
             alignItems: 'center',
             width: '100%',
+            maxWidth: '1000px',
           }}>
             <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
             <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
