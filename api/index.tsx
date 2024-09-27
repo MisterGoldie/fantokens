@@ -60,19 +60,6 @@ interface ProfileInfo {
   };
 }
 
-const CustomFontStyle = () => (
-  <style>
-    {`
-      @font-face {
-        font-family: 'LoveDays';
-        src: url(data:font/truetype;charset=utf-8;base64,AAEAAAAPAIAAAwBwRFNJRwAAAAEAAHaAAAAACEdERUYAEADdAAB2iAAAABZHUE9T/NBDggAAdqAAADhwR1NVQuA04fIAAK8QAAAARk9TLzI0kEviAAABeAAAAGBjbWFwCuDRpAAABUwAAAIeZ2FzcP//AAMAAHZ4AAAACGdseWazs795AAAJKAAAaEhoZWFkHK922AAAAPwAAAA2aGhlYQjfBAoAAAE0AAAAJGhtdHigOAwyAAAB2AAAA3Rsb2Nhomq9zAAAB2wAAAG8bWF4cADpATQAAAFYAAAAIG5hbWVAq2k9AABxcAAAAvJwb3N0Obpc4gAAdGQAAAIU) format('truetype');
-        font-weight: normal;
-        font-style: normal;
-      }
-    `}
-  </style>
-);
-
 export const app = new Frog({
   basePath: '/api',
   imageOptions: { width: 1200, height: 628 },
@@ -329,23 +316,20 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
 app.frame('/', (c) => {
   return c.res({
     image: (
-      <>
-        <CustomFontStyle />
-        <div style={{
-          width: '1200px',
-          height: '628px',
-          backgroundColor: '#1A1A1A',
-          color: 'white',
-          fontFamily: 'LoveDays, Arial, sans-serif',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-          <h1 style={{ fontSize: '48px', color: '#FFD700' }}>
-            You & your Fan Tokens
-          </h1>
-        </div>
-      </>
+      <div style={{
+        width: '1200px',
+        height: '628px',
+        backgroundColor: '#1A1A1A',
+        color: 'white',
+        fontFamily: 'Arial, sans-serif',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <h1 style={{ fontSize: '48px', color: '#FFD700' }}>
+          You & your Fan Tokens
+        </h1>
+      </div>
     ),
     intents: [
       <Button action="/profile">Your Profile</Button>,
