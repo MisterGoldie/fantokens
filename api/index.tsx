@@ -350,7 +350,7 @@ app.frame('/', (c) => {
             textAlign: 'center',
             textTransform: 'uppercase',
             letterSpacing: '6px',
-            background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+            background: 'linear-gradient(45deg, #8B50FA, #9B6DF1)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
