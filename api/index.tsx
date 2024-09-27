@@ -534,9 +534,8 @@ app.frame('/owned-tokens', async (c) => {
   }
 
   try {
-    const userAddress = "0xB57381C7eD83BB9031a786d2C691cc6C7C2207a4";
+    const userAddress = await getFarcasterAddressFromFID(fid.toString());
     let ownedTokens = await getOwnedFanTokens(userAddress);
-    let userProfileInfo = await getProfileInfo(fid.toString());
 
     if (!ownedTokens || ownedTokens.length === 0) {
       console.warn(`No fan tokens found for address ${userAddress}`);
@@ -660,7 +659,7 @@ app.frame('/owned-tokens', async (c) => {
             )}
           </div>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
-            {userProfileInfo?.farcasterSocial?.profileDisplayName || 'Unknown User'}
+            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
           </h1>
           <div style={{
             display: 'flex',
@@ -669,7 +668,6 @@ app.frame('/owned-tokens', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Token Name" value={`${token.subjectToken.name} (${token.subjectToken.symbol})`} />
             <TextBox label="Balance" value={`${formatNumber(token.balance, 2)} tokens`} />
             <TextBox label="Buy Volume" value={`${formatNumber(token.buyVolume, 2)} tokens`} />
             <TextBox label="Current Price" value={`${formatMoxiePrice(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
