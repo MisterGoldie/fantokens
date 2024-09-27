@@ -580,12 +580,12 @@ app.frame('/owned-tokens', async (c) => {
         });
 
         const airstackQuery = gql`
-          query MyQuery {
+          query MyQuery($fanTokenSymbol: String!) {
             MoxieFanTokens(
               input: {
                 filter: {
                   fanTokenSymbol: {
-                    _eq: "fid:${tokenFid}"
+                    _eq: $fanTokenSymbol
                   }
                 }
               }
@@ -597,10 +597,16 @@ app.frame('/owned-tokens', async (c) => {
           }
         `;
         
-        const airstackResponse = await airstackClient.request<AirstackResponse>(airstackQuery);
+        const variables = {
+          fanTokenSymbol: `fid:${tokenFid}`
+        };
+        
+        const airstackResponse = await airstackClient.request<AirstackResponse>(airstackQuery, variables);
         tvl = airstackResponse.MoxieFanTokens.MoxieFanToken[0]?.tlv || '0';
       } catch (error) {
         console.error(`Error fetching profile or TVL for FID ${tokenFid}:`, error);
+        // Set a default value for tvl in case of an error
+        tvl = '0';
       }
     }
 
