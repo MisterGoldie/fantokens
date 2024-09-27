@@ -567,25 +567,21 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
-    function formatNumber(value: string, decimals: number = 1): string {
-      // First, remove any trailing zeros after the decimal point
-      const trimmedValue = parseFloat(value).toString();
-      
-      const num = parseFloat(trimmedValue);
-      if (isNaN(num)) return 'N/A';
-      
-      if (num >= 1e12) {
-        return (num / 1e12).toFixed(decimals) + 'T';
-      } else if (num >= 1e9) {
-        return (num / 1e9).toFixed(decimals) + 'B';
-      } else if (num >= 1e6) {
-        return (num / 1e6).toFixed(decimals) + 'M';
-      } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(decimals) + 'K';
-      } else if (num >= 1 || num === 0) {
-        return num.toFixed(decimals);
+    function formatNumber(value: string): string {
+      // Remove all decimal places and treat as a whole number
+      const wholePart = value.split('.')[0];
+      const num = BigInt(wholePart);
+
+      if (num >= BigInt(1e12)) {
+        return (Number(num) / 1e12).toFixed(1) + 'T';
+      } else if (num >= BigInt(1e9)) {
+        return (Number(num) / 1e9).toFixed(1) + 'B';
+      } else if (num >= BigInt(1e6)) {
+        return (Number(num) / 1e6).toFixed(1) + 'M';
+      } else if (num >= BigInt(1e3)) {
+        return (Number(num) / 1e3).toFixed(1) + 'K';
       } else {
-        return num.toPrecision(2);
+        return num.toString();
       }
     }
 
@@ -600,7 +596,7 @@ app.frame('/owned-tokens', async (c) => {
       } else if (num >= 1) {
         return num.toFixed(2);
       } else {
-        return num.toPrecision(4);
+        return num.toPrecision(2);
       }
     }
 
@@ -612,15 +608,15 @@ app.frame('/owned-tokens', async (c) => {
           margin: '5px',
           borderRadius: '10px',
           fontFamily: 'Arial, sans-serif',
-          fontSize: '32px',
+          fontSize: '24px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '250px',
-          height: '110px'
+          width: '230px',
+          height: '100px'
         }}>
-          <div style={{ fontWeight: 'bold', color: '#000000', marginBottom: '5px' }}>{label}</div>
+          <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
           <div style={{ color: '#000000' }}>{value}</div>
         </div>
       );
