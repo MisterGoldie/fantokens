@@ -402,8 +402,8 @@ app.frame('/yourfantoken', async (c) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '280px',
-        height: '120px',
+        width: '300px',
+        height: '130px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
       }}>
         <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
@@ -421,7 +421,7 @@ app.frame('/yourfantoken', async (c) => {
         justifyContent: 'center',
         width: '1200px', 
         height: '628px', 
-        backgroundImage: 'url(https://bafybeihhrwt2hycmk56mbp47ace367k46tdospavko6ydos3gczlyvvl34.ipfs.w3s.link/Group%2059%20(6).png)',
+        backgroundImage: 'url(https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         fontFamily: 'Arial, sans-serif',
@@ -460,7 +460,6 @@ app.frame('/yourfantoken', async (c) => {
         
         <div style={{
           display: 'flex',
-          flexWrap: 'wrap',
           justifyContent: 'center',
           alignItems: 'center',
           width: '100%',
@@ -469,7 +468,6 @@ app.frame('/yourfantoken', async (c) => {
           <TextBox label="Current Price" value={tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A'} />
           <TextBox label="FID" value={fid.toString()} />
           <TextBox label="Holders" value={tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A'} />
-          <TextBox label="Name" value={profileInfo?.farcasterSocial?.profileDisplayName || 'N/A'} />
         </div>
       </div>
     ),
