@@ -568,36 +568,17 @@ app.frame('/owned-tokens', async (c) => {
     }
 
     function formatNumber(value: string): string {
-      // Remove all decimal places and treat as a whole number
-      const wholePart = value.split('.')[0];
-      const num = BigInt(wholePart);
-
-      if (num >= BigInt(1e12)) {
-        return (Number(num) / 1e12).toFixed(1) + 'T';
-      } else if (num >= BigInt(1e9)) {
-        return (Number(num) / 1e9).toFixed(1) + 'B';
-      } else if (num >= BigInt(1e6)) {
-        return (Number(num) / 1e6).toFixed(1) + 'M';
-      } else if (num >= BigInt(1e3)) {
-        return (Number(num) / 1e3).toFixed(1) + 'K';
-      } else {
-        return num.toString();
-      }
+      const num = parseFloat(value);
+      if (isNaN(num)) return 'N/A';
+      
+      return num.toLocaleString('en-US', { maximumFractionDigits: 2 });
     }
 
     function formatMoxiePrice(price: string): string {
       const num = parseFloat(price);
       if (isNaN(num)) return 'N/A';
       
-      if (num >= 1e6) {
-        return (num / 1e6).toFixed(2) + 'M';
-      } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(2) + 'K';
-      } else if (num >= 1) {
-        return num.toFixed(2);
-      } else {
-        return num.toPrecision(2);
-      }
+      return num.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' MOXIE';
     }
 
     function TextBox({ label, value }: TextBoxProps) {
@@ -674,7 +655,7 @@ app.frame('/owned-tokens', async (c) => {
           }}>
             <TextBox label="Balance" value={`${formatNumber(token.balance)} tokens`} />
             <TextBox label="Buy Volume" value={`${formatNumber(token.buyVolume)} tokens`} />
-            <TextBox label="Current Price" value={`${formatMoxiePrice(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
+            <TextBox label="Current Price" value={formatMoxiePrice(token.subjectToken.currentPriceInMoxie)} />
           </div>
         </div>
       ),
