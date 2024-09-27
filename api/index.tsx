@@ -685,7 +685,7 @@ app.frame('/shared', (c) => {
         </div>
         
         <p style={{ fontSize: '24px', textAlign: 'center', maxWidth: '800px', marginTop: '20px', color: '#ffffff' }}>
-          Check your own fan token stats or recast this!
+          Check your own fan token stats!
         </p>
         
         {/* Silhouette image at the bottom */}
