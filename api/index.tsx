@@ -413,7 +413,6 @@ app.frame('/', (c) => {
     ],
   });
 });
-
 app.frame('/yourfantoken', async (c) => {
   console.log('Entering /yourfantoken frame');
   const { fid } = c.frameData ?? {};
@@ -446,7 +445,6 @@ app.frame('/yourfantoken', async (c) => {
   const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
   if (!fid) {
-    // This is the shared view, no FID available yet
     return c.res({
       image: (
         <div style={{ 
@@ -496,10 +494,13 @@ app.frame('/yourfantoken', async (c) => {
 
     const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
     
-    // Construct the share URL as a Farcaster frame
-    const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/yourfantoken');
+    const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/shared');
+    shareUrl.searchParams.append('username', username);
+    shareUrl.searchParams.append('currentPrice', currentPrice);
+    shareUrl.searchParams.append('powerboost', powerboost);
+    shareUrl.searchParams.append('holders', holders);
+    shareUrl.searchParams.append('profileImage', profileInfo?.farcasterSocial?.profileImage || '');
     
-    // Construct the Farcaster share URL
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl.toString())}`;
 
     return c.res({
@@ -583,6 +584,109 @@ app.frame('/yourfantoken', async (c) => {
       ]
     });
   }
+});
+
+app.frame('/shared', (c) => {
+  const queryParams = c.req.query();
+  const username = queryParams['username'] ?? 'Unknown User';
+  const currentPrice = queryParams['currentPrice'] ?? 'N/A';
+  const powerboost = queryParams['powerboost'] ?? 'N/A';
+  const holders = queryParams['holders'] ?? 'N/A';
+  const profileImage = queryParams['profileImage'] ?? '/api/placeholder/150/150';
+
+  function TextBox({ label, value }: TextBoxProps) {
+    return (
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        padding: '15px',
+        margin: '10px',
+        borderRadius: '15px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '28px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '300px',
+        height: '130px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+      }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
+        <div style={{ fontSize: '32px' }}>{value}</div>
+      </div>
+    );
+  }
+
+  const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+
+  return c.res({
+    image: (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '1200px', 
+        height: '628px', 
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        fontFamily: 'Arial, sans-serif',
+        color: '#000000',
+        padding: '20px',
+        boxSizing: 'border-box',
+      }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          width: '180px',
+          height: '180px',
+          borderRadius: '50%',
+          overflow: 'hidden',
+          backgroundColor: '#FFA500',
+          marginBottom: '20px',
+          boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
+        }}>
+          <img 
+            src={profileImage}
+            alt="Profile" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </div>
+        
+        <h1 style={{ 
+          fontSize: '48px', 
+          fontWeight: 'bold', 
+          textAlign: 'center', 
+          margin: '10px 0 20px',
+          color: '#ffffff',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          {username}'s Fan Token
+        </h1>
+        
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+          maxWidth: '1000px',
+        }}>
+          <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+          <TextBox label="Powerboost" value={powerboost} />
+          <TextBox label="Holders" value={holders} />
+        </div>
+        
+        <p style={{ fontSize: '24px', textAlign: 'center', maxWidth: '800px', marginTop: '20px', color: '#ffffff' }}>
+          Check your own fan token stats by clicking the button below!
+        </p>
+      </div>
+    ),
+    intents: [
+      <Button action="/yourfantoken">Check My Fan Token</Button>,
+    ],
+  });
 });
 
 app.frame('/owned-tokens', async (c) => {
