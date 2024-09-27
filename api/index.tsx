@@ -577,8 +577,13 @@ app.frame('/owned-tokens', async (c) => {
         return (num / 1e6).toFixed(2) + 'M';
       } else if (num >= 1e3) {
         return (num / 1e3).toFixed(2) + 'K';
-      } else {
+      } else if (num >= 1) {
         return num.toFixed(2);
+      } else if (num > 0) {
+        // For very small numbers, use scientific notation
+        return num.toExponential(2);
+      } else {
+        return '0';
       }
     }
 
