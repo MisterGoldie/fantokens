@@ -462,22 +462,16 @@ app.frame('/yourfantoken', async (c) => {
       );
     }
 
-    const username = profileInfo?.farcasterSocial?.profileDisplayName || 'Unknown User';
     const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
 
-    const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}`;
+    const shareText = `Check out my fan token stats! Get your own stats here:`;
     
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    // Construct the share URL as a Farcaster frame
-    const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/share'); // Replace with your actual domain
-    shareUrl.searchParams.append('fid', fid.toString());
-    shareUrl.searchParams.append('bg', encodeURIComponent(backgroundImage));
-    
-    // Construct the Farcaster share URL
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl.toString())}`;
+    // Construct the Farcaster share URL with frame metadata
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=https://fantokens-kappa.vercel.app/api`;
 
     return c.res({
       image: (
