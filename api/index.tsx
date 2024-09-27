@@ -328,6 +328,7 @@ app.frame('/', (c) => {
           fontFamily: 'Arial, sans-serif',
           color: '#FFD700',
           padding: '20px',
+          position: 'relative',  // Added for absolute positioning of footer
         }}
       >
         <div
@@ -357,6 +358,20 @@ app.frame('/', (c) => {
           }}
         >
           Fan Tokens
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '20px',
+            left: '0',
+            right: '0',
+            textAlign: 'center',
+            fontSize: '24px',
+            color: 'rgba(255, 255, 255, 0.7)',
+            fontWeight: 'bold',
+          }}
+        >
+          frame by @goldie
         </div>
       </div>
     ),
