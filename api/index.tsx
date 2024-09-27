@@ -553,11 +553,35 @@ app.frame('/owned-tokens', async (c) => {
 
     const token = ownedTokens[currentIndex];
 
+    function TextBox({ label, value }: TextBoxProps) {
+      return (
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '10px',
+          margin: '5px',
+          borderRadius: '10px',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '230px',
+          height: '100px'
+        }}>
+          <div style={{ fontWeight: 'bold' }}>{label}</div>
+          <div>{value}</div>
+        </div>
+      );
+    }
+
     return c.res({
       image: (
         <div style={{ 
           display: 'flex', 
-          flexDirection: 'column', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           width: '1200px', 
           height: '628px', 
           backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
@@ -571,29 +595,17 @@ app.frame('/owned-tokens', async (c) => {
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
             Fan Token {currentIndex + 1} of {ownedTokens.length}
           </h1>
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            backgroundColor: 'rgba(255,255,255,0.8)',
-            padding: '20px',
-            borderRadius: '10px',
-            color: '#000000'
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
           }}>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '10px' }}>
-              {token.subjectToken.name} ({token.subjectToken.symbol})
-            </p>
-            <p style={{ fontSize: '24px', marginBottom: '10px' }}>
-              Balance: {parseFloat(token.balance) / 1e18} tokens
-            </p>
-            <p style={{ fontSize: '24px', marginBottom: '10px' }}>
-              Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
-            </p>
-            <p style={{ fontSize: '24px', marginBottom: '10px' }}>
-              Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
-            </p>
-            <p style={{ fontSize: '24px', marginBottom: '10px' }}>
-              Current Price: {parseFloat(token.subjectToken.currentPriceInMoxie).toFixed(6)} MOXIE
-            </p>
+            <TextBox label="Token Name" value={`${token.subjectToken.name} (${token.subjectToken.symbol})`} />
+            <TextBox label="Balance" value={`${(parseFloat(token.balance) / 1e18).toFixed(2)} tokens`} />
+            <TextBox label="Buy Volume" value={`${(parseFloat(token.buyVolume) / 1e18).toFixed(2)} tokens`} />
+            <TextBox label="Current Price" value={`${parseFloat(token.subjectToken.currentPriceInMoxie).toFixed(6)} MOXIE`} />
           </div>
         </div>
       ),
