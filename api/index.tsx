@@ -500,11 +500,11 @@ app.frame('/yourfantoken', async (c) => {
     // Create a URL for the shared frame
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&bg=${encodeURIComponent(backgroundImage)}`;
 
-    // Construct a Farcaster-compatible frame URL
-    const farcasterFrameURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embedUrl=${encodeURIComponent(shareUrl)}`;
+    // Construct a Farcaster-compatible share URL
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     console.log('Share URL:', shareUrl);
-    console.log('Farcaster Frame URL:', farcasterFrameURL);
+    console.log('Farcaster Share URL:', farcasterShareURL);
 
     return c.res({
       image: (
@@ -570,7 +570,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
         <Button action="/owned-tokens">Owned</Button>,
-        <Button.Link href={farcasterFrameURL}>Share</Button.Link>,
+        <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ],
     });
   } catch (error) {
@@ -588,7 +588,6 @@ app.frame('/yourfantoken', async (c) => {
     });
   }
 });
-
 
 app.frame('/share', async (c) => {
   const fid = c.req.query('fid');
@@ -630,14 +629,48 @@ app.frame('/share', async (c) => {
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
 
-    const imageUrl = `https://fantokens-kappa.vercel.app/api/image?fid=${fid}&username=${encodeURIComponent(username)}&currentPrice=${currentPrice}&powerboost=${powerboost}&holders=${holders}&bg=${encodeURIComponent(backgroundImage || fallbackBackground)}`;
-
     return c.res({
-      image: imageUrl,
+      image: (
+        <div style={{ 
+          backgroundImage: `url(${backgroundImage || fallbackBackground})`,
+          width: '1200px',
+          height: '628px',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '20px',
+          color: 'white',
+          fontWeight: 'bold',
+        }}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+            <div style={{display: 'flex', flexDirection: 'column'}}>
+              <span style={{fontSize: '80px',}}>@{username}</span>
+              <span style={{fontSize: '30px',}}>FID: {fid}</span>
+            </div>
+          </div>
+          
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: '20px', fontSize: '40px'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
+              <span>Current Price:</span>
+              <span style={{fontWeight: '900', minWidth: '200px', textAlign: 'right'}}>{currentPrice} MOXIE</span>
+            </div>
+            <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
+              <span>Powerboost:</span>
+              <span style={{fontWeight: '900', minWidth: '200px', textAlign: 'right'}}>{powerboost}</span>
+            </div>
+            <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
+              <span>Holders:</span>
+              <span style={{fontWeight: '900', minWidth: '200px', textAlign: 'right'}}>{holders}</span>
+            </div>
+          </div>
+          
+          <div style={{display: 'flex', fontSize: '24px', alignSelf: 'flex-end', marginTop: 'auto', textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>
+            Fan Token Tracker
+          </div>
+        </div>
+      ),
       intents: [
         <Button action="/yourfantoken">Check Your Stats</Button>
-      ],
-      title: `${username}'s Fan Token Stats`,
+      ]
     });
   } catch (error) {
     console.error('Error fetching fan token data:', error);
