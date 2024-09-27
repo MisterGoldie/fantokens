@@ -327,7 +327,7 @@ app.frame('/', (c) => {
         alignItems: 'center',
       }}>
         <h1 style={{ fontSize: '48px', color: '#FFD700' }}>
-          Fan Token Tracker
+          You & your Fan Tokens
         </h1>
       </div>
     ),
@@ -703,7 +703,7 @@ app.frame('/owned-tokens', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/">Back</Button>
+        <Button action="/">Home</Button>
       ]
     });
   }
