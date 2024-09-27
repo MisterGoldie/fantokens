@@ -572,13 +572,13 @@ app.frame('/owned-tokens', async (c) => {
       if (isNaN(num)) return 'N/A';
       
       if (num >= 1e9) {
-        return (num / 1e9).toFixed(1) + 'B';
+        return (num / 1e9).toFixed(2) + 'B';
       } else if (num >= 1e6) {
-        return (num / 1e6).toFixed(1) + 'M';
+        return (num / 1e6).toFixed(2) + 'M';
       } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(1) + 'K';
+        return (num / 1e3).toFixed(2) + 'K';
       } else {
-        return num.toFixed(1);
+        return num.toFixed(2);
       }
     }
 
@@ -586,15 +586,7 @@ app.frame('/owned-tokens', async (c) => {
       const num = parseFloat(price);
       if (isNaN(num)) return 'N/A';
       
-      if (num >= 1e9) {
-        return (num / 1e9).toFixed(1) + 'B MOXIE';
-      } else if (num >= 1e6) {
-        return (num / 1e6).toFixed(1) + 'M MOXIE';
-      } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(1) + 'K MOXIE';
-      } else {
-        return num.toFixed(2) + ' MOXIE';
-      }
+      return num.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' MOXIE';
     }
 
     function TextBox({ label, value }: TextBoxProps) {
