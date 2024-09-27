@@ -698,7 +698,7 @@ app.frame('/shared', (c) => {
           Check your own fan token stats!
         </p>
         
-        {/* Silhouette Image at the bottom */}
+        {/* Silhouette image at the bottom */}
         <div style={{
           position: 'absolute',
           bottom: 0,
