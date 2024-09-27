@@ -522,7 +522,7 @@ app.frame('/yourfantoken', async (c) => {
             margin: '10px 0 20px',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
-            Your Fan Token
+            My Fan Token
           </h1>
           
           <div style={{
