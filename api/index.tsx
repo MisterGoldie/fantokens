@@ -629,7 +629,7 @@ app.get('/share', (c) => {
   return c.html(html);
 });
 
-// Keep your existing API endpoint for image generation
+// Keep your existing API Endpoint for image generation
 app.frame('/api/share', async (c) => {
   const fid = c.req.query('fid');
   const backgroundImage = decodeURIComponent(c.req.query('bg') || '');
