@@ -536,6 +536,7 @@ app.frame('/owned-tokens', async (c) => {
   try {
     const userAddress = "0xB57381C7eD83BB9031a786d2C691cc6C7C2207a4";
     let ownedTokens = await getOwnedFanTokens(userAddress);
+    let profileInfo = await getProfileInfo(fid.toString());
 
     if (!ownedTokens || ownedTokens.length === 0) {
       console.warn(`No fan tokens found for address ${userAddress}`);
@@ -569,8 +570,8 @@ app.frame('/owned-tokens', async (c) => {
           width: '230px',
           height: '100px'
         }}>
-          <div style={{ fontWeight: 'bold' }}>{label}</div>
-          <div>{value}</div>
+          <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
+          <div style={{ color: '#000000' }}>{value}</div>
         </div>
       );
     }
@@ -592,6 +593,23 @@ app.frame('/owned-tokens', async (c) => {
           padding: '40px',
           boxSizing: 'border-box',
         }}>
+          <div style={{
+            width: '150px',
+            height: '150px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+          }}>
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
             Fan Token {currentIndex + 1} of {ownedTokens.length}
           </h1>
