@@ -323,53 +323,40 @@ app.frame('/', (c) => {
           background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',  // Changed to space-between
+          justifyContent: 'center',
           alignItems: 'center',
           fontFamily: 'Arial, sans-serif',
           color: '#FFD700',
           padding: '20px',
-          boxSizing: 'border-box',  // Ensure padding is included in total size
         }}
       >
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-          <div
-            style={{
-              fontSize: '72px',
-              fontWeight: 'bold',
-              textAlign: 'center',
-              textTransform: 'uppercase',
-              letterSpacing: '4px',
-              textShadow: '0 0 10px rgba(255,215,0,0.7), 0 0 20px rgba(255,215,0,0.5), 0 0 30px rgba(255,215,0,0.3)',
-              marginBottom: '20px',
-            }}
-          >
-            You & Your
-          </div>
-          <div
-            style={{
-              fontSize: '96px',
-              fontWeight: 'bold',
-              textAlign: 'center',
-              textTransform: 'uppercase',
-              letterSpacing: '6px',
-              background: 'linear-gradient(45deg, #8B50FA, #9B6DF1)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-            }}
-          >
-            Fan Tokens
-          </div>
+        <div
+          style={{
+            fontSize: '72px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            textTransform: 'uppercase',
+            letterSpacing: '4px',
+            textShadow: '0 0 10px rgba(255,215,0,0.7), 0 0 20px rgba(255,215,0,0.5), 0 0 30px rgba(255,215,0,0.3)',
+            marginBottom: '20px',
+          }}
+        >
+          You & Your
         </div>
         <div
           style={{
-            fontSize: '24px',
-            color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '96px',
+            fontWeight: 'bold',
             textAlign: 'center',
-            width: '100%',
+            textTransform: 'uppercase',
+            letterSpacing: '6px',
+            background: 'linear-gradient(45deg, #8B50FA, #9B6DF1)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
           }}
         >
-          frame by @goldie
+          Fan Tokens
         </div>
       </div>
     ),
