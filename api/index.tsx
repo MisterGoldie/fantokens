@@ -515,8 +515,9 @@ app.frame('/yourfantoken', async (c) => {
 app.frame('/owned-tokens', async (c) => {
   console.log('Entering /owned-tokens frame');
   const { fid } = c.frameData || {};
+  const currentIndex = parseInt(c.buttonValue || '0');
 
-  console.log(`FID: ${fid}`);
+  console.log(`FID: ${fid}, Current Index: ${currentIndex}`);
 
   if (!fid) {
     console.error('No FID found in frameData');
@@ -533,10 +534,8 @@ app.frame('/owned-tokens', async (c) => {
   }
 
   try {
-    // Hardcoded wallet address
     const userAddress = "0xB57381C7eD83BB9031a786d2C691cc6C7C2207a4";
     let ownedTokens = await getOwnedFanTokens(userAddress);
-    let profileInfo = await getProfileInfo(fid.toString());
 
     if (!ownedTokens || ownedTokens.length === 0) {
       console.warn(`No fan tokens found for address ${userAddress}`);
@@ -552,7 +551,8 @@ app.frame('/owned-tokens', async (c) => {
       });
     }
 
-    // We're not filtering out the user's own token here, as we want to see all tokens in the wallet
+    const token = ownedTokens[currentIndex];
+
     return c.res({
       image: (
         <div style={{ 
@@ -568,61 +568,39 @@ app.frame('/owned-tokens', async (c) => {
           padding: '40px',
           boxSizing: 'border-box',
         }}>
-          <div style={{
-            width: '150px',
-            height: '150px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            backgroundColor: '#FFA500',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '20px',
-            alignSelf: 'center',
-          }}>
-            <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-              alt="Profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </div>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
-            Fan Tokens in Your Wallet
+            Fan Token {currentIndex + 1} of {ownedTokens.length}
           </h1>
-          <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
-            {ownedTokens.map((token, index) => (
-              <div key={index} style={{ 
-                display: 'flex', 
-                flexDirection: 'column',
-                marginBottom: '20px', 
-                backgroundColor: 'rgba(255,255,255,0.8)',
-                padding: '10px',
-                borderRadius: '10px',
-                color: '#000000'
-              }}>
-                <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                  {token.subjectToken.name} ({token.subjectToken.symbol})
-                </p>
-                <p style={{ fontSize: '20px' }}>
-                  Balance: {parseFloat(token.balance) / 1e18} tokens
-                </p>
-                <p style={{ fontSize: '20px' }}>
-                  Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
-                </p>
-                <p style={{ fontSize: '20px' }}>
-                  Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
-                </p>
-                <p style={{ fontSize: '20px' }}>
-                  Current Price: {parseFloat(token.subjectToken.currentPriceInMoxie).toFixed(6)} MOXIE
-                </p>
-              </div>
-            ))}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            padding: '20px',
+            borderRadius: '10px',
+            color: '#000000'
+          }}>
+            <p style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '10px' }}>
+              {token.subjectToken.name} ({token.subjectToken.symbol})
+            </p>
+            <p style={{ fontSize: '24px', marginBottom: '10px' }}>
+              Balance: {parseFloat(token.balance) / 1e18} tokens
+            </p>
+            <p style={{ fontSize: '24px', marginBottom: '10px' }}>
+              Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
+            </p>
+            <p style={{ fontSize: '24px', marginBottom: '10px' }}>
+              Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
+            </p>
+            <p style={{ fontSize: '24px', marginBottom: '10px' }}>
+              Current Price: {parseFloat(token.subjectToken.currentPriceInMoxie).toFixed(6)} MOXIE
+            </p>
           </div>
         </div>
       ),
       intents: [
-        <Button action="/">Back</Button>,
-        <Button action="/yourfantoken">Your Fan Token</Button>,
+        <Button action="/">Home</Button>,
+        ...(currentIndex > 0 ? [<Button action="/owned-tokens" value={(currentIndex - 1).toString()}>Previous</Button>] : []),
+        ...(currentIndex < ownedTokens.length - 1 ? [<Button action="/owned-tokens" value={(currentIndex + 1).toString()}>Next</Button>] : []),
       ]
     });
   } catch (error) {
