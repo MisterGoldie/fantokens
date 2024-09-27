@@ -606,7 +606,7 @@ app.frame('/owned-tokens', async (c) => {
           justifyContent: 'center',
           width: '230px',
           height: '100px',
-          boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
+          boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)', // box shadow around flexboxes
         }}>
           <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
           <div style={{ color: '#000000' }}>{value}</div>
@@ -616,14 +616,14 @@ app.frame('/owned-tokens', async (c) => {
 
     return c.res({
       image: (
-        <div style={{ 
+        <div style={{  // change image URL here
           display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           width: '1200px', 
           height: '628px', 
-          backgroundImage: 'url(https://bafybeiaeefprszqa4zkw2tvt5gp6yqdx4wpxza2hhggz4ejviavvi432ji.ipfs.w3s.link/Frame%2064%20(7).png)',
+          backgroundImage: 'url(https://bafybeiata3diat4mmcnz54vbqfrs5hqrbankpp5ynvhbtglrxakj55hx6y.ipfs.w3s.link/Frame%2064%20(8).png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: 'white',
