@@ -520,6 +520,7 @@ app.frame('/yourfantoken', async (c) => {
             fontWeight: 'bold', 
             textAlign: 'center', 
             margin: '10px 0 20px',
+            color: '#ffffff',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
             My Fan Token
