@@ -377,7 +377,7 @@ app.frame('/yourfantoken', async (c) => {
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
+          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -393,20 +393,21 @@ app.frame('/yourfantoken', async (c) => {
     return (
       <div style={{
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        padding: '10px',
-        margin: '5px',
-        borderRadius: '10px',
+        padding: '15px',
+        margin: '10px',
+        borderRadius: '15px',
         fontFamily: 'Arial, sans-serif',
-        fontSize: '24px',
+        fontSize: '28px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '230px',
-        height: '100px'
+        width: '280px',
+        height: '120px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
       }}>
-        <div style={{ fontWeight: 'bold' }}>{label}</div>
-        <div>{value}</div>
+        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
+        <div style={{ fontSize: '32px' }}>{value}</div>
       </div>
     );
   }
@@ -429,8 +430,8 @@ app.frame('/yourfantoken', async (c) => {
         boxSizing: 'border-box',
       }}>
         <div style={{
-          width: '150px',
-          height: '150px',
+          width: '180px',
+          height: '180px',
           borderRadius: '50%',
           overflow: 'hidden',
           backgroundColor: '#FFA500',
@@ -438,6 +439,7 @@ app.frame('/yourfantoken', async (c) => {
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: '20px',
+          boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
         }}>
           <img 
             src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
@@ -446,12 +448,23 @@ app.frame('/yourfantoken', async (c) => {
           />
         </div>
         
+        <h1 style={{ 
+          fontSize: '48px', 
+          fontWeight: 'bold', 
+          textAlign: 'center', 
+          margin: '10px 0 20px',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+        }}>
+          My Fan Token
+        </h1>
+        
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
           justifyContent: 'center',
           alignItems: 'center',
           width: '100%',
+          maxWidth: '1000px',
         }}>
           <TextBox label="Current Price" value={tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A'} />
           <TextBox label="FID" value={fid.toString()} />
