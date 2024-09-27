@@ -497,7 +497,7 @@ app.frame('/yourfantoken', async (c) => {
 
     const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
 
-    // Create a URL for the shared frame
+    // create a URL for the shared frame
     const frameUrl = new URL('https://fantokens-kappa.vercel.app/api/shared');
     frameUrl.searchParams.append('username', username);
     frameUrl.searchParams.append('currentPrice', currentPrice);
