@@ -498,9 +498,8 @@ app.frame('/yourfantoken', async (c) => {
     const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
 
     // Create a URL For the shared frame
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&bg=${encodeURIComponent(backgroundImage)}`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/frame/share?fid=${fid}&bg=${encodeURIComponent(backgroundImage)}`;
 
-    // Construct a Farcaster-compatible share URL
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     console.log('Share URL:', shareUrl);
