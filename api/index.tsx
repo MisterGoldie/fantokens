@@ -361,77 +361,8 @@ app.frame('/', (c) => {
       </div>
     ),
     intents: [
-      <Button action="/profile">Your Profile</Button>,
+      <Button action="/yourfantoken">Your FT</Button>,
     ],
-  });
-});
-
-app.frame('/profile', async (c) => {
-  console.log('Entering /profile frame');
-  const { fid } = c.frameData || {};
-
-  console.log(`FID: ${fid}`);
-
-  if (!fid) {
-    console.error('No FID found in frameData');
-    return c.res({
-      image: (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '20px', color: 'white', textAlign: 'center' }}>Error: No FID</h1>
-        </div>
-      ),
-      intents: [
-        <Button action="/">Back</Button>
-      ]
-    });
-  }
-
-  const profileInfo = await getProfileInfo(fid.toString());
-
-  return c.res({
-    image: (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        width: '1200px', 
-        height: '628px', 
-        backgroundColor: '#1A1A1A',
-        color: 'white',
-        fontFamily: 'Arial, sans-serif',
-        padding: '40px',
-        boxSizing: 'border-box',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '30px' }}>
-          <p style={{ fontSize: '48px', color: '#FFD700', textAlign: 'center', marginBottom: '10px' }}>
-            {profileInfo?.farcasterSocial.profileDisplayName || 'Unknown User'}
-          </p>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '80%' }}>
-          <h1 style={{ fontSize: '36px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
-            Profile Information
-          </h1>
-          {profileInfo ? (
-            <div style={{ display: 'flex', flexDirection: 'column', fontSize: '24px', color: '#BDBDBD', textAlign: 'center', alignItems: 'center' }}>
-              <p style={{ marginBottom: '15px', maxWidth: '80%' }}>Bio: {profileInfo.farcasterSocial.profileBio || 'No bio available'}</p>
-              <p style={{ marginBottom: '15px' }}>Followers: {profileInfo.farcasterSocial.followerCount}</p>
-              <p style={{ marginBottom: '15px' }}>Following: {profileInfo.farcasterSocial.followingCount}</p>
-              <p style={{ marginBottom: '15px' }}>FarScore: {profileInfo.farcasterSocial.farcasterScore?.farScore?.toFixed(2) || 'N/A'}</p>
-              {profileInfo.primaryDomain && (
-                <p style={{ marginBottom: '15px' }}>Primary Domain: {profileInfo.primaryDomain.name}</p>
-              )}
-            </div>
-          ) : (
-            <p style={{ fontSize: '24px', color: '#BDBDBD', textAlign: 'center' }}>No profile information found</p>
-          )}
-        </div>
-      </div>
-    ),
-    intents: [
-      <Button action="/">Back</Button>,
-      <Button action="/yourfantoken">Your Fan Token</Button>,
-    ]
   });
 });
 
