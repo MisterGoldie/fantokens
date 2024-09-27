@@ -536,6 +536,7 @@ app.frame('/owned-tokens', async (c) => {
   try {
     const userAddress = "0xB57381C7eD83BB9031a786d2C691cc6C7C2207a4";
     let ownedTokens = await getOwnedFanTokens(userAddress);
+    let userProfileInfo = await getProfileInfo(fid.toString());
 
     if (!ownedTokens || ownedTokens.length === 0) {
       console.warn(`No fan tokens found for address ${userAddress}`);
@@ -561,6 +562,38 @@ app.frame('/owned-tokens', async (c) => {
         tokenProfileInfo = await getProfileInfo(tokenFid);
       } catch (error) {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
+      }
+    }
+
+    function formatNumber(value: string, decimals: number = 2): string {
+      const num = parseFloat(value);
+      if (isNaN(num)) return 'N/A';
+      
+      if (num >= 1e9) {
+        return (num / 1e9).toFixed(decimals) + 'B';
+      } else if (num >= 1e6) {
+        return (num / 1e6).toFixed(decimals) + 'M';
+      } else if (num >= 1e3) {
+        return (num / 1e3).toFixed(decimals) + 'K';
+      } else if (num >= 1 || num === 0) {
+        return num.toFixed(decimals);
+      } else {
+        return num.toPrecision(4);
+      }
+    }
+
+    function formatMoxiePrice(price: string): string {
+      const num = parseFloat(price);
+      if (isNaN(num)) return 'N/A';
+      
+      if (num >= 1e6) {
+        return (num / 1e6).toFixed(2) + 'M';
+      } else if (num >= 1e3) {
+        return (num / 1e3).toFixed(2) + 'K';
+      } else if (num >= 1) {
+        return num.toFixed(2);
+      } else {
+        return num.toPrecision(4);
       }
     }
 
@@ -595,7 +628,7 @@ app.frame('/owned-tokens', async (c) => {
           justifyContent: 'center',
           width: '1200px', 
           height: '628px', 
-          backgroundImage: 'url(https://bafybeibonwvh5zlyb42kifcittlazu37fox37ohblo7h3urbz627shmx4m.ipfs.w3s.link/Frame%2064%20(4).png)',
+          backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: 'white',
@@ -618,16 +651,16 @@ app.frame('/owned-tokens', async (c) => {
               <img 
                 src={tokenProfileInfo.farcasterSocial.profileImage}
                 alt="Token Profile" 
-                style={{ width: '130px', height: '130px', objectFit: 'cover' }}
+                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
               />
             ) : (
-              <div style={{ width: '130px', height: '130px', backgroundColor: '#FFA500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '150px', height: '150px', backgroundColor: '#FFA500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: '24px', color: '#ffffff' }}>No Image</span>
               </div>
             )}
           </div>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
-            Fan Token {currentIndex + 1} of {ownedTokens.length}
+            {userProfileInfo?.farcasterSocial?.profileDisplayName || 'Unknown User'}
           </h1>
           <div style={{
             display: 'flex',
@@ -637,9 +670,9 @@ app.frame('/owned-tokens', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Token Name" value={`${token.subjectToken.name} (${token.subjectToken.symbol})`} />
-            <TextBox label="Balance" value={`${(parseFloat(token.balance) / 1e18).toFixed(2)} tokens`} />
-            <TextBox label="Buy Volume" value={`${(parseFloat(token.buyVolume) / 1e18).toFixed(2)} tokens`} />
-            <TextBox label="Current Price" value={`${parseFloat(token.subjectToken.currentPriceInMoxie).toFixed(6)} MOXIE`} />
+            <TextBox label="Balance" value={`${formatNumber(token.balance, 2)} tokens`} />
+            <TextBox label="Buy Volume" value={`${formatNumber(token.buyVolume, 2)} tokens`} />
+            <TextBox label="Current Price" value={`${formatMoxiePrice(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
         </div>
       ),
@@ -674,7 +707,6 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
-
 
 export const GET = handle(app);
 export const POST = handle(app);
