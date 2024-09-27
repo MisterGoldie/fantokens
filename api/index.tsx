@@ -228,7 +228,7 @@ async function getFanTokenInfo(fid: string): Promise<TokenInfo | null> {
   }
 }
 
-async function getFarcasterAddressFromFID(fid: string): Promise<string> {
+async function getFarcasterAddressesFromFID(fid: string): Promise<string[]> {
   const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
   const graphQLClient = new GraphQLClient(AIRSTACK_API_URL, {
     headers: {
@@ -237,7 +237,7 @@ async function getFarcasterAddressFromFID(fid: string): Promise<string> {
   });
 
   const query = gql`
-    query GetFarcasterAddress($identity: Identity!) {
+    query MyQuery($identity: Identity!) {
       Socials(
         input: {
           filter: { dappName: { _eq: farcaster }, identity: { _eq: $identity } }
@@ -246,6 +246,7 @@ async function getFarcasterAddressFromFID(fid: string): Promise<string> {
       ) {
         Social {
           userAddress
+          userAssociatedAddresses
         }
       }
     }
@@ -263,14 +264,11 @@ async function getFarcasterAddressFromFID(fid: string): Promise<string> {
       throw new Error(`No Farcaster profile found for FID: ${fid}`);
     }
 
-    const userAddress = data.Socials.Social[0].userAddress;
-    if (!userAddress) {
-      throw new Error(`No user address found for FID: ${fid}`);
-    }
-
-    return userAddress;
+    const social = data.Socials.Social[0];
+    const addresses = [social.userAddress, ...(social.userAssociatedAddresses || [])];
+    return [...new Set(addresses)]; // Remove duplicates
   } catch (error) {
-    console.error('Error fetching Farcaster address from Airstack:', error);
+    console.error('Error fetching Farcaster addresses from Airstack:', error);
     throw error;
   }
 }
@@ -314,8 +312,6 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
     return null;
   }
 }
-
-// Frame definitions start here
 
 app.frame('/', (c) => {
   return c.res({
@@ -534,15 +530,22 @@ app.frame('/owned-tokens', async (c) => {
   }
 
   try {
-    const userAddress = await getFarcasterAddressFromFID(fid.toString());
-    let ownedTokens = await getOwnedFanTokens(userAddress);
+    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
+    let allOwnedTokens: TokenHolding[] = [];
 
-    if (!ownedTokens || ownedTokens.length === 0) {
-      console.warn(`No fan tokens found for address ${userAddress}`);
+    for (const address of userAddresses) {
+      const tokens = await getOwnedFanTokens(address);
+      if (tokens) {
+        allOwnedTokens = allOwnedTokens.concat(tokens);
+      }
+    }
+
+    if (allOwnedTokens.length === 0) {
+      console.warn(`No fan tokens found for FID ${fid}`);
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this wallet</h1>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this user</h1>
           </div>
         ),
         intents: [
@@ -551,7 +554,7 @@ app.frame('/owned-tokens', async (c) => {
       });
     }
 
-    const token = ownedTokens[currentIndex];
+    const token = allOwnedTokens[currentIndex];
     let tokenProfileInfo = null;
     let tokenFid = '';
 
@@ -677,7 +680,7 @@ app.frame('/owned-tokens', async (c) => {
       intents: [
         <Button action="/">Home</Button>,
         ...(currentIndex > 0 ? [<Button action="/owned-tokens" value={(currentIndex - 1).toString()}>Previous</Button>] : []),
-        ...(currentIndex < ownedTokens.length - 1 ? [<Button action="/owned-tokens" value={(currentIndex + 1).toString()}>Next</Button>] : []),
+        ...(currentIndex < allOwnedTokens.length - 1 ? [<Button action="/owned-tokens" value={(currentIndex + 1).toString()}>Next</Button>] : []),
       ]
     });
   } catch (error) {
