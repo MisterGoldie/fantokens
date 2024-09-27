@@ -593,7 +593,6 @@ app.frame('/yourfantoken', async (c) => {
 app.frame('/share', async (c) => {
   console.log('Entering /share frame');
   const fid = c.req.query('fid');
-  const backgroundImage = decodeURIComponent(c.req.query('bg') || '');
 
   console.log(`FID: ${fid}`);
 
@@ -619,6 +618,8 @@ app.frame('/share', async (c) => {
       </div>
     );
   }
+
+  const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
   if (!fid) {
     return c.res({
@@ -667,6 +668,17 @@ app.frame('/share', async (c) => {
     const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
+
+    const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
+
+    // Create a URL for the shared frame
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&bg=${encodeURIComponent(backgroundImage)}`;
+
+    // Construct a Farcaster-compatible share URL
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
+    console.log('Share URL:', shareUrl);
+    console.log('Farcaster Share URL:', farcasterShareURL);
 
     return c.res({
       image: (
@@ -729,8 +741,11 @@ app.frame('/share', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/yourfantoken">Check Your Stats</Button>
-      ]
+        <Button action="/">Back</Button>,
+        <Button action="/yourfantoken">Refresh</Button>,
+        <Button action="/owned-tokens">Owned</Button>,
+        <Button.Link href={farcasterShareURL}>Share</Button.Link>,
+      ],
     });
   } catch (error) {
     console.error('Error fetching fan token data:', error);
@@ -742,7 +757,7 @@ app.frame('/share', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/yourfantoken">Try again</Button>
+        <Button action="/">Home</Button>
       ]
     });
   }
