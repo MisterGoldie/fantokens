@@ -603,25 +603,29 @@ app.frame('/owned-tokens', async (c) => {
           padding: '40px',
           boxSizing: 'border-box',
         }}>
-          {tokenProfileInfo && tokenProfileInfo.farcasterSocial && (
-            <div style={{
-              width: '150px',
-              height: '150px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              backgroundColor: '#FFA500',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '20px',
-            }}>
+          <div style={{
+            width: '150px',
+            height: '150px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+          }}>
+            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
               <img 
-                src={tokenProfileInfo.farcasterSocial.profileImage || '/api/placeholder/150/150'} 
+                src={tokenProfileInfo.farcasterSocial.profileImage}
                 alt="Token Profile" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
               />
-            </div>
-          )}
+            ) : (
+              <div style={{ width: '150px', height: '150px', backgroundColor: '#FFA500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '24px', color: '#ffffff' }}>No Image</span>
+              </div>
+            )}
+          </div>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
             Fan Token {currentIndex + 1} of {ownedTokens.length}
           </h1>
