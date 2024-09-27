@@ -533,7 +533,8 @@ app.frame('/owned-tokens', async (c) => {
   }
 
   try {
-    let userAddress = await getFarcasterAddressFromFID(fid.toString());
+    // Hardcoded wallet address
+    const userAddress = "0xB57381C7eD83BB9031a786d2C691cc6C7C2207a4";
     let ownedTokens = await getOwnedFanTokens(userAddress);
     let profileInfo = await getProfileInfo(fid.toString());
 
@@ -542,7 +543,7 @@ app.frame('/owned-tokens', async (c) => {
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this user</h1>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this wallet</h1>
           </div>
         ),
         intents: [
@@ -551,9 +552,7 @@ app.frame('/owned-tokens', async (c) => {
       });
     }
 
-    // Filter out the user's own token
-    const otherOwnedTokens = ownedTokens.filter(token => !token.subjectToken.symbol.startsWith(`fid:${fid}`));
-
+    // We're not filtering out the user's own token here, as we want to see all tokens in the wallet
     return c.res({
       image: (
         <div style={{ 
@@ -588,49 +587,36 @@ app.frame('/owned-tokens', async (c) => {
             />
           </div>
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
-            Other Fan Tokens You Own
+            Fan Tokens in Your Wallet
           </h1>
           <div style={{ display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }}>
-            {otherOwnedTokens.length > 0 ? (
-              otherOwnedTokens.map((token, index) => (
-                <div key={index} style={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  marginBottom: '20px', 
-                  backgroundColor: 'rgba(255,255,255,0.8)',
-                  padding: '10px',
-                  borderRadius: '10px',
-                  color: '#000000'
-                }}>
-                  <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
-                    {token.subjectToken.name} ({token.subjectToken.symbol})
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Balance: {parseFloat(token.balance) / 1e18} tokens
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
-                  </p>
-                  <p style={{ fontSize: '20px' }}>
-                    Current Price: {parseFloat(token.subjectToken.currentPriceInMoxie).toFixed(6)} MOXIE
-                  </p>
-                </div>
-              ))
-            ) : (
-              <div style={{ 
-                fontSize: '24px', 
-                color: '#FFFFFF', 
-                textAlign: 'center', 
-                backgroundColor: 'rgba(0,0,0,0.5)', 
-                padding: '20px', 
-                borderRadius: '10px' 
+            {ownedTokens.map((token, index) => (
+              <div key={index} style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                marginBottom: '20px', 
+                backgroundColor: 'rgba(255,255,255,0.8)',
+                padding: '10px',
+                borderRadius: '10px',
+                color: '#000000'
               }}>
-                You don't own any other fan tokens yet.
+                <p style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                  {token.subjectToken.name} ({token.subjectToken.symbol})
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Balance: {parseFloat(token.balance) / 1e18} tokens
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Buy Volume: {parseFloat(token.buyVolume) / 1e18} tokens
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Sell Volume: {parseFloat(token.sellVolume) / 1e18} tokens
+                </p>
+                <p style={{ fontSize: '20px' }}>
+                  Current Price: {parseFloat(token.subjectToken.currentPriceInMoxie).toFixed(6)} MOXIE
+                </p>
               </div>
-            )}
+            ))}
           </div>
         </div>
       ),
