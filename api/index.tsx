@@ -703,7 +703,7 @@ app.frame('/owned-tokens', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/">Back</Button>
+        <Button action="/">back</Button>
       ]
     });
   }
