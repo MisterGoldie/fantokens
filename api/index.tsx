@@ -497,16 +497,19 @@ app.frame('/yourfantoken', async (c) => {
 
     const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
 
-    // create a URL for the shared frame
+    // Create a URL for the shared frame
     const frameUrl = new URL('https://fantokens-kappa.vercel.app/api/shared');
-    frameUrl.searchParams.append('username', username);
-    frameUrl.searchParams.append('currentPrice', currentPrice);
-    frameUrl.searchParams.append('powerboost', powerboost);
-    frameUrl.searchParams.append('holders', holders);
-    frameUrl.searchParams.append('profileImage', profileInfo?.farcasterSocial?.profileImage || '');
+    frameUrl.searchParams.append('username', encodeURIComponent(username));
+    frameUrl.searchParams.append('currentPrice', encodeURIComponent(currentPrice));
+    frameUrl.searchParams.append('powerboost', encodeURIComponent(powerboost));
+    frameUrl.searchParams.append('holders', encodeURIComponent(holders));
+    frameUrl.searchParams.append('profileImage', encodeURIComponent(profileInfo?.farcasterSocial?.profileImage || ''));
 
     // Construct a Farcaster-compatible share URL
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(frameUrl.toString())}`;
+
+    console.log('Frame URL:', frameUrl.toString());
+    console.log('Farcaster Share URL:', farcasterShareURL);
 
     return c.res({
       image: (
@@ -593,12 +596,17 @@ app.frame('/yourfantoken', async (c) => {
 
 
 app.frame('/shared', (c) => {
+  console.log('Entering /shared frame');
+  console.log('Query params:', c.req.query());
+
   const queryParams = c.req.query();
   const username = queryParams['username'] ?? 'Unknown User';
   const currentPrice = queryParams['currentPrice'] ?? 'N/A';
   const powerboost = queryParams['powerboost'] ?? 'N/A';
   const holders = queryParams['holders'] ?? 'N/A';
   const profileImage = queryParams['profileImage'] ?? '/api/placeholder/150/150';
+
+  console.log('Parsed values:', { username, currentPrice, powerboost, holders, profileImage });
 
   function TextBox({ label, value }: TextBoxProps) {
     return (
