@@ -567,6 +567,13 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
+    const formatBalance = (balance: string): string => {
+      const balanceWei = BigInt(balance);
+      const denomination = BigInt(10 ** 18);
+      const balanceTokens = Number(balanceWei) / Number(denomination);
+      return balanceTokens.toFixed(2);
+    };
+
     const formatNumber = (value: number | string | null | undefined): string => {
       if (value === null || value === undefined) return 'N/A';
       const num = typeof value === 'string' ? parseFloat(value) : value;
@@ -577,7 +584,7 @@ app.frame('/owned-tokens', async (c) => {
         return (num / 1e6).toFixed(2) + 'M';
       } else if (num >= 1e3) {
         return (num / 1e3).toFixed(2) + 'K';
-      } else if (num > 0 && num < 1) {
+      } else if (num > 0 && num < 0.01) {
         return num.toExponential(2);
       } else {
         return num.toFixed(2);
@@ -656,7 +663,7 @@ app.frame('/owned-tokens', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Balance" value={`${formatNumber(token.balance)} tokens`} />
+            <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
             <TextBox label="Buy Volume" value={`${formatNumber(token.buyVolume)} tokens`} />
             <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
