@@ -552,8 +552,17 @@ app.frame('/owned-tokens', async (c) => {
     }
 
     const token = ownedTokens[currentIndex];
-    const tokenFid = token.subjectToken.symbol.split(':')[1]; // Assuming the symbol is in the format "fid:307834"
-    let tokenProfileInfo = await getProfileInfo(tokenFid);
+    let tokenProfileInfo = null;
+    let tokenFid = '';
+
+    if (token.subjectToken.symbol.startsWith('fid:')) {
+      tokenFid = token.subjectToken.symbol.split(':')[1];
+      try {
+        tokenProfileInfo = await getProfileInfo(tokenFid);
+      } catch (error) {
+        console.error(`Error fetching profile for FID ${tokenFid}:`, error);
+      }
+    }
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -586,7 +595,7 @@ app.frame('/owned-tokens', async (c) => {
           justifyContent: 'center',
           width: '1200px', 
           height: '628px', 
-          backgroundImage: 'url(https://bafybeiffyo3ime2xjo4pxozpauhsyh3yxvpgply2tqszzf3jyk6niwb7ue.ipfs.w3s.link/Frame%2064%20(2).png)',
+          backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: 'white',
@@ -594,23 +603,25 @@ app.frame('/owned-tokens', async (c) => {
           padding: '40px',
           boxSizing: 'border-box',
         }}>
-          <div style={{
-            width: '150px',
-            height: '150px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            backgroundColor: '#FFA500',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '20px',
-          }}>
-            <img 
-              src={tokenProfileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-              alt="Token Profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          </div>
+          {tokenProfileInfo && tokenProfileInfo.farcasterSocial && (
+            <div style={{
+              width: '150px',
+              height: '150px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              backgroundColor: '#FFA500',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '20px',
+            }}>
+              <img 
+                src={tokenProfileInfo.farcasterSocial.profileImage || '/api/placeholder/150/150'} 
+                alt="Token Profile" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </div>
+          )}
           <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
             Fan Token {currentIndex + 1} of {ownedTokens.length}
           </h1>
