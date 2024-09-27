@@ -498,17 +498,12 @@ app.frame('/yourfantoken', async (c) => {
     const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
 
     // Create a URL for the shared frame
-    const frameUrl = new URL('https://fantokens-kappa.vercel.app/api/shared');
-    frameUrl.searchParams.append('username', encodeURIComponent(username));
-    frameUrl.searchParams.append('currentPrice', encodeURIComponent(currentPrice));
-    frameUrl.searchParams.append('powerboost', encodeURIComponent(powerboost));
-    frameUrl.searchParams.append('holders', encodeURIComponent(holders));
-    frameUrl.searchParams.append('profileImage', encodeURIComponent(profileInfo?.farcasterSocial?.profileImage || ''));
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&bg=${encodeURIComponent(backgroundImage)}`;
 
     // Construct a Farcaster-compatible share URL
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(frameUrl.toString())}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
-    console.log('Frame URL:', frameUrl.toString());
+    console.log('Share URL:', shareUrl);
     console.log('Farcaster Share URL:', farcasterShareURL);
 
     return c.res({
@@ -595,113 +590,110 @@ app.frame('/yourfantoken', async (c) => {
 });
 
 
-app.frame('/shared', (c) => {
-  console.log('Entering /shared frame');
-  console.log('Query params:', c.req.query());
+app.frame('/share', async (c) => {
+  const fid = c.req.query('fid');
+  const backgroundImage = decodeURIComponent(c.req.query('bg') || '');
 
-  const queryParams = c.req.query();
-  const username = queryParams['username'] ?? 'Unknown User';
-  const currentPrice = queryParams['currentPrice'] ?? 'N/A';
-  const powerboost = queryParams['powerboost'] ?? 'N/A';
-  const holders = queryParams['holders'] ?? 'N/A';
-  const profileImage = queryParams['profileImage'] ?? '/api/placeholder/150/150';
-
-  console.log('Parsed values:', { username, currentPrice, powerboost, holders, profileImage });
-
-  function TextBox({ label, value }: TextBoxProps) {
-    return (
-      <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        padding: '10px',
-        margin: '0 10px',
-        borderRadius: '15px',
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '24px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '220px',
-        height: '100px',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-      }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-        <div style={{ fontSize: '28px' }}>{value}</div>
-      </div>
-    );
-  }
-
-  const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
-
-  return c.res({
-    image: (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '1200px', 
-        height: '628px', 
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        fontFamily: 'Arial, sans-serif',
-        color: '#ffffff',
-        padding: '20px',
-        boxSizing: 'border-box',
-      }}>
-        <div style={{
+  if (!fid) {
+    return c.res({
+      image: (
+        <div style={{ 
+          backgroundImage: `url(${backgroundImage})`,
+          width: '1200px',
+          height: '628px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          width: '120px',
-          height: '120px',
-          borderRadius: '50%',
-          overflow: 'hidden',
-          backgroundColor: '#FFA500',
-          marginBottom: '20px',
-          boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
+          justifyContent: 'center',
+          color: 'white',
+          fontFamily: 'Arial, sans-serif'
         }}>
-          <img 
-            src={profileImage}
-            alt="Profile" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
+          <h1 style={{ fontSize: '48px', marginBottom: '20px' }}>Error: No FID provided</h1>
         </div>
-        
-        <h1 style={{ 
-          fontSize: '48px', 
-          fontWeight: 'bold', 
-          textAlign: 'center', 
-          margin: '10px 0 20px',
-          color: '#ffffff',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+      ),
+      intents: [
+        <Button action="/yourfantoken">Check Your Stats</Button>
+      ]
+    });
+  }
+
+  try {
+    let tokenInfo = await getFanTokenInfo(fid.toString());
+    let profileInfo = await getProfileInfo(fid.toString());
+    let powerboostScore = await getPowerboostScore(fid.toString());
+
+    const username = profileInfo?.farcasterSocial?.profileName || 'Unknown User';
+    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
+    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
+    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
+
+    return c.res({
+      image: (
+        <div style={{ 
+          backgroundImage: `url(${backgroundImage})`,
+          width: '1200px',
+          height: '628px',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '20px',
+          color: 'white',
+          fontWeight: 'bold',
         }}>
-          {username}'s Fan Token
-        </h1>
-        
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+            <div style={{display: 'flex', flexDirection: 'column'}}>
+              <span style={{fontSize: '80px',}}>@{username}</span>
+              <span style={{fontSize: '30px',}}>FID: {fid}</span>
+            </div>
+          </div>
+          
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: '20px', fontSize: '40px'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
+              <span>Current Price:</span>
+              <span style={{fontWeight: '900', minWidth: '200px', textAlign: 'right'}}>{currentPrice} MOXIE</span>
+            </div>
+            <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
+              <span>Powerboost:</span>
+              <span style={{fontWeight: '900', minWidth: '200px', textAlign: 'right'}}>{powerboost}</span>
+            </div>
+            <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
+              <span>Holders:</span>
+              <span style={{fontWeight: '900', minWidth: '200px', textAlign: 'right'}}>{holders}</span>
+            </div>
+          </div>
+          
+          <div style={{display: 'flex', fontSize: '24px', alignSelf: 'flex-end', marginTop: 'auto', textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>
+            Fan Token Tracker
+          </div>
+        </div>
+      ),
+      intents: [
+        <Button action="/yourfantoken">Check Your Stats</Button>
+      ]
+    });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return c.res({
+      image: (
         <div style={{
+          backgroundImage: `url(${backgroundImage})`,
+          width: '1200px',
+          height: '628px',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          width: '100%',
-          maxWidth: '800px',
-          marginBottom: '20px',
+          color: 'white',
+          fontSize: '40px',
+          fontWeight: 'bold',
+          textAlign: 'center',
         }}>
-          <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
-          <TextBox label="Powerboost" value={powerboost} />
-          <TextBox label="Holders" value={holders} />
+          <div>Stats temporarily unavailable. Please try again later.</div>
         </div>
-        
-        <p style={{ fontSize: '24px', textAlign: 'center', maxWidth: '800px', marginTop: '20px', color: '#ffffff' }}>
-          Check your own fan token stats!
-        </p>
-      </div>
-    ),
-    intents: [
-      <Button action="/yourfantoken">Check My Fan Token</Button>,
-    ],
-  });
+      ),
+      intents: [
+        <Button action="/yourfantoken">Try Again</Button>
+      ]
+    });
+  }
 });
 
 app.frame('/owned-tokens', async (c) => {
