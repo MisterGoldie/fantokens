@@ -497,7 +497,7 @@ app.frame('/yourfantoken', async (c) => {
 
     const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
 
-    // Create a URL for the shared frame
+    // Create a URL For the shared frame
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&bg=${encodeURIComponent(backgroundImage)}`;
 
     // Construct a Farcaster-compatible share URL
