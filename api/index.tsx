@@ -567,32 +567,11 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
-    function formatNumber(value: string): string {
-      const num = parseFloat(value);
-      if (isNaN(num)) return 'N/A';
-      
-      if (num >= 1e9) {
-        return (num / 1e9).toFixed(2) + 'B';
-      } else if (num >= 1e6) {
-        return (num / 1e6).toFixed(2) + 'M';
-      } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(2) + 'K';
-      } else if (num >= 1) {
-        return num.toFixed(2);
-      } else if (num > 0) {
-        // For very small numbers, use scientific notation
-        return num.toExponential(2);
-      } else {
-        return '0';
-      }
-    }
-
-    function formatMoxiePrice(price: string): string {
-      const num = parseFloat(price);
-      if (isNaN(num)) return 'N/A';
-      
-      return num.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' MOXIE';
-    }
+    const formatNumber = (value: number | string | null | undefined): string => {
+      if (value === null || value === undefined) return 'N/A';
+      const num = typeof value === 'string' ? parseFloat(value) : value;
+      return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -668,7 +647,7 @@ app.frame('/owned-tokens', async (c) => {
           }}>
             <TextBox label="Balance" value={`${formatNumber(token.balance)} tokens`} />
             <TextBox label="Buy Volume" value={`${formatNumber(token.buyVolume)} tokens`} />
-            <TextBox label="Current Price" value={formatMoxiePrice(token.subjectToken.currentPriceInMoxie)} />
+            <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
         </div>
       ),
