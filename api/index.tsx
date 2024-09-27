@@ -622,7 +622,7 @@ app.frame('/owned-tokens', async (c) => {
           justifyContent: 'center',
           width: '1200px', 
           height: '628px', 
-          backgroundImage: 'url(https://bafybeidqeuwc55v2db6evcysq2fejozg7vazofgxvnltefpfxlwie6owxa.ipfs.w3s.link/Frame%2064%20(5).png)',
+          backgroundImage: 'url(https://bafybeicofrawqgf6ywpuhg7zxf3d7ednmzzn6yyoya5iy2rqtwqcqly7ae.ipfs.w3s.link/Frame%2064%20(6).png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: 'white',
@@ -631,8 +631,8 @@ app.frame('/owned-tokens', async (c) => {
           boxSizing: 'border-box',
         }}>
           <div style={{
-            width: '150px',
-            height: '150px',
+            width: '160px',
+            height: '160px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#FFA500',
@@ -640,6 +640,7 @@ app.frame('/owned-tokens', async (c) => {
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '20px',
+            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)', // Added purple shadow
           }}>
             {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
               <img 
