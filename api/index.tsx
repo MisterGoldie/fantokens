@@ -640,7 +640,7 @@ app.frame('/owned-tokens', async (c) => {
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '20px',
-            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)', // Added purple shadow
+            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)', // Purple shadow for profile picture
           }}>
             {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
               <img 
@@ -654,7 +654,13 @@ app.frame('/owned-tokens', async (c) => {
               </div>
             )}
           </div>
-          <h1 style={{ fontSize: '48px', color: '#FFD700', marginBottom: '20px', textAlign: 'center' }}>
+          <h1 style={{ 
+            fontSize: '48px', 
+            color: '#FFD700', 
+            marginBottom: '20px', 
+            textAlign: 'center',
+            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)' // Purple text shadow for profile name
+          }}>
             {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
           </h1>
           <div style={{
