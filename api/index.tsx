@@ -413,6 +413,8 @@ app.frame('/', (c) => {
     ],
   });
 });
+
+
 app.frame('/yourfantoken', async (c) => {
   console.log('Entering /yourfantoken frame');
   const { fid } = c.frameData ?? {};
