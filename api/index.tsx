@@ -60,6 +60,14 @@ interface ProfileInfo {
   };
 }
 
+interface AirstackResponse {
+  MoxieFanTokens: {
+    MoxieFanToken: Array<{
+      tlv: string;
+    }>;
+  };
+}
+
 export const app = new Frog({
   basePath: '/api',
   imageOptions: { width: 1200, height: 628 },
@@ -557,13 +565,42 @@ app.frame('/owned-tokens', async (c) => {
     const token = allOwnedTokens[currentIndex];
     let tokenProfileInfo = null;
     let tokenFid = '';
+    let tvl = '0';
 
     if (token.subjectToken.symbol.startsWith('fid:')) {
       tokenFid = token.subjectToken.symbol.split(':')[1];
       try {
         tokenProfileInfo = await getProfileInfo(tokenFid);
+        
+        // Fetch TVL from Airstack
+        const airstackClient = new GraphQLClient(AIRSTACK_API_KEY, {
+          headers: {
+            Authorization: AIRSTACK_API_KEY,
+          },
+        });
+
+        const airstackQuery = gql`
+          query MyQuery {
+            MoxieFanTokens(
+              input: {
+                filter: {
+                  fanTokenSymbol: {
+                    _eq: "fid:${tokenFid}"
+                  }
+                }
+              }
+            ) {
+              MoxieFanToken {
+                tlv
+              }
+            }
+          }
+        `;
+        
+        const airstackResponse = await airstackClient.request<AirstackResponse>(airstackQuery);
+        tvl = airstackResponse.MoxieFanTokens.MoxieFanToken[0]?.tlv || '0';
       } catch (error) {
-        console.error(`Error fetching profile for FID ${tokenFid}:`, error);
+        console.error(`Error fetching profile or TVL for FID ${tokenFid}:`, error);
       }
     }
 
@@ -664,7 +701,7 @@ app.frame('/owned-tokens', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
-            <TextBox label="Buy Volume" value={`${formatNumber(token.buyVolume)} tokens`} />
+            <TextBox label="TVL" value={`${formatNumber(tvl)} MOXIE`} />
             <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
         </div>
@@ -700,6 +737,7 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
+
 
 export const GET = handle(app);
 export const POST = handle(app);
