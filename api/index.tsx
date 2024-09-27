@@ -501,7 +501,7 @@ app.frame('/yourfantoken', async (c) => {
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&bg=${encodeURIComponent(backgroundImage)}`;
 
     // Construct a Farcaster-compatible share URL
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embedUrl=${encodeURIComponent(shareUrl)}`;
 
     console.log('Share URL:', shareUrl);
     console.log('Farcaster Share URL:', farcasterShareURL);
