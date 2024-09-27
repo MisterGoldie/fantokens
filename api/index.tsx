@@ -594,7 +594,7 @@ app.frame('/owned-tokens', async (c) => {
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{
-          backgroundColor: 'rgba(128, 0, 128, 0.5)',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
           padding: '10px',
           margin: '5px',
           borderRadius: '10px',
@@ -605,7 +605,8 @@ app.frame('/owned-tokens', async (c) => {
           alignItems: 'center',
           justifyContent: 'center',
           width: '230px',
-          height: '100px'
+          height: '100px',
+          boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
         }}>
           <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
           <div style={{ color: '#000000' }}>{value}</div>
