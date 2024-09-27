@@ -467,11 +467,11 @@ app.frame('/yourfantoken', async (c) => {
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
 
-    const shareText = `Check out my fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
+    const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
     
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    // Construct the Farcaster share URL with frame metadata, pointing directly to /yourfantoken
+    // Construct the Farcaster share URL with frame metadata
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=https://fantokens-kappa.vercel.app/api/yourfantoken?fid=${fid}`;
 
     return c.res({
@@ -518,7 +518,7 @@ app.frame('/yourfantoken', async (c) => {
             color: '#ffffff',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
-            {username}'s Fan Token
+            My Fan Token
           </h1>
           
           <div style={{
