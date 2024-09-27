@@ -594,19 +594,46 @@ app.frame('/share', async (c) => {
   const fid = c.req.query('fid');
   const backgroundImage = decodeURIComponent(c.req.query('bg') || '');
 
+  function TextBox({ label, value }: TextBoxProps) {
+    return (
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        padding: '15px',
+        margin: '10px',
+        borderRadius: '15px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '28px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '300px',
+        height: '130px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+      }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
+        <div style={{ fontSize: '32px' }}>{value}</div>
+      </div>
+    );
+  }
+
   if (!fid) {
     return c.res({
       image: (
         <div style={{ 
-          backgroundImage: `url(${backgroundImage})`,
-          width: '1200px',
-          height: '628px',
-          display: 'flex',
+          display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'white',
-          fontFamily: 'Arial, sans-serif'
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          fontFamily: 'Arial, sans-serif',
+          color: '#ffffff',
+          padding: '20px',
+          boxSizing: 'border-box',
         }}>
           <h1 style={{ fontSize: '48px', marginBottom: '20px' }}>Error: No FID provided</h1>
         </div>
@@ -630,39 +657,60 @@ app.frame('/share', async (c) => {
     return c.res({
       image: (
         <div style={{ 
-          backgroundImage: `url(${backgroundImage})`,
-          width: '1200px',
-          height: '628px',
-          display: 'flex',
+          display: 'flex', 
           flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          fontFamily: 'Arial, sans-serif',
+          color: '#000000',
           padding: '20px',
-          color: 'white',
-          fontWeight: 'bold',
+          boxSizing: 'border-box',
         }}>
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-            <div style={{display: 'flex', flexDirection: 'column'}}>
-              <span style={{fontSize: '80px',}}>@{username}</span>
-              <span style={{fontSize: '30px',}}>FID: {fid}</span>
-            </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '180px',
+            height: '180px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            marginBottom: '20px',
+            boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
+          }}>
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
           
-          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginTop: '20px', fontSize: '40px'}}>
-            <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
-              <span>Current Price:</span>
-              <span style={{fontWeight: '900', minWidth: '200px', textAlign: 'right'}}>{currentPrice} MOXIE</span>
-            </div>
-            <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
-              <span>Powerboost:</span>
-              <span style={{fontWeight: '900', minWidth: '200px', textAlign: 'right'}}>{powerboost}</span>
-            </div>
-            <div style={{display: 'flex', justifyContent: 'space-between', width: '100%', marginBottom: '10px'}}>
-              <span>Holders:</span>
-              <span style={{fontWeight: '900', minWidth: '200px', textAlign: 'right'}}>{holders}</span>
-            </div>
-          </div>
+          <h1 style={{ 
+            fontSize: '48px', 
+            fontWeight: 'bold', 
+            textAlign: 'center', 
+            margin: '10px 0 20px',
+            color: '#ffffff',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            {username}'s Fan Token
+          </h1>
           
-          <div style={{display: 'flex', fontSize: '24px', alignSelf: 'flex-end', marginTop: 'auto', textShadow: '1px 1px 2px rgba(0,0,0,0.5)'}}>
-            Fan Token Tracker
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: '1000px',
+          }}>
+            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+            <TextBox label="Powerboost" value={powerboost} />
+            <TextBox label="Holders" value={holders} />
           </div>
         </div>
       ),
