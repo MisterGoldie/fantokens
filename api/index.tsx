@@ -471,8 +471,11 @@ app.frame('/yourfantoken', async (c) => {
     
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    // Construct the Farcaster share URL with frame metadata
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=https://fantokens-kappa.vercel.app/api/yourfantoken?fid=${fid}`;
+    // Construct the share URL as a Farcaster frame
+    const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/yourfantoken');
+    
+    // Construct the Farcaster share URL
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl.toString())}`;
 
     return c.res({
       image: (
