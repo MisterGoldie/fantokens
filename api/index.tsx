@@ -467,12 +467,12 @@ app.frame('/yourfantoken', async (c) => {
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
 
-    const shareText = `Check out my Fan Token stats by @goldie! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}`;
+    const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}`;
     
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
     // Construct the share URL as a Farcaster frame
-    const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/share');
+    const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/share'); // Replace with your actual domain
     shareUrl.searchParams.append('fid', fid.toString());
     shareUrl.searchParams.append('bg', encodeURIComponent(backgroundImage));
     
@@ -522,7 +522,7 @@ app.frame('/yourfantoken', async (c) => {
             margin: '10px 0 20px',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
-            My Fan Token
+            {username}'s Fan Token
           </h1>
           
           <div style={{
@@ -541,7 +541,7 @@ app.frame('/yourfantoken', async (c) => {
       intents: [
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
-        <Button action="/owned-tokens">Fan Tokens Owned</Button>,
+        <Button action="/owned-tokens">Owned</Button>,
         <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ],
     });
