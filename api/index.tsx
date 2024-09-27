@@ -144,6 +144,54 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   }
 }
 
+async function getPowerboostScore(fid: string): Promise<number | null> {
+  const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
+  const graphQLClient = new GraphQLClient(AIRSTACK_API_URL, {
+    headers: {
+      'Authorization': AIRSTACK_API_KEY,
+    },
+  });
+
+  const query = gql`
+    query MyQuery($userId: String!) {
+      Socials(
+        input: {
+          filter: {
+            dappName: {_eq: farcaster},
+            userId: {_eq: $userId}
+          },
+          blockchain: ethereum
+        }
+      ) {
+        Social {
+          farcasterScore {
+            powerBoost
+          }
+        }
+      }
+    }
+  `;
+
+  const variables = {
+    userId: fid
+  };
+
+  try {
+    const data = await graphQLClient.request<any>(query, variables);
+    console.log('Airstack API response for powerboost:', JSON.stringify(data, null, 2));
+
+    if (data.Socials.Social && data.Socials.Social[0]?.farcasterScore?.powerBoost) {
+      return data.Socials.Social[0].farcasterScore.powerBoost;
+    } else {
+      console.log(`No powerboost score found for FID: ${fid}`);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching powerboost score from Airstack:', error);
+    return null;
+  }
+}
+
 async function getFanTokenAddressFromFID(fid: string): Promise<any> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
@@ -388,6 +436,7 @@ app.frame('/yourfantoken', async (c) => {
 
   let tokenInfo = await getFanTokenInfo(fid.toString());
   let profileInfo = await getProfileInfo(fid.toString());
+  let powerboostScore = await getPowerboostScore(fid.toString());
 
   function TextBox({ label, value }: TextBoxProps) {
     return (
@@ -466,7 +515,7 @@ app.frame('/yourfantoken', async (c) => {
           maxWidth: '1000px',
         }}>
           <TextBox label="Current Price" value={tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A'} />
-          <TextBox label="FID" value={fid.toString()} />
+          <TextBox label="Powerboost" value={powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A'} />
           <TextBox label="Holders" value={tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A'} />
         </div>
       </div>
