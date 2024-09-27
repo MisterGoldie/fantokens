@@ -618,10 +618,10 @@ app.frame('/owned-tokens', async (c) => {
               <img 
                 src={tokenProfileInfo.farcasterSocial.profileImage}
                 alt="Token Profile" 
-                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                style={{ width: '130px', height: '130px', objectFit: 'cover' }}
               />
             ) : (
-              <div style={{ width: '150px', height: '150px', backgroundColor: '#FFA500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '130px', height: '130px', backgroundColor: '#FFA500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: '24px', color: '#ffffff' }}>No Image</span>
               </div>
             )}
