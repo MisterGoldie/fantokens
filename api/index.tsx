@@ -420,17 +420,67 @@ app.frame('/yourfantoken', async (c) => {
 
   console.log(`FID: ${fid}`);
 
+  function TextBox({ label, value }: TextBoxProps) {
+    return (
+      <div style={{
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        padding: '15px',
+        margin: '10px',
+        borderRadius: '15px',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '28px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '300px',
+        height: '130px',
+        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+      }}>
+        <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
+        <div style={{ fontSize: '32px' }}>{value}</div>
+      </div>
+    );
+  }
+
+  const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+
   if (!fid) {
-    console.error('No FID found in frameData');
+    // This is the shared view, no FID available yet
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
-          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          fontFamily: 'Arial, sans-serif',
+          color: '#ffffff',
+          padding: '20px',
+          boxSizing: 'border-box',
+        }}>
+          <h1 style={{ 
+            fontSize: '48px', 
+            fontWeight: 'bold', 
+            textAlign: 'center', 
+            margin: '10px 0 20px',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            Fan Token Tracker
+          </h1>
+          <p style={{ fontSize: '24px', textAlign: 'center', maxWidth: '800px' }}>
+            Click the button below to check your fan token stats!
+          </p>
         </div>
       ),
       intents: [
-        <Button action="/">Back</Button>
-      ]
+        <Button action="/yourfantoken">Check My Fan Token</Button>,
+      ],
     });
   }
 
@@ -439,29 +489,6 @@ app.frame('/yourfantoken', async (c) => {
     let profileInfo = await getProfileInfo(fid.toString());
     let powerboostScore = await getPowerboostScore(fid.toString());
 
-    function TextBox({ label, value }: TextBoxProps) {
-      return (
-        <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          padding: '15px',
-          margin: '10px',
-          borderRadius: '15px',
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '28px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '300px',
-          height: '130px',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-          <div style={{ fontSize: '32px' }}>{value}</div>
-        </div>
-      );
-    }
-
     const username = profileInfo?.farcasterSocial?.profileDisplayName || 'Unknown User';
     const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
@@ -469,8 +496,6 @@ app.frame('/yourfantoken', async (c) => {
 
     const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
     
-    const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
-
     // Construct the share URL as a Farcaster frame
     const shareUrl = new URL('https://fantokens-kappa.vercel.app/api/yourfantoken');
     
