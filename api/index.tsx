@@ -567,11 +567,16 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
-    function formatNumber(value: string, decimals: number = 2): string {
-      const num = parseFloat(value);
+    function formatNumber(value: string, decimals: number = 1): string {
+      // First, remove any trailing zeros after the decimal point
+      const trimmedValue = parseFloat(value).toString();
+      
+      const num = parseFloat(trimmedValue);
       if (isNaN(num)) return 'N/A';
       
-      if (num >= 1e9) {
+      if (num >= 1e12) {
+        return (num / 1e12).toFixed(decimals) + 'T';
+      } else if (num >= 1e9) {
         return (num / 1e9).toFixed(decimals) + 'B';
       } else if (num >= 1e6) {
         return (num / 1e6).toFixed(decimals) + 'M';
@@ -580,7 +585,7 @@ app.frame('/owned-tokens', async (c) => {
       } else if (num >= 1 || num === 0) {
         return num.toFixed(decimals);
       } else {
-        return num.toPrecision(4);
+        return num.toPrecision(2);
       }
     }
 
@@ -607,15 +612,15 @@ app.frame('/owned-tokens', async (c) => {
           margin: '5px',
           borderRadius: '10px',
           fontFamily: 'Arial, sans-serif',
-          fontSize: '24px',
+          fontSize: '32px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '230px',
-          height: '100px'
+          width: '250px',
+          height: '110px'
         }}>
-          <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
+          <div style={{ fontWeight: 'bold', color: '#000000', marginBottom: '5px' }}>{label}</div>
           <div style={{ color: '#000000' }}>{value}</div>
         </div>
       );
@@ -671,8 +676,8 @@ app.frame('/owned-tokens', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Balance" value={`${formatNumber(token.balance, 2)} tokens`} />
-            <TextBox label="Buy Volume" value={`${formatNumber(token.buyVolume, 2)} tokens`} />
+            <TextBox label="Balance" value={`${formatNumber(token.balance)} tokens`} />
+            <TextBox label="Buy Volume" value={`${formatNumber(token.buyVolume)} tokens`} />
             <TextBox label="Current Price" value={`${formatMoxiePrice(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
         </div>
