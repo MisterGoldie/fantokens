@@ -742,7 +742,7 @@ app.frame('/share', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/yourfantoken">Try Again</Button>
+        <Button action="/yourfantoken">Try again</Button>
       ]
     });
   }
