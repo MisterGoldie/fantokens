@@ -590,12 +590,59 @@ app.frame('/yourfantoken', async (c) => {
 });
 
 
-app.frame('/share', async (c) => {
-  console.log('Entering /share frame');
+app.get('/share', (c) => {
   const fid = c.req.query('fid');
-  const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+  const bg = c.req.query('bg') || 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+  
+  if (!fid) {
+    return c.html(`
+      <html>
+        <body>
+          <h1>Error: No FID provided</h1>
+          <p>Please provide a valid FID in the URL parameters.</p>
+        </body>
+      </html>
+    `, 400);
+  }
 
-  console.log(`FID: ${fid}`);
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fan Token Stats</title>
+    <meta property="fc:frame" content="vNext">
+    <meta property="fc:frame:image" content="https://fantokens-kappa.vercel.app/api/share?fid=${encodeURIComponent(fid)}&bg=${encodeURIComponent(bg)}">
+    <meta property="fc:frame:button:1" content="Check Your Stats">
+    <meta property="fc:frame:button:1:action" content="post">
+    <meta property="fc:frame:post_url" content="https://fantokens-kappa.vercel.app/api/yourfantoken">
+</head>
+<body>
+    <h1>Fan Token Stats for FID: ${fid}</h1>
+    <p>This is a Farcaster Frame. If you're seeing this page, it means you're not viewing it in a Farcaster client.</p>
+    <img src="https://fantokens-kappa.vercel.app/api/share?fid=${encodeURIComponent(fid)}&bg=${encodeURIComponent(bg)}" alt="Fan Token Stats" style="max-width: 100%; height: auto;">
+</body>
+</html>
+  `;
+
+  return c.html(html);
+});
+
+// Keep your existing API endpoint for image generation
+app.frame('/api/share', async (c) => {
+  const fid = c.req.query('fid');
+  const backgroundImage = decodeURIComponent(c.req.query('bg') || '');
+
+  if (!fid) {
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
+        </div>
+      ),
+    });
+  }
 
   function TextBox({ label, value }: TextBoxProps) {
     return (
@@ -618,44 +665,6 @@ app.frame('/share', async (c) => {
         <div style={{ fontSize: '32px' }}>{value}</div>
       </div>
     );
-  }
-
-  if (!fid) {
-    return c.res({
-      image: (
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '1200px', 
-          height: '628px', 
-          backgroundImage: `url(${backgroundImage})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          fontFamily: 'Arial, sans-serif',
-          color: '#ffffff',
-          padding: '20px',
-          boxSizing: 'border-box',
-        }}>
-          <h1 style={{ 
-            fontSize: '48px', 
-            fontWeight: 'bold', 
-            textAlign: 'center', 
-            margin: '10px 0 20px',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            Fan Token Tracker
-          </h1>
-          <p style={{ fontSize: '24px', textAlign: 'center', maxWidth: '800px' }}>
-            Click the button below to check your fan token stats!
-          </p>
-        </div>
-      ),
-      intents: [
-        <Button action="/yourfantoken">Check My Fan Token</Button>,
-      ],
-    });
   }
 
   try {
@@ -728,9 +737,6 @@ app.frame('/share', async (c) => {
           </div>
         </div>
       ),
-      intents: [
-        <Button action="/yourfantoken">Check Your Stats</Button>
-      ]
     });
   } catch (error) {
     console.error('Error fetching fan token data:', error);
@@ -741,9 +747,6 @@ app.frame('/share', async (c) => {
           <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
-      intents: [
-        <Button action="/yourfantoken">Try Again</Button>
-      ]
     });
   }
 });
