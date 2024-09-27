@@ -602,29 +602,26 @@ app.frame('/shared', (c) => {
     return (
       <div style={{
         backgroundColor: 'rgba(255, 255, 255, 0.8)',
-        padding: '15px',
-        margin: '10px',
+        padding: '10px',
+        margin: '0 10px',
         borderRadius: '15px',
         fontFamily: 'Arial, sans-serif',
-        fontSize: '28px',
+        fontSize: '24px',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '300px',
-        height: '130px',
+        width: '220px',
+        height: '100px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
       }}>
         <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-        <div style={{ fontSize: '32px' }}>{value}</div>
+        <div style={{ fontSize: '28px' }}>{value}</div>
       </div>
     );
   }
 
   const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
-
-  const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
-  const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(c.url)}`;
 
   return c.res({
     image: (
@@ -639,16 +636,17 @@ app.frame('/shared', (c) => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         fontFamily: 'Arial, sans-serif',
-        color: '#000000',
+        color: '#ffffff',
         padding: '20px',
         boxSizing: 'border-box',
+        backgroundColor: '#9B6DF1', // Purple background color
       }}>
         <div style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          width: '180px',
-          height: '180px',
+          width: '120px',
+          height: '120px',
           borderRadius: '50%',
           overflow: 'hidden',
           backgroundColor: '#FFA500',
@@ -678,7 +676,8 @@ app.frame('/shared', (c) => {
           justifyContent: 'center',
           alignItems: 'center',
           width: '100%',
-          maxWidth: '1000px',
+          maxWidth: '800px',
+          marginBottom: '20px',
         }}>
           <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           <TextBox label="Powerboost" value={powerboost} />
@@ -688,11 +687,21 @@ app.frame('/shared', (c) => {
         <p style={{ fontSize: '24px', textAlign: 'center', maxWidth: '800px', marginTop: '20px', color: '#ffffff' }}>
           Check your own fan token stats or recast this!
         </p>
+        
+        {/* Silhouette image at the bottom */}
+        <div style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: '100px',
+          background: 'url(https://example.com/silhouette-image.png) repeat-x bottom',
+          backgroundSize: 'auto 100%',
+        }} />
       </div>
     ),
     intents: [
       <Button action="/yourfantoken">Check My Fan Token</Button>,
-      <Button.Link href={farcasterShareURL}>Recast</Button.Link>,
     ],
   });
 });
