@@ -414,19 +414,18 @@ app.frame('/', (c) => {
   });
 });
 
-app.frame('/owned-tokens', async (c) => {
-  console.log('Entering /owned-tokens frame');
-  const { fid } = c.frameData || {};
-  const currentIndex = parseInt(c.buttonValue || '0');
+app.frame('/yourfantoken', async (c) => {
+  console.log('Entering /yourfantoken frame');
+  const { fid } = c.frameData ?? {};
 
-  console.log(`FID: ${fid}, Current Index: ${currentIndex}`);
+  console.log(`FID: ${fid}`);
 
   if (!fid) {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -436,74 +435,17 @@ app.frame('/owned-tokens', async (c) => {
   }
 
   try {
-    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
-    let allOwnedTokens: TokenHolding[] = [];
-
-    for (const address of userAddresses) {
-      const tokens = await getOwnedFanTokens(address);
-      if (tokens) {
-        allOwnedTokens = allOwnedTokens.concat(tokens);
-      }
-    }
-
-    if (allOwnedTokens.length === 0) {
-      console.warn(`No fan tokens found for FID ${fid}`);
-      return c.res({
-        image: (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for this user</h1>
-          </div>
-        ),
-        intents: [
-          <Button action="/">Back</Button>
-        ]
-      });
-    }
-
-    const token = allOwnedTokens[currentIndex];
-    let tokenProfileInfo = null;
-    let tokenFid = '';
-
-    if (token.subjectToken.symbol.startsWith('fid:')) {
-      tokenFid = token.subjectToken.symbol.split(':')[1];
-      try {
-        tokenProfileInfo = await getProfileInfo(tokenFid);
-      } catch (error) {
-        console.error(`Error fetching profile for FID ${tokenFid}:`, error);
-      }
-    }
-
-    const formatBalance = (balance: string, decimals: number = 18): string => {
-      const balanceWei = BigInt(balance);
-      const denomination = BigInt(10 ** decimals);
-      const balanceTokens = Number(balanceWei) / Number(denomination);
-      return balanceTokens.toFixed(2);
-    };
-
-    const formatNumber = (value: number | string | null | undefined): string => {
-      if (value === null || value === undefined) return 'N/A';
-      const num = typeof value === 'string' ? parseFloat(value) : value;
-      
-      if (num >= 1e9) {
-        return (num / 1e9).toFixed(2) + 'B';
-      } else if (num >= 1e6) {
-        return (num / 1e6).toFixed(2) + 'M';
-      } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(2) + 'K';
-      } else if (num > 0 && num < 0.01) {
-        return num.toExponential(2);
-      } else {
-        return num.toFixed(2);
-      }
-    };
+    let tokenInfo = await getFanTokenInfo(fid.toString());
+    let profileInfo = await getProfileInfo(fid.toString());
+    let powerboostScore = await getPowerboostScore(fid.toString());
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
-        <div style={{ 
+        <div style={{
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          padding: '10px',
-          margin: '5px',
-          borderRadius: '10px',
+          padding: '15px',
+          margin: '10px',
+          borderRadius: '15px',
           fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
           display: 'flex',
@@ -512,104 +454,100 @@ app.frame('/owned-tokens', async (c) => {
           justifyContent: 'center',
           width: '300px',
           height: '130px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         }}>
-          <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
-          <div style={{ color: '#000000', fontSize: '32px' }}>{value}</div>
+          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
+          <div style={{ fontSize: '32px' }}>{value}</div>
         </div>
       );
     }
 
-    const shareText = `Check out my owned Fan Tokens by @goldie! Get your own stats here:`;
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=https://fantokens-kappa.vercel.app/api/owned-tokens?fid=${fid}&index=${currentIndex}`;
+    const username = profileInfo?.farcasterSocial?.profileDisplayName || 'Unknown User';
+    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
+    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
+    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
+
+    const shareText = `Check out ${username}'s fan token stats! Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Get your own stats here:`;
+    
+    const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+
+    // Construct the Farcaster share URL with frame metadata
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=https://fantokens-kappa.vercel.app/api/yourfantoken?fid=${fid}`;
 
     return c.res({
       image: (
-        <div style={{
+        <div style={{ 
           display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           width: '1200px', 
           height: '628px', 
-          backgroundImage: 'url(https://bafybeiata3diat4mmcnz54vbqfrs5hqrbankpp5ynvhbtglrxakj55hx6y.ipfs.w3s.link/Frame%2064%20(8).png)',
+          backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          color: 'white',
           fontFamily: 'Arial, sans-serif',
-          padding: '40px',
+          color: '#000000',
+          padding: '20px',
           boxSizing: 'border-box',
         }}>
           <div style={{
-            width: '130px',
-            height: '130px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '180px',
+            height: '180px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#FFA500',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             marginBottom: '20px',
-            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
+            boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
-              <img 
-                src={tokenProfileInfo.farcasterSocial.profileImage}
-                alt="Token Profile" 
-                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{ width: '150px', height: '150px', backgroundColor: '#9054FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
-              </div>
-            )}
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
+          
           <h1 style={{ 
             fontSize: '48px', 
-            color: '#000000', 
-            marginBottom: '20px', 
-            textAlign: 'center',
-            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
+            fontWeight: 'bold', 
+            textAlign: 'center', 
+            margin: '10px 0 20px',
+            color: '#ffffff',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
-            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
+            My Fan Token
           </h1>
+          
           <div style={{
             display: 'flex',
-            flexWrap: 'wrap',
             justifyContent: 'center',
             alignItems: 'center',
             width: '100%',
+            maxWidth: '1000px',
           }}>
-            <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
-            <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
-            <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
+            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+            <TextBox label="Powerboost" value={powerboost} />
+            <TextBox label="Holders" value={holders} />
           </div>
         </div>
       ),
       intents: [
-        <Button action="/">Home</Button>,
-        ...(currentIndex > 0 ? [<Button action="/owned-tokens" value={(currentIndex - 1).toString()}>Previous</Button>] : []),
-        ...(currentIndex < allOwnedTokens.length - 1 ? [<Button action="/owned-tokens" value={(currentIndex + 1).toString()}>Next</Button>] : []),
+        <Button action="/">Back</Button>,
+        <Button action="/yourfantoken">Refresh</Button>,
+        <Button action="/owned-tokens">Owned</Button>,
         <Button.Link href={farcasterShareURL}>Share</Button.Link>,
-      ]
+      ],
     });
   } catch (error) {
     console.error('Error fetching fan token data:', error);
     
-    let errorMessage: string;
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      console.error('Error details:', error.stack);
-    } else if (typeof error === 'string') {
-      errorMessage = error;
-    } else {
-      errorMessage = 'An unknown error occurred';
-    }
-
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan tokens: {errorMessage}</h1>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
