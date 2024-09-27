@@ -591,8 +591,11 @@ app.frame('/yourfantoken', async (c) => {
 
 
 app.frame('/share', async (c) => {
+  console.log('Entering /share frame');
   const fid = c.req.query('fid');
   const backgroundImage = decodeURIComponent(c.req.query('bg') || '');
+
+  console.log(`FID: ${fid}`);
 
   function TextBox({ label, value }: TextBoxProps) {
     return (
@@ -635,12 +638,23 @@ app.frame('/share', async (c) => {
           padding: '20px',
           boxSizing: 'border-box',
         }}>
-          <h1 style={{ fontSize: '48px', marginBottom: '20px' }}>Error: No FID provided</h1>
+          <h1 style={{ 
+            fontSize: '48px', 
+            fontWeight: 'bold', 
+            textAlign: 'center', 
+            margin: '10px 0 20px',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            Fan Token Tracker
+          </h1>
+          <p style={{ fontSize: '24px', textAlign: 'center', maxWidth: '800px' }}>
+            Click the button below to check your fan token stats!
+          </p>
         </div>
       ),
       intents: [
-        <Button action="/yourfantoken">Check Your Stats</Button>
-      ]
+        <Button action="/yourfantoken">Check My Fan Token</Button>,
+      ],
     });
   }
 
@@ -719,22 +733,12 @@ app.frame('/share', async (c) => {
       ]
     });
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('Error fetching fan token data:', error);
+    
     return c.res({
       image: (
-        <div style={{
-          backgroundImage: `url(${backgroundImage})`,
-          width: '1200px',
-          height: '628px',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'white',
-          fontSize: '40px',
-          fontWeight: 'bold',
-          textAlign: 'center',
-        }}>
-          <div>Stats temporarily unavailable. Please try again later.</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
