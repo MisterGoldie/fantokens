@@ -622,7 +622,7 @@ app.frame('/owned-tokens', async (c) => {
           justifyContent: 'center',
           width: '1200px', 
           height: '628px', 
-          backgroundImage: 'url(https://bafybeie6dohh2woi4zav4xj24fmqo57ygf2f22yv42oaqjyl3zlpxlo4ie.ipfs.w3s.link/Untitled%20542.png)',
+          backgroundImage: 'url(https://bafybeibonwvh5zlyb42kifcittlazu37fox37ohblo7h3urbz627shmx4m.ipfs.w3s.link/Frame%2064%20(4).png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: 'white',
