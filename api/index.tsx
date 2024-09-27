@@ -622,7 +622,7 @@ app.frame('/owned-tokens', async (c) => {
               />
             ) : (
               <div style={{ width: '150px', height: '150px', backgroundColor: '#FFA500', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: '24px', color: '#ffffff' }}>No Image</span>
+                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
               </div>
             )}
           </div>
