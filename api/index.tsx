@@ -322,19 +322,38 @@ app.frame('/', (c) => {
           height: '628px',
           backgroundColor: '#1A1A1A',
           display: 'flex',
+          flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          fontFamily: '"LoveDays", Arial, sans-serif',
+          fontFamily: '"Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial, sans-serif',
         }}
       >
         <h1
           style={{
             color: '#FFD700',
-            fontSize: '48px',
+            fontSize: '64px',
             textAlign: 'center',
+            margin: '0',
+            textTransform: 'uppercase',
+            letterSpacing: '2px',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
           }}
         >
-          You & your Fan Tokens
+          You & your
+        </h1>
+        <h1
+          style={{
+            color: '#FFD700',
+            fontSize: '72px',
+            textAlign: 'center',
+            margin: '10px 0',
+            fontWeight: 'bold',
+            textTransform: 'uppercase',
+            letterSpacing: '4px',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+          }}
+        >
+          Fan Tokens
         </h1>
       </div>
     ),
