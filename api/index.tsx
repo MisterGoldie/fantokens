@@ -321,11 +321,19 @@ app.frame('/', (c) => {
         height: '628px',
         backgroundColor: '#1A1A1A',
         color: 'white',
-        fontFamily: 'Arial, sans-serif',
+        fontFamily: 'LoveDays, Arial, sans-serif',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
       }}>
+        <style>{`
+          @font-face {
+            font-family: 'LoveDays';
+            src: url(data:font/truetype;charset=utf-8;base64,AAEAAAAPAIAAAwBwRFNJRwAAAAEAAHaAAAAACEdERUYAEADdAAB2iAAAABZHUE9T/NBDggAAdqAAADhwR1NVQuA04fIAAK8QAAAARk9TLzI0kEviAAABeAAAAGBjbWFwCuDRpAAABUwAAAIeZ2FzcP//AAMAAHZ4AAAACGdseWazs795AAAJKAAAaEhoZWFkHK922AAAAPwAAAA2aGhlYQjfBAoAAAE0AAAAJGhtdHigOAwyAAAB2AAAA3Rsb2Nhomq9zAAAB2wAAAG8bWF4cADpATQAAAFYAAAAIG5hbWVAq2k9AABxcAAAAvJwb3N0Obpc4gAAdGQAAAIU) format('truetype');
+            font-weight: normal;
+            font-style: normal;
+          }
+        `}</style>
         <h1 style={{ fontSize: '48px', color: '#FFD700' }}>
           You & your Fan Tokens
         </h1>
