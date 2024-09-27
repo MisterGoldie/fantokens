@@ -649,7 +649,6 @@ app.frame('/shared', (c) => {
         color: '#ffffff',
         padding: '20px',
         boxSizing: 'border-box',
-        backgroundColor: '#9B6DF1', // Purple background color
       }}>
         <div style={{
           display: 'flex',
@@ -697,17 +696,6 @@ app.frame('/shared', (c) => {
         <p style={{ fontSize: '24px', textAlign: 'center', maxWidth: '800px', marginTop: '20px', color: '#ffffff' }}>
           Check your own fan token stats!
         </p>
-        
-        {/* Silhouette image at the bottom */}
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '100px',
-          background: 'url(https://example.com/silhouette-image.png) repeat-x bottom',
-          backgroundSize: 'auto 100%',
-        }} />
       </div>
     ),
     intents: [
