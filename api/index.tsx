@@ -527,9 +527,9 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
-    const formatBalance = (balance: string): string => {
+    const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
-      const denomination = BigInt(10 ** 18);
+      const denomination = BigInt(10 ** decimals);
       const balanceTokens = Number(balanceWei) / Number(denomination);
       return balanceTokens.toFixed(2);
     };
@@ -566,7 +566,7 @@ app.frame('/owned-tokens', async (c) => {
           justifyContent: 'center',
           width: '230px',
           height: '100px',
-          //add shadow for flexBoxes here 
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         }}>
           <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
           <div style={{ color: '#000000' }}>{value}</div>
@@ -576,7 +576,7 @@ app.frame('/owned-tokens', async (c) => {
 
     return c.res({
       image: (
-        <div style={{  // change image URL here
+        <div style={{
           display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center',
@@ -601,7 +601,7 @@ app.frame('/owned-tokens', async (c) => {
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: '20px',
-            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)', // Purple shadow for profile picture
+            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
             {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
               <img 
@@ -620,7 +620,7 @@ app.frame('/owned-tokens', async (c) => {
             color: '#000000', 
             marginBottom: '20px', 
             textAlign: 'center',
-            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)' // Purple text shadow for profile name
+            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
             {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
           </h1>
@@ -632,7 +632,7 @@ app.frame('/owned-tokens', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
-            <TextBox label="Buy Volume" value={`${formatNumber(token.buyVolume)} tokens`} />
+            <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
             <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
         </div>
