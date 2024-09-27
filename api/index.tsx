@@ -502,7 +502,7 @@ app.frame('/yourfantoken', async (c) => {
     shareUrl.searchParams.append('holders', holders);
     shareUrl.searchParams.append('profileImage', profileInfo?.farcasterSocial?.profileImage || '');
     
-    // use the shareUrl directly without wrapping it in a Warpcast compose URL
+    // Use the shareUrl directly without wrapping it in a Warpcast compose URL
     const farcasterShareURL = shareUrl.toString();
 
     return c.res({
