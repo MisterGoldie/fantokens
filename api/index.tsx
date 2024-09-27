@@ -480,14 +480,14 @@ app.frame('/yourfantoken', async (c) => {
           boxSizing: 'border-box',
         }}>
           <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             width: '180px',
             height: '180px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#FFA500',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
@@ -594,9 +594,11 @@ app.frame('/share-fantoken', async (c) => {
           <h1 style={{ fontSize: '48px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
             {username}'s Fan Token Stats
           </h1>
-          <div style={{ fontSize: '36px', marginBottom: '10px' }}>Current Price: {currentPrice} MOXIE</div>
-          <div style={{ fontSize: '36px', marginBottom: '10px' }}>Powerboost: {powerboost}</div>
-          <div style={{ fontSize: '36px', marginBottom: '10px' }}>Holders: {holders}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ fontSize: '36px', marginBottom: '10px' }}>Current Price: {currentPrice} MOXIE</div>
+            <div style={{ fontSize: '36px', marginBottom: '10px' }}>Powerboost: {powerboost}</div>
+            <div style={{ fontSize: '36px', marginBottom: '10px' }}>Holders: {holders}</div>
+          </div>
           <div style={{ fontSize: '24px', marginTop: '20px', textAlign: 'center' }}>
             {shareText}
           </div>
