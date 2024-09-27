@@ -594,7 +594,7 @@ app.frame('/owned-tokens', async (c) => {
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          backgroundColor: 'rgba(128, 0, 128, 0.5)',
           padding: '10px',
           margin: '5px',
           borderRadius: '10px',
