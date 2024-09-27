@@ -320,41 +320,44 @@ app.frame('/', (c) => {
         style={{
           width: '1200px',
           height: '628px',
-          backgroundColor: '#1A1A1A',
+          background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          fontFamily: '"Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande", "Lucida Sans", Arial, sans-serif',
+          fontFamily: 'Arial, sans-serif',
+          color: '#FFD700',
+          padding: '20px',
         }}
       >
-        <h1
+        <div
           style={{
-            color: '#FFD700',
-            fontSize: '64px',
-            textAlign: 'center',
-            margin: '0',
-            textTransform: 'uppercase',
-            letterSpacing: '2px',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-          }}
-        >
-          You & your
-        </h1>
-        <h1
-          style={{
-            color: '#FFD700',
             fontSize: '72px',
-            textAlign: 'center',
-            margin: '10px 0',
             fontWeight: 'bold',
+            textAlign: 'center',
             textTransform: 'uppercase',
             letterSpacing: '4px',
+            textShadow: '0 0 10px rgba(255,215,0,0.7), 0 0 20px rgba(255,215,0,0.5), 0 0 30px rgba(255,215,0,0.3)',
+            marginBottom: '20px',
+          }}
+        >
+          You & Your
+        </div>
+        <div
+          style={{
+            fontSize: '96px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            textTransform: 'uppercase',
+            letterSpacing: '6px',
+            background: 'linear-gradient(45deg, #FFD700, #FFA500)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
             textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
           }}
         >
           Fan Tokens
-        </h1>
+        </div>
       </div>
     ),
     intents: [
