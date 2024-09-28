@@ -513,7 +513,7 @@ app.frame('/yourfantoken', async (c) => {
     
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    // Updated: Construct the share URL for the new /share endpoint
+    // Updated: construct the share URL for the new /share endpoint
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
