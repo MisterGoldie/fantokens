@@ -6,6 +6,7 @@ import { gql, GraphQLClient } from "graphql-request";
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
 const MOXIE_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_protocol_stats_mainnet/version/latest";
+const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
 
 if (!AIRSTACK_API_KEY) {
   console.warn('AIRSTACK_API_KEY is not set in the environment variables');
@@ -60,6 +61,12 @@ interface ProfileInfo {
   };
 }
 
+interface VestingContractResponse {
+  tokenLockWallets: Array<{
+    address: string;
+  }>;
+}
+
 export const app = new Frog({
   basePath: '/api',
   imageOptions: { width: 1200, height: 628 },
@@ -81,6 +88,16 @@ app.use(
     features: ['interactor', 'cast'],
   })
 );
+
+const vestingGraphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
+
+const vestingQuery = gql`
+  query MyQuery($beneficiary: Bytes) {
+    tokenLockWallets(where: {beneficiary: $beneficiary}) {
+      address: id
+    }
+  }
+`;
 
 async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
@@ -360,6 +377,21 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
     return null;
   }
 }
+
+async function getVestingContractAddresses(userAddress: string): Promise<string[]> {
+  try {
+    const variables = {
+      beneficiary: userAddress.toLowerCase()
+    };
+    const data = await vestingGraphQLClient.request<VestingContractResponse>(vestingQuery, variables);
+    return data.tokenLockWallets.map(wallet => wallet.address);
+  } catch (error) {
+    console.error('Error fetching vesting contract addresses:', error);
+    return [];
+  }
+}
+
+// The code stops here, right before the (/) page starts
 
 app.frame('/', (c) => {
   return c.res({
@@ -714,12 +746,15 @@ app.frame('/owned-tokens', async (c) => {
   try {
     const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
     let allOwnedTokens: TokenHolding[] = [];
+    let allVestingAddresses: string[] = [];
 
     for (const address of userAddresses) {
       const tokens = await getOwnedFanTokens(address);
       if (tokens) {
         allOwnedTokens = allOwnedTokens.concat(tokens);
       }
+      const vestingAddresses = await getVestingContractAddresses(address);
+      allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
     }
 
     if (allOwnedTokens.length === 0) {
@@ -786,7 +821,6 @@ app.frame('/owned-tokens', async (c) => {
     const tokenBalance = formatBalance(token.balance);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
 
-    // Updated shareText
     const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
