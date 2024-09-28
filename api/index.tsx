@@ -89,15 +89,7 @@ app.use(
   })
 );
 
-const vestingGraphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
 
-const vestingQuery = gql`
-  query MyQuery($beneficiary: Bytes) {
-    tokenLockWallets(where: {beneficiary: $beneficiary}) {
-      address: id
-    }
-  }
-`;
 
 async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
@@ -379,25 +371,23 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
 }
 
 async function getVestingContractAddresses(userAddress: string): Promise<string[]> {
-  try {
-    // Check if the address is already a valid hexadecimal string
-    const isHex = /^0x[0-9A-Fa-f]+$/.test(userAddress);
-    
-    let formattedAddress: string;
-    if (isHex) {
-      formattedAddress = userAddress.toLowerCase();
-    } else {
-      // If it's not a hex string, we'll need to convert it
-      // This is a placeholder - you'll need to implement the actual conversion logic
-      console.warn(`Non-hexadecimal address received: ${userAddress}. Skipping vesting contract fetch.`);
-      return [];
-    }
+  const graphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
 
-    const variables = {
-      beneficiary: formattedAddress
-    };
-    
-    const data = await vestingGraphQLClient.request<VestingContractResponse>(vestingQuery, variables);
+  const query = gql`
+    query MyQuery($beneficiary: Bytes) {
+      tokenLockWallets(where: {beneficiary: $beneficiary}) {
+        address: id
+      }
+    }
+  `;
+
+  const variables = {
+    beneficiary: userAddress.toLowerCase()
+  };
+
+  try {
+    const data = await graphQLClient.request<VestingContractResponse>(query, variables);
+    console.log('Moxie API response for vesting contracts:', JSON.stringify(data, null, 2));
     return data.tokenLockWallets.map(wallet => wallet.address);
   } catch (error) {
     console.error('Error fetching vesting contract addresses:', error);
@@ -763,12 +753,17 @@ app.frame('/owned-tokens', async (c) => {
     let allVestingAddresses: string[] = [];
 
     for (const address of userAddresses) {
-      const tokens = await getOwnedFanTokens(address);
-      if (tokens) {
-        allOwnedTokens = allOwnedTokens.concat(tokens);
+      try {
+        const tokens = await getOwnedFanTokens(address);
+        if (tokens) {
+          allOwnedTokens = allOwnedTokens.concat(tokens);
+        }
+        
+        const vestingAddresses = await getVestingContractAddresses(address);
+        allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
+      } catch (error) {
+        console.error(`Error fetching data for address ${address}:`, error);
       }
-      const vestingAddresses = await getVestingContractAddresses(address);
-      allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
     }
 
     if (allOwnedTokens.length === 0) {
@@ -957,7 +952,6 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
-
 
 
 app.frame('/share-owned', async (c) => {
