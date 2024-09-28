@@ -888,7 +888,7 @@ app.frame('/owned-tokens', async (c) => {
           <div style={{
             display: 'flex',
             position: 'absolute',
-            top: '20px',
+            bottom: '20px',
             right: '20px',
             fontSize: '24px',
             color: '#000000',
@@ -897,7 +897,7 @@ app.frame('/owned-tokens', async (c) => {
             borderRadius: '10px',
             fontWeight: 'bold',
           }}>
-            Fan Token {currentIndex + 1} of {allOwnedTokens.length}
+            {currentIndex + 1} of {allOwnedTokens.length}
           </div>
           <div style={{
             display: 'flex',
