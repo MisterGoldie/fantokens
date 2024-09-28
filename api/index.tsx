@@ -466,12 +466,13 @@ app.frame('/yourfantoken', async (c) => {
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
 
-    const shareText = `Check out your Fan Token stats by @goldie! Get your own stats here:`;
+    const shareText = `Check out my Fan Token stats! Get your own stats here:`;
     
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    // Construct the Farcaster share URL with frame metadata
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=https://fantokens-kappa.vercel.app/api`;
+    // Updated: Construct the share URL for the new /share endpoint
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     return c.res({
       image: (
@@ -539,6 +540,139 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/owned-tokens">Owned</Button>,
         <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ],
+    });
+  } catch (error) {
+    console.error('Error fetching fan token data:', error);
+    
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Home</Button>
+      ]
+    });
+  }
+});
+
+app.frame('/share', async (c) => {
+  console.log('Entering /share frame');
+  const fid = c.req.query('fid');
+
+  console.log(`FID: ${fid}`);
+
+  if (!fid) {
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Home</Button>
+      ]
+    });
+  }
+
+  try {
+    let tokenInfo = await getFanTokenInfo(fid.toString());
+    let profileInfo = await getProfileInfo(fid.toString());
+    let powerboostScore = await getPowerboostScore(fid.toString());
+
+    function TextBox({ label, value }: TextBoxProps) {
+      return (
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '15px',
+          margin: '10px',
+          borderRadius: '15px',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '28px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '300px',
+          height: '130px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
+          <div style={{ fontSize: '32px' }}>{value}</div>
+        </div>
+      );
+    }
+
+    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
+    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
+    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
+    
+    const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+
+    return c.res({
+      image: (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          fontFamily: 'Arial, sans-serif',
+          color: '#000000',
+          padding: '20px',
+          boxSizing: 'border-box',
+        }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '180px',
+            height: '180px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            marginBottom: '20px',
+            boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
+          }}>
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </div>
+          
+          <h1 style={{ 
+            fontSize: '48px', 
+            fontWeight: 'bold', 
+            textAlign: 'center', 
+            margin: '10px 0 20px',
+            color: '#ffffff',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            {profileInfo?.farcasterSocial?.profileDisplayName || 'Unknown'}'s Fan Token
+          </h1>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: '1000px',
+          }}>
+            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+            <TextBox label="Powerboost" value={powerboost} />
+            <TextBox label="Holders" value={holders} />
+          </div>
+        </div>
+      ),
+      intents: [
+        <Button action="/yourfantoken">Check Your Fan Token</Button>
+      ]
     });
   } catch (error) {
     console.error('Error fetching fan token data:', error);
@@ -765,6 +899,8 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
+
+
 
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
