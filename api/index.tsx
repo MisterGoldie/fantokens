@@ -380,9 +380,13 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
 
 async function getVestingContractAddresses(userAddress: string): Promise<string[]> {
   try {
+    // Ensure the address is in the correct format (0x prefixed hexadecimal)
+    const formattedAddress = userAddress.startsWith('0x') ? userAddress.toLowerCase() : `0x${userAddress.toLowerCase()}`;
+    
     const variables = {
-      beneficiary: userAddress.toLowerCase()
+      beneficiary: formattedAddress
     };
+    
     const data = await vestingGraphQLClient.request<VestingContractResponse>(vestingQuery, variables);
     return data.tokenLockWallets.map(wallet => wallet.address);
   } catch (error) {
@@ -753,8 +757,13 @@ app.frame('/owned-tokens', async (c) => {
       if (tokens) {
         allOwnedTokens = allOwnedTokens.concat(tokens);
       }
-      const vestingAddresses = await getVestingContractAddresses(address);
-      allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
+      try {
+        const vestingAddresses = await getVestingContractAddresses(address);
+        allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
+      } catch (vestingError) {
+        console.error(`Error fetching vesting addresses for ${address}:`, vestingError);
+        // Continue with the loop even if there's an error for one address
+      }
     }
 
     if (allOwnedTokens.length === 0) {
