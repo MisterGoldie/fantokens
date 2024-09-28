@@ -915,15 +915,6 @@ app.frame('/owned-tokens', async (c) => {
             {tokenOwnerName}
           </h1>
           <div style={{
-            fontSize: '24px',
-            color: '#000000',
-            marginBottom: '20px',
-            textAlign: 'center',
-            fontWeight: 'bold',
-          }}>
-            Fan Token {currentIndex + 1} of {allOwnedTokens.length}
-          </div>
-          <div style={{
             display: 'flex',
             flexWrap: 'wrap',
             justifyContent: 'center',
