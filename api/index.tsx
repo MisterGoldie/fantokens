@@ -790,7 +790,6 @@ app.frame('/owned-tokens', async (c) => {
             padding: '20px',
           }}>
             <div style={{ display: 'flex', fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
-              No fan tokens found
             </div>
           </div>
         ),
