@@ -831,7 +831,7 @@ app.frame('/owned-tokens', async (c) => {
           boxSizing: 'border-box',
           position: 'relative',
         }}>
-          {/* Page indicator */}
+          {/* Page indicator - ONLY ADDITION */}
           <div style={{
             position: 'absolute',
             top: '20px',
@@ -923,7 +923,6 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
-
 
 
 app.frame('/share-owned', async (c) => {
