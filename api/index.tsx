@@ -883,7 +883,22 @@ app.frame('/owned-tokens', async (c) => {
           fontFamily: 'Arial, sans-serif',
           padding: '40px',
           boxSizing: 'border-box',
+          position: 'relative',
         }}>
+          <div style={{
+            display: 'flex',
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            fontSize: '24px',
+            color: '#000000',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            padding: '10px',
+            borderRadius: '10px',
+            fontWeight: 'bold',
+          }}>
+            Fan Token {currentIndex + 1} of {allOwnedTokens.length}
+          </div>
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -910,30 +925,13 @@ app.frame('/owned-tokens', async (c) => {
           </div>
           <div style={{
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            fontSize: '48px', 
+            color: '#000000', 
             marginBottom: '20px',
+            textAlign: 'center',
+            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
-            <div style={{ 
-              display: 'flex',
-              fontSize: '48px', 
-              color: '#000000', 
-              marginBottom: '10px',
-              textAlign: 'center',
-              textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
-            }}>
-              {tokenOwnerName}
-            </div>
-            <div style={{
-              display: 'flex',
-              fontSize: '24px',
-              color: '#000000',
-              textAlign: 'center',
-              fontWeight: 'bold',
-            }}>
-              Fan Token {currentIndex + 1} of {allOwnedTokens.length}
-            </div>
+            {tokenOwnerName}
           </div>
           <div style={{
             display: 'flex',
