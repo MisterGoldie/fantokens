@@ -639,6 +639,14 @@ app.frame('/owned-tokens', async (c) => {
       }
     };
 
+    const tokenBalance = formatBalance(token.balance);
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
+
+    // Updated shareText
+    const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens! Get your own stats here:`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{ 
@@ -661,11 +669,6 @@ app.frame('/owned-tokens', async (c) => {
         </div>
       );
     }
-
-    // Construct the share URL and Farcaster share URL
-    const shareText = `Check out this Fan Token I own! Get your own stats here:`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     return c.res({
       image: (
@@ -715,7 +718,7 @@ app.frame('/owned-tokens', async (c) => {
             textAlign: 'center',
             textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
-            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
+            {tokenOwnerName}
           </h1>
           <div style={{
             display: 'flex',
@@ -724,7 +727,7 @@ app.frame('/owned-tokens', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
+            <TextBox label="Balance" value={`${tokenBalance} tokens`} />
             <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
             <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
