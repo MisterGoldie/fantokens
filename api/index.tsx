@@ -380,9 +380,19 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
 
 async function getVestingContractAddresses(userAddress: string): Promise<string[]> {
   try {
-    // Ensure the address is in the correct format (0x prefixed hexadecimal)
-    const formattedAddress = userAddress.startsWith('0x') ? userAddress.toLowerCase() : `0x${userAddress.toLowerCase()}`;
+    // Check if the address is already a valid hexadecimal string
+    const isHex = /^0x[0-9A-Fa-f]+$/.test(userAddress);
     
+    let formattedAddress: string;
+    if (isHex) {
+      formattedAddress = userAddress.toLowerCase();
+    } else {
+      // If it's not a hex string, we'll need to convert it
+      // This is a placeholder - you'll need to implement the actual conversion logic
+      console.warn(`Non-hexadecimal address received: ${userAddress}. Skipping vesting contract fetch.`);
+      return [];
+    }
+
     const variables = {
       beneficiary: formattedAddress
     };
@@ -757,13 +767,8 @@ app.frame('/owned-tokens', async (c) => {
       if (tokens) {
         allOwnedTokens = allOwnedTokens.concat(tokens);
       }
-      try {
-        const vestingAddresses = await getVestingContractAddresses(address);
-        allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
-      } catch (vestingError) {
-        console.error(`Error fetching vesting addresses for ${address}:`, vestingError);
-        // Continue with the loop even if there's an error for one address
-      }
+      const vestingAddresses = await getVestingContractAddresses(address);
+      allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
     }
 
     if (allOwnedTokens.length === 0) {
