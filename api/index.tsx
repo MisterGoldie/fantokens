@@ -6,7 +6,6 @@ import { gql, GraphQLClient } from "graphql-request";
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
 const MOXIE_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_protocol_stats_mainnet/version/latest";
-const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
 
 if (!AIRSTACK_API_KEY) {
   console.warn('AIRSTACK_API_KEY is not set in the environment variables');
@@ -31,6 +30,12 @@ interface TokenHolding {
     symbol: string;
     currentPriceInMoxie: string;
   };
+}
+
+interface VestingContractResponse {
+  tokenLockWallets: Array<{
+    address: string;
+  }>;
 }
 
 interface SubjectToken {
@@ -371,27 +376,29 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
 }
 
 async function getVestingContractAddresses(ethAddress: string): Promise<string[]> {
-  try {
-    const graphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
+  const graphQLClient = new GraphQLClient(
+    "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest"
+  );
 
-    const query = gql`
-      query MyQuery($beneficiary: Bytes) {
-        tokenLockWallets(where: {beneficiary: $beneficiary}) {
-          address: id
-        }
+  const query = gql`
+    query MyQuery($beneficiary: Bytes) {
+      tokenLockWallets(where: {beneficiary: $beneficiary}) {
+        address: id
       }
-    `;
+    }
+  `;
 
-    const variables = {
-      beneficiary: ethAddress.toLowerCase()
-    };
+  const variables = {
+    beneficiary: ethAddress.toLowerCase()
+  };
 
+  try {
     const data = await graphQLClient.request<VestingContractResponse>(query, variables);
     console.log('Moxie API response for vesting contracts:', JSON.stringify(data, null, 2));
-    return data.tokenLockWallets.map(wallet => wallet.address);
+    return data.tokenLockWallets.map((wallet: { address: string }) => wallet.address);
   } catch (error) {
     console.error('Error fetching vesting contract addresses:', error);
-    return [];
+    throw new Error(error as string);
   }
 }
 
