@@ -990,6 +990,7 @@ app.frame('/share-owned', async (c) => {
   console.log(`FID: ${fid}, Token Index: ${tokenIndex}`);
 
   if (!fid) {
+    console.error('No FID provided');
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
@@ -1004,6 +1005,8 @@ app.frame('/share-owned', async (c) => {
 
   try {
     const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
+    console.log('User addresses:', userAddresses);
+
     let allOwnedTokens: TokenHolding[] = [];
 
     for (const address of userAddresses) {
@@ -1013,7 +1016,11 @@ app.frame('/share-owned', async (c) => {
       }
     }
 
-    if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
+    console.log(`Total owned tokens: ${allOwnedTokens.length}`);
+    console.log(`Attempting to access token at index: ${tokenIndex}`);
+
+    if (allOwnedTokens.length === 0 || tokenIndex < 0 || tokenIndex >= allOwnedTokens.length) {
+      console.error(`Invalid token index: ${tokenIndex}. Total tokens: ${allOwnedTokens.length}`);
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
@@ -1027,6 +1034,8 @@ app.frame('/share-owned', async (c) => {
     }
 
     const token = allOwnedTokens[tokenIndex];
+    console.log('Selected token:', JSON.stringify(token, null, 2));
+
     let tokenProfileInfo = null;
     let tokenFid = '';
 
@@ -1034,6 +1043,7 @@ app.frame('/share-owned', async (c) => {
       tokenFid = token.subjectToken.symbol.split(':')[1];
       try {
         tokenProfileInfo = await getProfileInfo(tokenFid);
+        console.log('Token profile info:', JSON.stringify(tokenProfileInfo, null, 2));
       } catch (error) {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
@@ -1062,6 +1072,14 @@ app.frame('/share-owned', async (c) => {
         return num.toFixed(2);
       }
     };
+
+    const tokenBalance = formatBalance(token.balance);
+    const buyVolume = formatBalance(token.buyVolume);
+    const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
+
+    console.log(`Rendering share frame for token: ${tokenOwnerName}`);
+    console.log(`Balance: ${tokenBalance}, Buy Volume: ${buyVolume}, Current Price: ${currentPrice}`);
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -1134,7 +1152,7 @@ app.frame('/share-owned', async (c) => {
             textAlign: 'center',
             textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
-            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
+            {tokenOwnerName}
           </h1>
           <div style={{
             display: 'flex',
@@ -1143,9 +1161,9 @@ app.frame('/share-owned', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
-            <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
-            <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
+            <TextBox label="Balance" value={`${tokenBalance} tokens`} />
+            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
+            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
         </div>
       ),
@@ -1154,7 +1172,7 @@ app.frame('/share-owned', async (c) => {
       ]
     });
   } catch (error) {
-    console.error('Error fetching fan token data:', error);
+    console.error('Error in /share-owned frame:', error);
     
     return c.res({
       image: (
