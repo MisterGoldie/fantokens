@@ -842,8 +842,10 @@ app.frame('/owned-tokens', async (c) => {
 
     // Updated share URL to include the specific token data
     const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenData=${encodeURIComponent(JSON.stringify(token))}`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenFid=${tokenFid}&userBalance=${token.balance}`;
+
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -986,12 +988,13 @@ app.frame('/owned-tokens', async (c) => {
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
-  const tokenData = c.req.query('tokenData');
+  const tokenFid = c.req.query('tokenFid');
+  const userBalance = c.req.query('userBalance');
 
-  console.log(`FID: ${fid}, Token Data: ${tokenData}`);
+  console.log(`FID: ${fid}, Token FID: ${tokenFid}, User Balance: ${userBalance}`);
 
-  if (!fid || !tokenData) {
-    console.error('Missing FID or token data');
+  if (!fid || !tokenFid || !userBalance) {
+    console.error('Missing required data');
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
@@ -1005,21 +1008,15 @@ app.frame('/share-owned', async (c) => {
   }
 
   try {
-    const token: TokenHolding = JSON.parse(decodeURIComponent(tokenData));
-    console.log('Parsed token data:', JSON.stringify(token, null, 2));
+    // Fetch token data using tokenFid
+    const tokenInfo = await getFanTokenInfo(tokenFid);
+    const tokenProfileInfo = await getProfileInfo(tokenFid);
 
-    let tokenProfileInfo = null;
-    let tokenFid = '';
-
-    if (token.subjectToken.symbol.startsWith('fid:')) {
-      tokenFid = token.subjectToken.symbol.split(':')[1];
-      try {
-        tokenProfileInfo = await getProfileInfo(tokenFid);
-        console.log('Token profile info:', JSON.stringify(tokenProfileInfo, null, 2));
-      } catch (error) {
-        console.error(`Error fetching profile for FID ${tokenFid}:`, error);
-      }
+    if (!tokenInfo || !tokenInfo.subjectTokens || tokenInfo.subjectTokens.length === 0) {
+      throw new Error('Failed to fetch token data');
     }
+
+    const tokenData = tokenInfo.subjectTokens[0];
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
@@ -1045,10 +1042,13 @@ app.frame('/share-owned', async (c) => {
       }
     };
 
-    const tokenBalance = formatBalance(token.balance);
-    const buyVolume = formatBalance(token.buyVolume);
-    const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
-    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
+    const tokenBalance = formatBalance(userBalance);
+    // Assuming the portfolio contains the buy volume, we'll take the first item's buy volume
+    const buyVolume = tokenData.portfolio && tokenData.portfolio.length > 0 
+      ? formatBalance(tokenData.portfolio[0].buyVolume)
+      : 'N/A';
+    const currentPrice = formatNumber(tokenData.currentPriceInMoxie);
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || tokenData.name;
 
     console.log(`Rendering share frame for token: ${tokenOwnerName}`);
     console.log(`Balance: ${tokenBalance}, Buy Volume: ${buyVolume}, Current Price: ${currentPrice}`);
