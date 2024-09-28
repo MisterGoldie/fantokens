@@ -375,21 +375,21 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
   }
 }
 
-async function getVestingContractAddresses(ethAddress: string): Promise<string[]> {
+async function getVestingContractAddresses(fid: string): Promise<string[]> {
   const graphQLClient = new GraphQLClient(
     "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest"
   );
 
   const query = gql`
-    query MyQuery($beneficiary: Bytes) {
-      tokenLockWallets(where: {beneficiary: $beneficiary}) {
+    query MyQuery($beneficiary: String!) {
+      tokenLockWallets(where: {beneficiaryFid: $beneficiary}) {
         address: id
       }
     }
   `;
 
   const variables = {
-    beneficiary: ethAddress.toLowerCase()
+    beneficiary: fid
   };
 
   try {
@@ -398,7 +398,7 @@ async function getVestingContractAddresses(ethAddress: string): Promise<string[]
     return data.tokenLockWallets.map((wallet: { address: string }) => wallet.address);
   } catch (error) {
     console.error('Error fetching vesting contract addresses:', error);
-    throw new Error(error as string);
+    return [];
   }
 }
 
@@ -755,21 +755,17 @@ app.frame('/owned-tokens', async (c) => {
   }
 
   try {
-    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
     let allOwnedTokens: TokenHolding[] = [];
-    let allVestingAddresses: string[] = [];
+    const vestingContractAddresses = await getVestingContractAddresses(fid.toString());
 
-    for (const address of userAddresses) {
+    for (const contractAddress of vestingContractAddresses) {
       try {
-        const tokens = await getOwnedFanTokens(address);
+        const tokens = await getOwnedFanTokens(contractAddress);
         if (tokens) {
           allOwnedTokens = allOwnedTokens.concat(tokens);
         }
-        
-        const vestingAddresses = await getVestingContractAddresses(address);
-        allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
       } catch (error) {
-        console.error(`Error fetching data for address ${address}:`, error);
+        console.error(`Error fetching fan tokens for contract address ${contractAddress}:`, error);
       }
     }
 
@@ -959,7 +955,6 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
-
 
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
