@@ -948,8 +948,8 @@ app.frame('/owned-tokens', async (c) => {
       ),
       intents: [
         <Button action="/">Home</Button>,
-        ...(currentIndex > 0 ? [<Button action="/owned-tokens" value={(currentIndex - 1).toString()}>Previous</Button>] : []),
-        ...(currentIndex < allOwnedTokens.length - 1 ? [<Button action="/owned-tokens" value={(currentIndex + 1).toString()}>Next</Button>] : []),
+        ...(currentIndex > 0 ? [<Button action="/owned-tokens" value={(currentIndex + 1).toString()}>Next</Button>] : []),
+        ...(currentIndex < allOwnedTokens.length - 1 ? [<Button action="/owned-tokens" value={(currentIndex - 1).toString()}>Back</Button>] : []),
         <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ]
     });
