@@ -790,6 +790,7 @@ app.frame('/owned-tokens', async (c) => {
             padding: '20px',
           }}>
             <div style={{ display: 'flex', fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
+              No fan tokens found
             </div>
           </div>
         ),
@@ -839,8 +840,9 @@ app.frame('/owned-tokens', async (c) => {
     const tokenBalance = formatBalance(token.balance);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
 
+    // Updated share URL to include the specific token data
     const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenData=${encodeURIComponent(JSON.stringify(token))}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     function TextBox({ label, value }: TextBoxProps) {
@@ -984,16 +986,16 @@ app.frame('/owned-tokens', async (c) => {
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
-  const tokenIndex = parseInt(c.req.query('tokenIndex') || '0');
+  const tokenData = c.req.query('tokenData');
 
-  console.log(`FID: ${fid}, Token Index: ${tokenIndex}`);
+  console.log(`FID: ${fid}, Token Data: ${tokenData}`);
 
-  if (!fid) {
-    console.error('No FID provided');
+  if (!fid || !tokenData) {
+    console.error('Missing FID or token data');
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Missing data</h1>
         </div>
       ),
       intents: [
@@ -1003,37 +1005,8 @@ app.frame('/share-owned', async (c) => {
   }
 
   try {
-    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
-    console.log('User addresses:', userAddresses);
-
-    let allOwnedTokens: TokenHolding[] = [];
-
-    for (const address of userAddresses) {
-      const tokens = await getOwnedFanTokens(address);
-      if (tokens) {
-        allOwnedTokens = allOwnedTokens.concat(tokens);
-      }
-    }
-
-    console.log(`Total owned tokens: ${allOwnedTokens.length}`);
-    console.log(`Attempting to access token at index: ${tokenIndex}`);
-
-    if (allOwnedTokens.length === 0 || tokenIndex < 0 || tokenIndex >= allOwnedTokens.length) {
-      console.error(`Invalid token index: ${tokenIndex}. Total tokens: ${allOwnedTokens.length}`);
-      return c.res({
-        image: (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan token found for this index</h1>
-          </div>
-        ),
-        intents: [
-          <Button action="/">Home</Button>
-        ]
-      });
-    }
-
-    const token = allOwnedTokens[tokenIndex];
-    console.log('Selected token:', JSON.stringify(token, null, 2));
+    const token: TokenHolding = JSON.parse(decodeURIComponent(tokenData));
+    console.log('Parsed token data:', JSON.stringify(token, null, 2));
 
     let tokenProfileInfo = null;
     let tokenFid = '';
@@ -1176,7 +1149,7 @@ app.frame('/share-owned', async (c) => {
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error processing fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
