@@ -840,12 +840,10 @@ app.frame('/owned-tokens', async (c) => {
     const tokenBalance = formatBalance(token.balance);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
 
-    // Updated share URL to include the specific token data
+    // Updated share URL construction
     const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenFid=${tokenFid}&userBalance=${token.balance}`;
-
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenFid=${tokenFid}&userBalance=${encodeURIComponent(token.balance)}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
-
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -984,9 +982,10 @@ app.frame('/owned-tokens', async (c) => {
   }
 });
 
-
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
+  console.log('Query parameters:', c.req.query());
+  
   const fid = c.req.query('fid');
   const tokenFid = c.req.query('tokenFid');
   const userBalance = c.req.query('userBalance');
@@ -995,6 +994,9 @@ app.frame('/share-owned', async (c) => {
 
   if (!fid || !tokenFid || !userBalance) {
     console.error('Missing required data');
+    console.error(`FID: ${fid}`);
+    console.error(`Token FID: ${tokenFid}`);
+    console.error(`User Balance: ${userBalance}`);
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
@@ -1011,6 +1013,9 @@ app.frame('/share-owned', async (c) => {
     // Fetch token data using tokenFid
     const tokenInfo = await getFanTokenInfo(tokenFid);
     const tokenProfileInfo = await getProfileInfo(tokenFid);
+
+    console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
+    console.log('Token Profile Info:', JSON.stringify(tokenProfileInfo, null, 2));
 
     if (!tokenInfo || !tokenInfo.subjectTokens || tokenInfo.subjectTokens.length === 0) {
       throw new Error('Failed to fetch token data');
