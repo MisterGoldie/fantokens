@@ -380,9 +380,21 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
 
 async function getVestingContractAddresses(userAddress: string): Promise<string[]> {
   try {
-    // The address is already in the format expected by Farcaster
+    // Check if the address is already a valid hexadecimal string
+    const isHex = /^0x[0-9A-Fa-f]+$/.test(userAddress);
+    
+    let formattedAddress: string;
+    if (isHex) {
+      formattedAddress = userAddress.toLowerCase();
+    } else {
+      // If it's not a hex string, we'll need to convert it
+      // This is a placeholder - you'll need to implement the actual conversion logic
+      console.warn(`Non-hexadecimal address received: ${userAddress}. Skipping vesting contract fetch.`);
+      return [];
+    }
+
     const variables = {
-      beneficiary: userAddress
+      beneficiary: formattedAddress
     };
     
     const data = await vestingGraphQLClient.request<VestingContractResponse>(vestingQuery, variables);
@@ -751,21 +763,12 @@ app.frame('/owned-tokens', async (c) => {
     let allVestingAddresses: string[] = [];
 
     for (const address of userAddresses) {
-      try {
-        const tokens = await getOwnedFanTokens(address);
-        if (tokens) {
-          allOwnedTokens = allOwnedTokens.concat(tokens);
-        }
-      } catch (error) {
-        console.error(`Error fetching owned fan tokens for address ${address}:`, error);
+      const tokens = await getOwnedFanTokens(address);
+      if (tokens) {
+        allOwnedTokens = allOwnedTokens.concat(tokens);
       }
-
-      try {
-        const vestingAddresses = await getVestingContractAddresses(address);
-        allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
-      } catch (error) {
-        console.error(`Error fetching vesting addresses for address ${address}:`, error);
-      }
+      const vestingAddresses = await getVestingContractAddresses(address);
+      allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
     }
 
     if (allOwnedTokens.length === 0) {
