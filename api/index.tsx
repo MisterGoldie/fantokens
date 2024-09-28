@@ -370,16 +370,8 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
   }
 }
 
-async function getVestingContractAddresses(farcasterIdentifier: string): Promise<string[]> {
+async function getVestingContractAddresses(ethAddress: string): Promise<string[]> {
   try {
-    // First, we need to convert the Farcaster identifier to an Ethereum address
-    const ethAddress = await convertFarcasterToEthAddress(farcasterIdentifier);
-    
-    if (!ethAddress) {
-      console.warn(`Could not convert Farcaster identifier to Ethereum address: ${farcasterIdentifier}`);
-      return [];
-    }
-
     const graphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
 
     const query = gql`
@@ -401,14 +393,6 @@ async function getVestingContractAddresses(farcasterIdentifier: string): Promise
     console.error('Error fetching vesting contract addresses:', error);
     return [];
   }
-}
-
-async function convertFarcasterToEthAddress(farcasterIdentifier: string): Promise<string | null> {
-  // This function needs to be implemented to convert a Farcaster identifier to an Ethereum address
-  // You might need to use the Farcaster API or another service to perform this conversion
-  // For now, we'll just log a warning and return null
-  console.warn(`Conversion from Farcaster identifier to Ethereum address not implemented: ${farcasterIdentifier}`);
-  return null;
 }
 
 // The code stops here, right before the (/) page starts
