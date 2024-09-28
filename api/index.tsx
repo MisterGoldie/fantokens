@@ -662,6 +662,11 @@ app.frame('/owned-tokens', async (c) => {
       );
     }
 
+    // Construct the share URL and Farcaster share URL
+    const shareText = `Check out this Fan Token I own! Get your own stats here:`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
     return c.res({
       image: (
         <div style={{
@@ -729,6 +734,7 @@ app.frame('/owned-tokens', async (c) => {
         <Button action="/">Home</Button>,
         ...(currentIndex > 0 ? [<Button action="/owned-tokens" value={(currentIndex - 1).toString()}>Previous</Button>] : []),
         ...(currentIndex < allOwnedTokens.length - 1 ? [<Button action="/owned-tokens" value={(currentIndex + 1).toString()}>Next</Button>] : []),
+        <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ]
     });
   } catch (error) {
@@ -748,6 +754,193 @@ app.frame('/owned-tokens', async (c) => {
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
           <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan tokens: {errorMessage}</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Home</Button>
+      ]
+    });
+  }
+});
+
+app.frame('/share-owned', async (c) => {
+  console.log('Entering /share-owned frame');
+  const fid = c.req.query('fid');
+  const tokenIndex = parseInt(c.req.query('tokenIndex') || '0');
+
+  console.log(`FID: ${fid}, Token Index: ${tokenIndex}`);
+
+  if (!fid) {
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Home</Button>
+      ]
+    });
+  }
+
+  try {
+    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
+    let allOwnedTokens: TokenHolding[] = [];
+
+    for (const address of userAddresses) {
+      const tokens = await getOwnedFanTokens(address);
+      if (tokens) {
+        allOwnedTokens = allOwnedTokens.concat(tokens);
+      }
+    }
+
+    if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
+      return c.res({
+        image: (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan token found for this index</h1>
+          </div>
+        ),
+        intents: [
+          <Button action="/">Home</Button>
+        ]
+      });
+    }
+
+    const token = allOwnedTokens[tokenIndex];
+    let tokenProfileInfo = null;
+    let tokenFid = '';
+
+    if (token.subjectToken.symbol.startsWith('fid:')) {
+      tokenFid = token.subjectToken.symbol.split(':')[1];
+      try {
+        tokenProfileInfo = await getProfileInfo(tokenFid);
+      } catch (error) {
+        console.error(`Error fetching profile for FID ${tokenFid}:`, error);
+      }
+    }
+
+    const formatBalance = (balance: string, decimals: number = 18): string => {
+      const balanceWei = BigInt(balance);
+      const denomination = BigInt(10 ** decimals);
+      const balanceTokens = Number(balanceWei) / Number(denomination);
+      return balanceTokens.toFixed(2);
+    };
+
+    const formatNumber = (value: number | string | null | undefined): string => {
+      if (value === null || value === undefined) return 'N/A';
+      const num = typeof value === 'string' ? parseFloat(value) : value;
+      
+      if (num >= 1e9) {
+        return (num / 1e9).toFixed(2) + 'B';
+      } else if (num >= 1e6) {
+        return (num / 1e6).toFixed(2) + 'M';
+      } else if (num >= 1e3) {
+        return (num / 1e3).toFixed(2) + 'K';
+      } else if (num > 0 && num < 0.01) {
+        return num.toExponential(2);
+      } else {
+        return num.toFixed(2);
+      }
+    };
+
+    function TextBox({ label, value }: TextBoxProps) {
+      return (
+        <div style={{ 
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '10px',
+          margin: '5px',
+          borderRadius: '10px',
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '28px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '300px',
+          height: '130px',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        }}>
+          <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
+          <div style={{ color: '#000000', fontSize: '32px' }}>{value}</div>
+        </div>
+      );
+    }
+
+    return c.res({
+      image: (
+        <div style={{
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: 'url(https://bafybeiata3diat4mmcnz54vbqfrs5hqrbankpp5ynvhbtglrxakj55hx6y.ipfs.w3s.link/Frame%2064%20(8).png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          color: 'white',
+          fontFamily: 'Arial, sans-serif',
+          padding: '40px',
+          boxSizing: 'border-box',
+        }}>
+          <div style={{
+            width: '130px',
+            height: '130px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
+          }}>
+            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
+              <img 
+                src={tokenProfileInfo.farcasterSocial.profileImage}
+                alt="Token Profile" 
+                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{ width: '150px', height: '150px', backgroundColor: '#9054FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
+              </div>
+            )}
+          </div>
+          <h1 style={{ 
+            fontSize: '48px', 
+            color: '#000000', 
+            marginBottom: '20px', 
+            textAlign: 'center',
+            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
+          }}>
+            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
+          </h1>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+          }}>
+            <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
+            <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
+            <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
+          </div>
+        </div>
+      ),
+      intents: [
+        <Button action="/owned-tokens">Check Your Owned Tokens</Button>
+      ]
+    });
+  } catch (error) {
+    console.error('Error fetching fan token data:', error);
+    
+    return c.res({
+      image: (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
