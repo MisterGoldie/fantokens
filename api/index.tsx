@@ -786,6 +786,7 @@ app.frame('/owned-tokens', async (c) => {
     const tokenBalance = formatBalance(token.balance);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
 
+    // Updated shareText
     const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
@@ -829,22 +830,7 @@ app.frame('/owned-tokens', async (c) => {
           fontFamily: 'Arial, sans-serif',
           padding: '40px',
           boxSizing: 'border-box',
-          position: 'relative',
         }}>
-          {/* Page indicator - ONLY ADDITION */}
-          <div style={{
-            position: 'absolute',
-            top: '20px',
-            right: '20px',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            padding: '5px 10px',
-            borderRadius: '10px',
-            fontSize: '18px',
-            color: 'white',
-          }}>
-            {currentIndex + 1} / {allOwnedTokens.length}
-          </div>
-          
           <div style={{
             width: '130px',
             height: '130px',
@@ -923,6 +909,7 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
+
 
 
 app.frame('/share-owned', async (c) => {
@@ -1114,3 +1101,4 @@ app.frame('/share-owned', async (c) => {
 
 export const GET = handle(app);
 export const POST = handle(app);
+
