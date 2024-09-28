@@ -778,15 +778,15 @@ app.frame('/owned-tokens', async (c) => {
       return c.res({
         image: (
           <div style={{ 
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
             width: '1200px', 
             height: '628px', 
             backgroundImage: 'url(https://bafybeihchbzogsv4setiimulvkeufmqjx6n2gxw6nxftl7hz4jjy3p46im.ipfs.w3s.link/Group%2061%20(3).png)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
             padding: '20px',
           }}>
           </div>
@@ -844,16 +844,16 @@ app.frame('/owned-tokens', async (c) => {
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           padding: '10px',
           margin: '5px',
           borderRadius: '10px',
           fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           width: '300px',
           height: '130px',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
@@ -867,7 +867,7 @@ app.frame('/owned-tokens', async (c) => {
     return c.res({
       image: (
         <div style={{
-          display: 'flex',
+          display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
@@ -882,14 +882,14 @@ app.frame('/owned-tokens', async (c) => {
           boxSizing: 'border-box',
         }}>
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             width: '130px',
             height: '130px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#FFA500',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             marginBottom: '20px',
             boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
@@ -900,36 +900,20 @@ app.frame('/owned-tokens', async (c) => {
                 style={{ width: '150px', height: '150px', objectFit: 'cover' }}
               />
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '150px', height: '150px', backgroundColor: '#9054FF' }}>
+              <div style={{ width: '150px', height: '150px', backgroundColor: '#9054FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
               </div>
             )}
           </div>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+          <h1 style={{ 
+            fontSize: '48px', 
+            color: '#000000', 
+            marginBottom: '20px', 
+            textAlign: 'center',
+            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
-            <h1 style={{ 
-              fontSize: '48px', 
-              color: '#000000', 
-              marginBottom: '20px',
-              textAlign: 'center',
-              textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
-            }}>
-              {tokenOwnerName}
-            </h1>
-            <div style={{
-              fontSize: '24px',
-              color: '#000000',
-              marginBottom: '20px',
-              textAlign: 'center',
-              fontWeight: 'bold',
-            }}>
-              Fan Token {currentIndex + 1} of {allOwnedTokens.length}
-            </div>
-          </div>
+            {tokenOwnerName}
+          </h1>
           <div style={{
             display: 'flex',
             flexWrap: 'wrap',
