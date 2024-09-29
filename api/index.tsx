@@ -280,20 +280,21 @@ async function getFanTokenInfo(fid: string): Promise<TokenInfo | null> {
   }
 }
 
-async function getVestingContractAddress(beneficiaryAddress: string): Promise<string | null> {
+async function getVestingContractAddress(beneficiaryAddresses: string[]): Promise<string | null> {
   const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
   const graphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
 
   const query = gql`
-    query MyQuery($beneficiary: Bytes) {
-      tokenLockWallets(where: {beneficiary: $beneficiary}) {
+    query MyQuery($beneficiaries: [Bytes!]) {
+      tokenLockWallets(where: {beneficiary_in: $beneficiaries}) {
         address: id
+        beneficiary
       }
     }
   `;
 
   const variables = {
-    beneficiary: beneficiaryAddress.toLowerCase()
+    beneficiaries: beneficiaryAddresses.map(address => address.toLowerCase())
   };
 
   try {
@@ -301,9 +302,10 @@ async function getVestingContractAddress(beneficiaryAddress: string): Promise<st
     console.log('Vesting contract data:', JSON.stringify(data, null, 2));
 
     if (data.tokenLockWallets && data.tokenLockWallets.length > 0) {
+      // Return the first vesting contract found
       return data.tokenLockWallets[0].address;
     } else {
-      console.log(`No vesting contract found for address: ${beneficiaryAddress}`);
+      console.log(`No vesting contract found for addresses: ${beneficiaryAddresses.join(', ')}`);
       return null;
     }
   } catch (error) {
@@ -825,8 +827,8 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
-    // Fetch vesting contract address
-    const vestingContractAddress = await getVestingContractAddress(userAddresses[0]);
+    // Fetch vesting contract address using all user addresses
+    const vestingContractAddress = await getVestingContractAddress(userAddresses);
     console.log('Vesting contract address:', vestingContractAddress);
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
@@ -1090,8 +1092,8 @@ app.frame('/share-owned', async (c) => {
       }
     }
 
-    // Fetch vesting contract address
-    const vestingContractAddress = await getVestingContractAddress(userAddresses[0]);
+    // Fetch vesting contract address using all user addresses
+    const vestingContractAddress = await getVestingContractAddress(userAddresses);
     console.log('Vesting contract address:', vestingContractAddress);
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
