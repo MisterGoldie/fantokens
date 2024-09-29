@@ -1207,7 +1207,7 @@ app.frame('/share-owned', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/">Home</Button>
+        <Button action="/">Your Fan Token</Button>
       ]
     });
   }
