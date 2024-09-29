@@ -94,7 +94,24 @@ app.use(
   })
 );
 
-
+function sortTokens(tokens: TokenHolding[]): TokenHolding[] {
+  return tokens.sort((a, b) => {
+    const aType = a.subjectToken.symbol.split(':')[0];
+    const bType = b.subjectToken.symbol.split(':')[0];
+    if (aType !== bType) {
+      return aType.localeCompare(bType);
+    }
+    
+    const aValue = a.subjectToken.symbol.split(':')[1];
+    const bValue = b.subjectToken.symbol.split(':')[1];
+    
+    if (!isNaN(Number(aValue)) && !isNaN(Number(bValue))) {
+      return Number(aValue) - Number(bValue);
+    }
+    
+    return aValue.localeCompare(bValue);
+  });
+}
 
 async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
@@ -374,7 +391,7 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
     return null;
   }
 }
-
+// @ts-ignore
 async function getVestingContractAddresses(ethAddress: string): Promise<string[]> {
   const graphQLClient = new GraphQLClient(
     "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest"
@@ -757,7 +774,6 @@ app.frame('/owned-tokens', async (c) => {
   try {
     const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
     let allOwnedTokens: TokenHolding[] = [];
-    let allVestingAddresses: string[] = [];
 
     for (const address of userAddresses) {
       try {
@@ -765,16 +781,15 @@ app.frame('/owned-tokens', async (c) => {
         if (tokens) {
           allOwnedTokens = allOwnedTokens.concat(tokens);
         }
-        
-        const vestingAddresses = await getVestingContractAddresses(address);
-        allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
       } catch (error) {
         console.error(`Error fetching data for address ${address}:`, error);
       }
     }
 
-    console.log('All owned tokens:', allOwnedTokens);
-    console.log('All vesting addresses:', allVestingAddresses);
+    // Sort the tokens
+    allOwnedTokens = sortTokens(allOwnedTokens);
+
+    console.log('All owned tokens (sorted):', allOwnedTokens);
 
     if (allOwnedTokens.length === 0) {
       console.warn(`No fan tokens found for FID ${fid}`);
@@ -1019,7 +1034,10 @@ app.frame('/share-owned', async (c) => {
       }
     }
 
-    console.log(`Total owned tokens: ${allOwnedTokens.length}, Requested index: ${tokenIndex}`);
+    // Sort the tokens
+    allOwnedTokens = sortTokens(allOwnedTokens);
+
+    console.log(`Total owned tokens (sorted): ${allOwnedTokens.length}, Requested index: ${tokenIndex}`);
 
     if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
       return c.res({
@@ -1097,6 +1115,7 @@ app.frame('/share-owned', async (c) => {
     }
 
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
+    const tokenBalance = formatBalance(token.balance);
 
     return c.res({
       image: (
@@ -1155,7 +1174,7 @@ app.frame('/share-owned', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
+            <TextBox label="Balance" value={`${tokenBalance} tokens`} />
             <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
             <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
