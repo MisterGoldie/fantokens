@@ -32,6 +32,11 @@ interface TokenHolding {
   };
 }
 
+interface VestingContractResponse {
+  tokenLockWallets: Array<{
+    address: string;
+  }>;
+}
 
 interface SubjectToken {
   currentPriceInMoxie: string;
@@ -61,6 +66,11 @@ interface ProfileInfo {
   };
 }
 
+interface VestingContractResponse {
+  tokenLockWallets: Array<{
+    address: string;
+  }>;
+}
 
 export const app = new Frog({
   basePath: '/api',
