@@ -280,6 +280,39 @@ async function getFanTokenInfo(fid: string): Promise<TokenInfo | null> {
   }
 }
 
+async function getVestingContractAddress(beneficiaryAddress: string): Promise<string | null> {
+  const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
+  const graphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
+
+  const query = gql`
+    query MyQuery($beneficiary: Bytes) {
+      tokenLockWallets(where: {beneficiary: $beneficiary}) {
+        address: id
+      }
+    }
+  `;
+
+  const variables = {
+    beneficiary: beneficiaryAddress.toLowerCase()
+  };
+
+  try {
+    const data = await graphQLClient.request<any>(query, variables);
+    console.log('Vesting contract data:', JSON.stringify(data, null, 2));
+
+    if (data.tokenLockWallets && data.tokenLockWallets.length > 0) {
+      return data.tokenLockWallets[0].address;
+    } else {
+      console.log(`No vesting contract found for address: ${beneficiaryAddress}`);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching vesting contract address:', error);
+    return null;
+  }
+}
+
+
 async function getFarcasterAddressesFromFID(fid: string): Promise<string[]> {
   const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
   const graphQLClient = new GraphQLClient(AIRSTACK_API_URL, {
@@ -792,6 +825,10 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
+    // Fetch vesting contract address
+    const vestingContractAddress = await getVestingContractAddress(userAddresses[0]);
+    console.log('Vesting contract address:', vestingContractAddress);
+
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
       const denomination = BigInt(10 ** decimals);
@@ -931,6 +968,18 @@ app.frame('/owned-tokens', async (c) => {
             <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
+          {vestingContractAddress && (
+            <div style={{
+              marginTop: '20px',
+              fontSize: '18px',
+              color: '#000000',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              padding: '10px',
+              borderRadius: '10px',
+            }}>
+              Vesting Contract: {`${vestingContractAddress.slice(0, 6)}...${vestingContractAddress.slice(-4)}`}
+            </div>
+          )}
         </div>
       ),
       intents: [
@@ -1040,6 +1089,10 @@ app.frame('/share-owned', async (c) => {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
     }
+
+    // Fetch vesting contract address
+    const vestingContractAddress = await getVestingContractAddress(userAddresses[0]);
+    console.log('Vesting contract address:', vestingContractAddress);
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
@@ -1156,6 +1209,18 @@ app.frame('/share-owned', async (c) => {
             <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
+          {vestingContractAddress && (
+            <div style={{
+              marginTop: '20px',
+              fontSize: '18px',
+              color: '#000000',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              padding: '10px',
+              borderRadius: '10px',
+            }}>
+              Vesting Contract: {`${vestingContractAddress.slice(0, 6)}...${vestingContractAddress.slice(-4)}`}
+            </div>
+          )}
         </div>
       ),
       intents: [
