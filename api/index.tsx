@@ -1031,14 +1031,18 @@ app.frame('/share-owned', async (c) => {
     const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
     console.log('User addresses:', userAddresses);
 
-    let allOwnedTokens: TokenHolding[] = [];
+    // Fetch vesting contract address
+    const vestingContractAddress = await getVestingContractAddress(userAddresses);
+    console.log('Vesting contract address:', vestingContractAddress);
 
-    for (const address of userAddresses) {
-      const tokens = await getOwnedFanTokens([address]);
-      if (tokens) {
-        allOwnedTokens = allOwnedTokens.concat(tokens);
-      }
+    // Combine user addresses and vesting contract address
+    const allAddresses = [...userAddresses];
+    if (vestingContractAddress) {
+      allAddresses.push(vestingContractAddress);
     }
+
+    // Fetch tokens for all addresses
+    const allOwnedTokens = await getOwnedFanTokens(allAddresses) || [];
 
     console.log(`Total owned tokens: ${allOwnedTokens.length}`);
     console.log('First few tokens:', JSON.stringify(allOwnedTokens.slice(0, 3), null, 2));
@@ -1073,10 +1077,6 @@ app.frame('/share-owned', async (c) => {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
     }
-
-    // Fetch vesting contract address using all user addresses
-    const vestingContractAddress = await getVestingContractAddress(userAddresses);
-    console.log('Vesting contract address:', vestingContractAddress);
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
@@ -1193,6 +1193,18 @@ app.frame('/share-owned', async (c) => {
             <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
+          {vestingContractAddress && (
+            <div style={{
+              marginTop: '20px',
+              fontSize: '18px',
+              color: '#000000',
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              padding: '10px',
+              borderRadius: '10px',
+            }}>
+              Vesting Contract: {`${vestingContractAddress.slice(0, 6)}...${vestingContractAddress.slice(-4)}`}
+            </div>
+          )}
         </div>
       ),
       intents: [
