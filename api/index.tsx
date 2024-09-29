@@ -26,6 +26,7 @@ interface TokenHolding {
   buyVolume: string;
   sellVolume: string;
   subjectToken: {
+    id: any;
     name: string;
     symbol: string;
     currentPriceInMoxie: string;
@@ -402,6 +403,32 @@ async function getVestingContractAddresses(ethAddress: string): Promise<string[]
   }
 }
 
+async function getTokenInfo(tokenAddress: string) {
+  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
+
+  const query = gql`
+    query GetTokenInfo($id: ID!) {
+      subjectTokens(where: { id: $id }) {
+        id
+        name
+        symbol
+        currentPriceInMoxie
+      }
+    }
+  `;
+
+  const variables = {
+    id: tokenAddress.toLowerCase()
+  };
+
+  try {
+    const data = await graphQLClient.request<any>(query, variables);
+    return data.subjectTokens[0];
+  } catch (error) {
+    console.error('Error fetching token info:', error);
+    return null;
+  }
+}
 // The code stops here, right before the (/) page starts
 
 app.frame('/', (c) => {
@@ -842,9 +869,10 @@ app.frame('/owned-tokens', async (c) => {
 
     
     // In the /owned-tokens route, update the shareUrl construction:
-    const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+    const tokenToShare = allOwnedTokens[currentIndex];
+const shareText = `I am the proud owner of ${formatBalance(tokenToShare.balance)} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
+const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenAddress=${tokenToShare.subjectToken.id}&balance=${tokenToShare.balance}&buyVolume=${tokenToShare.buyVolume}&currentPrice=${tokenToShare.subjectToken.currentPriceInMoxie}`;
+const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -987,15 +1015,18 @@ app.frame('/owned-tokens', async (c) => {
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
-  const tokenIndex = parseInt(c.req.query('tokenIndex') || '0');
+  const tokenAddress = c.req.query('tokenAddress');
+  const balance = c.req.query('balance');
+  const buyVolume = c.req.query('buyVolume');
+  const currentPrice = c.req.query('currentPrice');
 
-  console.log(`FID: ${fid}, Token Index: ${tokenIndex}`);
+  console.log(`FID: ${fid}, Token Address: ${tokenAddress}`);
 
-  if (!fid) {
+  if (!fid || !tokenAddress || !balance || !buyVolume || !currentPrice) {
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Missing required information</h1>
         </div>
       ),
       intents: [
@@ -1005,40 +1036,21 @@ app.frame('/share-owned', async (c) => {
   }
 
   try {
-    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
-    let allOwnedTokens: TokenHolding[] = [];
-
-    for (const address of userAddresses) {
-      const tokens = await getOwnedFanTokens(address);
-      if (tokens) {
-        allOwnedTokens = allOwnedTokens.concat(tokens);
-      }
-    }
-
-    if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
-      return c.res({
-        image: (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan token found for this index</h1>
-          </div>
-        ),
-        intents: [
-          <Button action="/">Home</Button>
-        ]
-      });
-    }
-
-    const token = allOwnedTokens[tokenIndex];
     let tokenProfileInfo = null;
-    let tokenFid = '';
+    let tokenName = 'Unknown Token';
 
-    if (token.subjectToken.symbol.startsWith('fid:')) {
-      tokenFid = token.subjectToken.symbol.split(':')[1];
+    // Fetch token info using the tokenAddress
+    const tokenInfo = await getTokenInfo(tokenAddress);
+    if (tokenInfo && tokenInfo.symbol.startsWith('fid:')) {
+      const tokenFid = tokenInfo.symbol.split(':')[1];
       try {
         tokenProfileInfo = await getProfileInfo(tokenFid);
+        tokenName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || tokenInfo.name;
       } catch (error) {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
+    } else if (tokenInfo) {
+      tokenName = tokenInfo.name;
     }
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
@@ -1048,9 +1060,9 @@ app.frame('/share-owned', async (c) => {
       return balanceTokens.toFixed(2);
     };
 
-    const formatNumber = (value: number | string | null | undefined): string => {
-      if (value === null || value === undefined) return 'N/A';
-      const num = typeof value === 'string' ? parseFloat(value) : value;
+    const formatNumber = (value: string): string => {
+      const num = parseFloat(value);
+      if (isNaN(num)) return 'N/A';
       
       if (num >= 1e9) {
         return (num / 1e9).toFixed(2) + 'B';
@@ -1136,7 +1148,7 @@ app.frame('/share-owned', async (c) => {
             textAlign: 'center',
             textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
-            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
+            {tokenName}
           </h1>
           <div style={{
             display: 'flex',
@@ -1145,9 +1157,9 @@ app.frame('/share-owned', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
-            <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
-            <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
+            <TextBox label="Balance" value={`${formatBalance(balance)} tokens`} />
+            <TextBox label="Buy Volume" value={`${formatBalance(buyVolume)} MOXIE`} />
+            <TextBox label="Current Price" value={`${formatNumber(currentPrice)} MOXIE`} />
           </div>
         </div>
       ),
@@ -1170,6 +1182,7 @@ app.frame('/share-owned', async (c) => {
     });
   }
 });
+
 
 export const GET = handle(app);
 export const POST = handle(app);
