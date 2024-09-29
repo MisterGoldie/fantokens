@@ -1102,16 +1102,16 @@ app.frame('/share-owned', async (c) => {
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           padding: '10px',
           margin: '5px',
           borderRadius: '10px',
           fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
           width: '300px',
           height: '130px',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
@@ -1147,14 +1147,15 @@ app.frame('/share-owned', async (c) => {
           boxSizing: 'border-box',
         }}>
           <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
             width: '130px',
             height: '130px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#FFA500',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             marginBottom: '20px',
             boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
@@ -1162,10 +1163,10 @@ app.frame('/share-owned', async (c) => {
               <img 
                 src={tokenProfileInfo.farcasterSocial.profileImage}
                 alt="Token Profile" 
-                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <div style={{ width: '150px', height: '150px', backgroundColor: '#9054FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#9054FF' }}>
                 <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
               </div>
             )}
@@ -1192,6 +1193,9 @@ app.frame('/share-owned', async (c) => {
           </div>
           {vestingContractAddress && (
             <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
               marginTop: '20px',
               fontSize: '18px',
               color: '#000000',
@@ -1199,7 +1203,8 @@ app.frame('/share-owned', async (c) => {
               padding: '10px',
               borderRadius: '10px',
             }}>
-              Vesting Contract: {`${vestingContractAddress.slice(0, 6)}...${vestingContractAddress.slice(-4)}`}
+              <span>Vesting Contract:</span>
+              <span>{`${vestingContractAddress.slice(0, 6)}...${vestingContractAddress.slice(-4)}`}</span>
             </div>
           )}
         </div>
