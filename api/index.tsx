@@ -736,7 +736,7 @@ app.frame('/share', async (c) => {
 app.frame('/owned-tokens', async (c) => {
   console.log('Entering /owned-tokens frame');
   const { fid } = c.frameData || {};
-  const currentIndex = parseInt(c.buttonValue || '0');
+  const currentIndex = Math.max(0, parseInt(c.buttonValue || '0'));
 
   console.log(`FID: ${fid}, Current Index: ${currentIndex}`);
 
@@ -771,7 +771,8 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
-    console.log('All owned tokens:', JSON.stringify(allOwnedTokens, null, 2));
+    console.log(`Total owned tokens: ${allOwnedTokens.length}`);
+    console.log('First few tokens:', JSON.stringify(allOwnedTokens.slice(0, 3), null, 2));
 
     if (allOwnedTokens.length === 0) {
       console.warn(`No fan tokens found for FID ${fid}`);
@@ -800,8 +801,9 @@ app.frame('/owned-tokens', async (c) => {
       });
     }
 
+    console.log(`Selecting token at index ${currentIndex} out of ${allOwnedTokens.length} tokens`);
     const token = allOwnedTokens[currentIndex];
-    console.log(`Selected token (Index ${currentIndex}):`, JSON.stringify(token, null, 2));
+    console.log('Selected token:', JSON.stringify(token, null, 2));
 
     let tokenProfileInfo = null;
     let tokenFid = '';
@@ -995,7 +997,7 @@ app.frame('/owned-tokens', async (c) => {
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
-  const tokenIndex = parseInt(c.req.query('tokenIndex') || '0');
+  const tokenIndex = Math.max(0, parseInt(c.req.query('tokenIndex') || '0'));
 
   console.log(`Received FID: ${fid}, Token Index: ${tokenIndex}`);
 
@@ -1026,7 +1028,8 @@ app.frame('/share-owned', async (c) => {
       }
     }
 
-    console.log('All owned tokens:', JSON.stringify(allOwnedTokens, null, 2));
+    console.log(`Total owned tokens: ${allOwnedTokens.length}`);
+    console.log('First few tokens:', JSON.stringify(allOwnedTokens.slice(0, 3), null, 2));
 
     if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
       console.warn(`No fan tokens found or invalid token index for FID ${fid}`);
@@ -1042,8 +1045,9 @@ app.frame('/share-owned', async (c) => {
       });
     }
 
+    console.log(`Selecting token at index ${tokenIndex} out of ${allOwnedTokens.length} tokens`);
     const token = allOwnedTokens[tokenIndex];
-    console.log(`Selected token (Index ${tokenIndex}):`, JSON.stringify(token, null, 2));
+    console.log('Selected token:', JSON.stringify(token, null, 2));
 
     let tokenProfileInfo = null;
     let tokenFid = '';
