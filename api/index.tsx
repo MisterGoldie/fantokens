@@ -32,11 +32,6 @@ interface TokenHolding {
   };
 }
 
-interface VestingContractResponse {
-  tokenLockWallets: Array<{
-    address: string;
-  }>;
-}
 
 interface SubjectToken {
   currentPriceInMoxie: string;
@@ -66,11 +61,6 @@ interface ProfileInfo {
   };
 }
 
-interface VestingContractResponse {
-  tokenLockWallets: Array<{
-    address: string;
-  }>;
-}
 
 export const app = new Frog({
   basePath: '/api',
@@ -375,32 +365,6 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
   }
 }
 
-async function getVestingContractAddresses(ethAddress: string): Promise<string[]> {
-  const graphQLClient = new GraphQLClient(
-    "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest"
-  );
-
-  const query = gql`
-    query MyQuery($beneficiary: Bytes) {
-      tokenLockWallets(where: {beneficiary: $beneficiary}) {
-        address: id
-      }
-    }
-  `;
-
-  const variables = {
-    beneficiary: ethAddress.toLowerCase()
-  };
-
-  try {
-    const data = await graphQLClient.request<VestingContractResponse>(query, variables);
-    console.log('Moxie API response for vesting contracts:', JSON.stringify(data, null, 2));
-    return data.tokenLockWallets.map((wallet: { address: string }) => wallet.address);
-  } catch (error) {
-    console.error('Error fetching vesting contract addresses:', error);
-    throw new Error(error as string);
-  }
-}
 
 // The code stops here, right before the (/) page starts
 
