@@ -1191,22 +1191,6 @@ app.frame('/share-owned', async (c) => {
             <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
-          {vestingContractAddress && (
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              marginTop: '20px',
-              fontSize: '18px',
-              color: '#000000',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              padding: '10px',
-              borderRadius: '10px',
-            }}>
-              <span>Vesting Contract:</span>
-              <span>{`${vestingContractAddress.slice(0, 6)}...${vestingContractAddress.slice(-4)}`}</span>
-            </div>
-          )}
         </div>
       ),
       intents: [
