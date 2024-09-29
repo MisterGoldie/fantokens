@@ -377,29 +377,35 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
 }
 
 async function getVestingContractAddresses(ethAddress: string): Promise<string[]> {
+  console.log('Fetching vesting contract addresses for:', ethAddress);
   const graphQLClient = new GraphQLClient(
     "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest"
   );
 
   const query = gql`
-    query MyQuery($beneficiary: Bytes) {
+    query MyQuery($beneficiary: Bytes!) {
       tokenLockWallets(where: {beneficiary: $beneficiary}) {
         address: id
       }
     }
   `;
 
+  // Ensure the address is properly formatted (remove '0x' prefix if present and lowercase)
+  const formattedAddress = ethAddress.toLowerCase().replace(/^0x/, '');
+
   const variables = {
-    beneficiary: ethAddress.toLowerCase()
+    beneficiary: `0x${formattedAddress}`
   };
 
   try {
+    console.log('Sending GraphQL request with variables:', JSON.stringify(variables));
     const data = await graphQLClient.request<VestingContractResponse>(query, variables);
-    console.log('Moxie API response for vesting contracts:', JSON.stringify(data, null, 2));
+    console.log('Vesting contract data received:', JSON.stringify(data, null, 2));
     return data.tokenLockWallets.map((wallet: { address: string }) => wallet.address);
   } catch (error) {
     console.error('Error fetching vesting contract addresses:', error);
-    throw new Error(error as string);
+    // Instead of throwing, return an empty array
+    return [];
   }
 }
 
@@ -820,8 +826,12 @@ app.frame('/owned-tokens', async (c) => {
         allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
       } catch (error) {
         console.error(`Error fetching data for address ${address}:`, error);
+        // Continue to the next address even if there's an error
       }
     }
+
+    console.log('All owned tokens:', allOwnedTokens);
+    console.log('All vesting addresses:', allVestingAddresses);
 
     if (allOwnedTokens.length === 0) {
       console.warn(`No fan tokens found for FID ${fid}`);
