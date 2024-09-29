@@ -1005,6 +1005,8 @@ app.frame('/share-owned', async (c) => {
 
   try {
     const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
+    console.log('User addresses:', userAddresses);
+
     let allOwnedTokens: TokenHolding[] = [];
 
     for (const address of userAddresses) {
@@ -1014,7 +1016,10 @@ app.frame('/share-owned', async (c) => {
       }
     }
 
+    console.log('All owned tokens:', allOwnedTokens);
+
     if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
+      console.log('No tokens found or invalid token index');
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
@@ -1028,6 +1033,8 @@ app.frame('/share-owned', async (c) => {
     }
 
     const token = allOwnedTokens[tokenIndex];
+    console.log('Selected token:', token);
+
     let tokenProfileInfo = null;
     let tokenFid = '';
 
@@ -1035,6 +1042,7 @@ app.frame('/share-owned', async (c) => {
       tokenFid = token.subjectToken.symbol.split(':')[1];
       try {
         tokenProfileInfo = await getProfileInfo(tokenFid);
+        console.log('Token profile info:', tokenProfileInfo);
       } catch (error) {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
@@ -1089,6 +1097,10 @@ app.frame('/share-owned', async (c) => {
 
     const tokenBalance = formatBalance(token.balance);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
+    const buyVolume = formatBalance(token.buyVolume);
+    const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
+
+    console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
 
     return c.res({
       image: (
@@ -1148,8 +1160,8 @@ app.frame('/share-owned', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-            <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
-            <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
+            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
+            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
         </div>
       ),
