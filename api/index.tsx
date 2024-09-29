@@ -773,6 +773,9 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
+    console.log('All owned tokens:', allOwnedTokens);
+    console.log('All vesting addresses:', allVestingAddresses);
+
     if (allOwnedTokens.length === 0) {
       console.warn(`No fan tokens found for FID ${fid}`);
       return c.res({
@@ -840,9 +843,12 @@ app.frame('/owned-tokens', async (c) => {
     const tokenBalance = formatBalance(token.balance);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
 
+    // Construct the share URL with the correct tokenIndex
     const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
+    console.log('Constructed share URL:', shareUrl);
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -1013,6 +1019,8 @@ app.frame('/share-owned', async (c) => {
       }
     }
 
+    console.log(`Total owned tokens: ${allOwnedTokens.length}, Requested index: ${tokenIndex}`);
+
     if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
       return c.res({
         image: (
@@ -1027,6 +1035,8 @@ app.frame('/share-owned', async (c) => {
     }
 
     const token = allOwnedTokens[tokenIndex];
+    console.log('Selected token:', JSON.stringify(token, null, 2));
+
     let tokenProfileInfo = null;
     let tokenFid = '';
 
@@ -1046,9 +1056,9 @@ app.frame('/share-owned', async (c) => {
       return balanceTokens.toFixed(2);
     };
 
-    const formatNumber = (value: number | string | null | undefined): string => {
-      if (value === null || value === undefined) return 'N/A';
-      const num = typeof value === 'string' ? parseFloat(value) : value;
+    const formatNumber = (value: string): string => {
+      const num = parseFloat(value);
+      if (isNaN(num)) return 'N/A';
       
       if (num >= 1e9) {
         return (num / 1e9).toFixed(2) + 'B';
@@ -1085,6 +1095,8 @@ app.frame('/share-owned', async (c) => {
         </div>
       );
     }
+
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
 
     return c.res({
       image: (
@@ -1134,7 +1146,7 @@ app.frame('/share-owned', async (c) => {
             textAlign: 'center',
             textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
-            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
+            {tokenOwnerName}
           </h1>
           <div style={{
             display: 'flex',
@@ -1154,7 +1166,7 @@ app.frame('/share-owned', async (c) => {
       ]
     });
   } catch (error) {
-    console.error('Error fetching fan token data:', error);
+    console.error('Error in /share-owned route:', error);
     
     return c.res({
       image: (
