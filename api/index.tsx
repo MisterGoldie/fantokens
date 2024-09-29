@@ -413,6 +413,10 @@ async function getTokenInfo(tokenAddress: string) {
         name
         symbol
         currentPriceInMoxie
+        holderCount
+        owner {
+          id
+        }
       }
     }
   `;
@@ -423,7 +427,16 @@ async function getTokenInfo(tokenAddress: string) {
 
   try {
     const data = await graphQLClient.request<any>(query, variables);
-    return data.subjectTokens[0];
+    if (data.subjectTokens && data.subjectTokens.length > 0) {
+      const token = data.subjectTokens[0];
+      // Extract FID from symbol if it's in the format "fid:123"
+      const fidMatch = token.symbol.match(/^fid:(\d+)$/);
+      return {
+        ...token,
+        fid: fidMatch ? fidMatch[1] : null
+      };
+    }
+    return null;
   } catch (error) {
     console.error('Error fetching token info:', error);
     return null;
@@ -1041,16 +1054,18 @@ app.frame('/share-owned', async (c) => {
 
     // Fetch token info using the tokenAddress
     const tokenInfo = await getTokenInfo(tokenAddress);
-    if (tokenInfo && tokenInfo.symbol.startsWith('fid:')) {
-      const tokenFid = tokenInfo.symbol.split(':')[1];
-      try {
-        tokenProfileInfo = await getProfileInfo(tokenFid);
-        tokenName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || tokenInfo.name;
-      } catch (error) {
-        console.error(`Error fetching profile for FID ${tokenFid}:`, error);
+    if (tokenInfo) {
+      if (tokenInfo.fid) {
+        try {
+          tokenProfileInfo = await getProfileInfo(tokenInfo.fid);
+          tokenName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || tokenInfo.name;
+        } catch (error) {
+          console.error(`Error fetching profile for FID ${tokenInfo.fid}:`, error);
+          tokenName = tokenInfo.name; // Fallback to token name if profile fetch fails
+        }
+      } else {
+        tokenName = tokenInfo.name;
       }
-    } else if (tokenInfo) {
-      tokenName = tokenInfo.name;
     }
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
