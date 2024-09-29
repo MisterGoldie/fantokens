@@ -873,7 +873,8 @@ app.frame('/owned-tokens', async (c) => {
     console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
 
     const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
+    const timestamp = Date.now();
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}&timestamp=${timestamp}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     console.log('Share URL:', shareUrl);
@@ -998,8 +999,12 @@ app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
   const tokenIndex = Math.max(0, parseInt(c.req.query('tokenIndex') || '0'));
+  const timestamp = parseInt(c.req.query('timestamp') || '0');
 
-  console.log(`Received FID: ${fid}, Token Index: ${tokenIndex}`);
+  console.log(`Received FID: ${fid}, Token Index: ${tokenIndex}, Timestamp: ${timestamp}`);
+
+  // Add a short delay to ensure all data is up-to-date
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   if (!fid) {
     console.error('No FID provided');
