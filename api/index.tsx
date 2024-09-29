@@ -840,17 +840,11 @@ app.frame('/owned-tokens', async (c) => {
     const tokenBalance = formatBalance(token.balance);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
 
-    // Updated share URL construction with specific token data
-    const tokenData = encodeURIComponent(JSON.stringify({
-      balance: token.balance,
-      buyVolume: token.buyVolume,
-      currentPrice: token.subjectToken.currentPriceInMoxie,
-      name: tokenOwnerName,
-      symbol: token.subjectToken.symbol
-    }));
-    const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenData=${tokenData}`;
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+    
+    // In the /owned-tokens route, update the shareUrl construction:
+const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
+const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
+const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -993,16 +987,15 @@ app.frame('/owned-tokens', async (c) => {
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
-  const tokenData = c.req.query('tokenData');
+  const tokenIndex = parseInt(c.req.query('tokenIndex') || '0');
 
-  console.log(`FID: ${fid}, Token Data: ${tokenData}`);
+  console.log(`FID: ${fid}, Token Index: ${tokenIndex}`);
 
-  if (!fid || !tokenData) {
-    console.error('Missing required data');
+  if (!fid) {
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Missing data</h1>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
         </div>
       ),
       intents: [
@@ -1012,11 +1005,35 @@ app.frame('/share-owned', async (c) => {
   }
 
   try {
-    const token = JSON.parse(decodeURIComponent(tokenData));
-    let tokenProfileInfo = null;
+    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
+    let allOwnedTokens: TokenHolding[] = [];
 
-    if (token.symbol.startsWith('fid:')) {
-      const tokenFid = token.symbol.split(':')[1];
+    for (const address of userAddresses) {
+      const tokens = await getOwnedFanTokens(address);
+      if (tokens) {
+        allOwnedTokens = allOwnedTokens.concat(tokens);
+      }
+    }
+
+    if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
+      return c.res({
+        image: (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan token found for this index</h1>
+          </div>
+        ),
+        intents: [
+          <Button action="/">Home</Button>
+        ]
+      });
+    }
+
+    const token = allOwnedTokens[tokenIndex];
+    let tokenProfileInfo = null;
+    let tokenFid = '';
+
+    if (token.subjectToken.symbol.startsWith('fid:')) {
+      tokenFid = token.subjectToken.symbol.split(':')[1];
       try {
         tokenProfileInfo = await getProfileInfo(tokenFid);
       } catch (error) {
@@ -1119,7 +1136,7 @@ app.frame('/share-owned', async (c) => {
             textAlign: 'center',
             textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
-            {token.name}
+            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
           </h1>
           <div style={{
             display: 'flex',
@@ -1130,7 +1147,7 @@ app.frame('/share-owned', async (c) => {
           }}>
             <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
             <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
-            <TextBox label="Current Price" value={`${formatNumber(token.currentPrice)} MOXIE`} />
+            <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
         </div>
       ),
@@ -1139,12 +1156,12 @@ app.frame('/share-owned', async (c) => {
       ]
     });
   } catch (error) {
-    console.error('Error processing fan token data:', error);
+    console.error('Error fetching fan token data:', error);
     
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error processing fan token data. Please try again.</h1>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
