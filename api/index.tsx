@@ -404,6 +404,13 @@ async function getVestingContractAddresses(ethAddress: string): Promise<string[]
 }
 
 async function getTokenInfo(tokenAddress: string) {
+  console.log('Entering getTokenInfo for address:', tokenAddress);
+  
+  if (!tokenAddress || tokenAddress === 'undefined') {
+    console.error('Invalid token address provided:', tokenAddress);
+    return null;
+  }
+
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
   const query = gql`
@@ -413,10 +420,6 @@ async function getTokenInfo(tokenAddress: string) {
         name
         symbol
         currentPriceInMoxie
-        holderCount
-        owner {
-          id
-        }
       }
     }
   `;
@@ -426,19 +429,26 @@ async function getTokenInfo(tokenAddress: string) {
   };
 
   try {
+    console.log('Sending GraphQL request with variables:', JSON.stringify(variables));
     const data = await graphQLClient.request<any>(query, variables);
+    console.log('GraphQL response received:', JSON.stringify(data, null, 2));
+
     if (data.subjectTokens && data.subjectTokens.length > 0) {
       const token = data.subjectTokens[0];
+      console.log('Token data found:', JSON.stringify(token, null, 2));
       // Extract FID from symbol if it's in the format "fid:123"
       const fidMatch = token.symbol.match(/^fid:(\d+)$/);
-      return {
+      const result = {
         ...token,
         fid: fidMatch ? fidMatch[1] : null
       };
+      console.log('Processed token info:', JSON.stringify(result, null, 2));
+      return result;
     }
+    console.log('No token data found');
     return null;
   } catch (error) {
-    console.error('Error fetching token info:', error);
+    console.error('Error in getTokenInfo:', error);
     return null;
   }
 }
@@ -880,12 +890,15 @@ app.frame('/owned-tokens', async (c) => {
     const tokenBalance = formatBalance(token.balance);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
 
-    
-    // In the /owned-tokens route, update the shareUrl construction:
-    const tokenToShare = allOwnedTokens[currentIndex];
-const shareText = `I am the proud owner of ${formatBalance(tokenToShare.balance)} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
-const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenAddress=${tokenToShare.subjectToken.id}&balance=${tokenToShare.balance}&buyVolume=${tokenToShare.buyVolume}&currentPrice=${tokenToShare.subjectToken.currentPriceInMoxie}`;
-const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+    // Ensure tokenAddress is correctly set
+    const tokenAddress = token.subjectToken.id;
+    console.log('Token Address for share URL:', tokenAddress);
+
+    const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenAddress=${tokenAddress}&balance=${token.balance}&buyVolume=${token.buyVolume}&currentPrice=${token.subjectToken.currentPriceInMoxie}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
+    console.log('Constructed share URL:', shareUrl);
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
