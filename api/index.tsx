@@ -880,7 +880,7 @@ app.frame('/owned-tokens', async (c) => {
 
     console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
 
-    const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
+    const shareText = `I am the proud owner of ${tokenBalance} of @${tokenProfileInfo?.farcasterSocial?.profileDisplayName || 'unknown'}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
     const timestamp = Date.now();
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}&timestamp=${timestamp}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
