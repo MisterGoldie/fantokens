@@ -477,9 +477,13 @@ app.frame('/yourfantoken', async (c) => {
     
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    // Updated: Construct the share URL for the new /share endpoint
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}`;
+    // Add timestamp to the share URL
+    const timestamp = Date.now();
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&timestamp=${timestamp}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
+    console.log('Share URL:', shareUrl);
+    console.log('Farcaster Share URL:', farcasterShareURL);
 
     return c.res({
       image: (
@@ -567,8 +571,9 @@ app.frame('/yourfantoken', async (c) => {
 app.frame('/share', async (c) => {
   console.log('Entering /share frame');
   const fid = c.req.query('fid');
+  const timestamp = c.req.query('timestamp');
 
-  console.log(`FID: ${fid}`);
+  console.log(`FID: ${fid}, Timestamp: ${timestamp}`);
 
   if (!fid) {
     return c.res({
@@ -587,6 +592,10 @@ app.frame('/share', async (c) => {
     let tokenInfo = await getFanTokenInfo(fid.toString());
     let profileInfo = await getProfileInfo(fid.toString());
     let powerboostScore = await getPowerboostScore(fid.toString());
+
+    console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
+    console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
+    console.log('Powerboost Score:', powerboostScore);
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -615,6 +624,8 @@ app.frame('/share', async (c) => {
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
     
+    console.log('Formatted data:', { currentPrice, holders, powerboost });
+
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
     return c.res({
