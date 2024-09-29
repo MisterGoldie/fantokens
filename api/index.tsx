@@ -359,7 +359,7 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
 }
 
 
-async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | null> {
+async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | null> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
   const query = gql`
@@ -380,19 +380,19 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
   `;
 
   const variables = {
-    userAddresses: [userAddress.toLowerCase()]
+    userAddresses: addresses.map(address => address.toLowerCase())
   };
 
   try {
     const data = await graphQLClient.request<any>(query, variables);
     console.log('Moxie API response for owned tokens:', JSON.stringify(data, null, 2));
 
-    if (!data.users || data.users.length === 0 || !data.users[0].portfolio) {
-      console.log(`No fan tokens found for address: ${userAddress}`);
+    if (!data.users || data.users.length === 0) {
+      console.log(`No fan tokens found for addresses: ${addresses.join(', ')}`);
       return null;
     }
 
-    return data.users[0].portfolio;
+    return data.users.flatMap((user: { portfolio: TokenHolding[] }) => user.portfolio);
   } catch (error) {
     console.error('Error fetching owned fan tokens from Moxie API:', error);
     return null;
@@ -767,18 +767,18 @@ app.frame('/owned-tokens', async (c) => {
     const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
     console.log('User addresses:', userAddresses);
 
-    let allOwnedTokens: TokenHolding[] = [];
+    // Fetch vesting contract address
+    const vestingContractAddress = await getVestingContractAddress(userAddresses);
+    console.log('Vesting contract address:', vestingContractAddress);
 
-    for (const address of userAddresses) {
-      try {
-        const tokens = await getOwnedFanTokens(address);
-        if (tokens) {
-          allOwnedTokens = allOwnedTokens.concat(tokens);
-        }
-      } catch (error) {
-        console.error(`Error fetching data for address ${address}:`, error);
-      }
+    // Combine user addresses and vesting contract address
+    const allAddresses = [...userAddresses];
+    if (vestingContractAddress) {
+      allAddresses.push(vestingContractAddress);
     }
+
+    // Fetch tokens for all addresses
+    const allOwnedTokens = await getOwnedFanTokens(allAddresses) || [];
 
     console.log(`Total owned tokens: ${allOwnedTokens.length}`);
     console.log('First few tokens:', JSON.stringify(allOwnedTokens.slice(0, 3), null, 2));
@@ -825,10 +825,6 @@ app.frame('/owned-tokens', async (c) => {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
     }
-
-    // Fetch vesting contract address using all user addresses
-    const vestingContractAddress = await getVestingContractAddress(userAddresses);
-    console.log('Vesting contract address:', vestingContractAddress);
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
@@ -1006,7 +1002,6 @@ app.frame('/owned-tokens', async (c) => {
   }
 });
 
-
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
@@ -1039,7 +1034,7 @@ app.frame('/share-owned', async (c) => {
     let allOwnedTokens: TokenHolding[] = [];
 
     for (const address of userAddresses) {
-      const tokens = await getOwnedFanTokens(address);
+      const tokens = await getOwnedFanTokens([address]);
       if (tokens) {
         allOwnedTokens = allOwnedTokens.concat(tokens);
       }
