@@ -325,6 +325,40 @@ async function getFarcasterAddressesFromFID(fid: string): Promise<string[]> {
   }
 }
 
+async function getVestingContractAddress(beneficiaryAddresses: string[]): Promise<string | null> {
+  const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
+  const graphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
+
+  const query = gql`
+    query MyQuery($beneficiaries: [Bytes!]) {
+      tokenLockWallets(where: {beneficiary_in: $beneficiaries}) {
+        address: id
+        beneficiary
+      }
+    }
+  `;
+
+  const variables = {
+    beneficiaries: beneficiaryAddresses.map(address => address.toLowerCase())
+  };
+
+  try {
+    const data = await graphQLClient.request<any>(query, variables);
+    console.log('Vesting contract data:', JSON.stringify(data, null, 2));
+
+    if (data.tokenLockWallets && data.tokenLockWallets.length > 0) {
+      return data.tokenLockWallets[0].address;
+    } else {
+      console.log(`No vesting contract found for addresses: ${beneficiaryAddresses.join(', ')}`);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching vesting contract address:', error);
+    return null;
+  }
+}
+
+
 async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | null> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
@@ -792,6 +826,10 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
+    // Fetch vesting contract address using all user addresses
+    const vestingContractAddress = await getVestingContractAddress(userAddresses);
+    console.log('Vesting contract address:', vestingContractAddress);
+
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
       const denomination = BigInt(10 ** decimals);
@@ -1040,6 +1078,10 @@ app.frame('/share-owned', async (c) => {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
     }
+
+    // Fetch vesting contract address using all user addresses
+    const vestingContractAddress = await getVestingContractAddress(userAddresses);
+    console.log('Vesting contract address:', vestingContractAddress);
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
