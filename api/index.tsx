@@ -234,6 +234,16 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
   const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
   const graphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
 
+  // Filter out non-Ethereum addresses
+  const ethereumAddresses = beneficiaryAddresses.filter(address => 
+    address.startsWith('0x') && address.length === 42
+  );
+
+  if (ethereumAddresses.length === 0) {
+    console.log('No valid Ethereum addresses found');
+    return null;
+  }
+
   const query = gql`
     query MyQuery($beneficiaries: [Bytes!]) {
       tokenLockWallets(where: {beneficiary_in: $beneficiaries}) {
@@ -244,7 +254,7 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
   `;
 
   const variables = {
-    beneficiaries: beneficiaryAddresses.map(address => address.toLowerCase())
+    beneficiaries: ethereumAddresses.map(address => address.toLowerCase())
   };
 
   try {
@@ -255,7 +265,7 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
       // Return the first vesting contract found
       return data.tokenLockWallets[0].address;
     } else {
-      console.log(`No vesting contract found for addresses: ${beneficiaryAddresses.join(', ')}`);
+      console.log(`No vesting contract found for addresses: ${ethereumAddresses.join(', ')}`);
       return null;
     }
   } catch (error) {
@@ -801,7 +811,6 @@ app.frame('/owned-tokens', async (c) => {
             padding: '20px',
           }}>
             <div style={{ display: 'flex', fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
-              No fan tokens found
             </div>
           </div>
         ),
@@ -827,10 +836,6 @@ app.frame('/owned-tokens', async (c) => {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
     }
-
-    // Fetch vesting contract address using all user addresses
-    const vestingContractAddress = await getVestingContractAddress(userAddresses);
-    console.log('Vesting contract address:', vestingContractAddress);
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
@@ -971,35 +976,6 @@ app.frame('/owned-tokens', async (c) => {
             <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginTop: '20px',
-            width: '100%',
-          }}>
-            {vestingContractAddress ? (
-              <div style={{
-                fontSize: '18px',
-                color: '#000000',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                padding: '10px',
-                borderRadius: '10px',
-              }}>
-                Vesting Contract: {`${vestingContractAddress.slice(0, 6)}...${vestingContractAddress.slice(-4)}`}
-              </div>
-            ) : (
-              <div style={{
-                fontSize: '18px',
-                color: '#000000',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                padding: '10px',
-                borderRadius: '10px',
-              }}>
-                No vesting contract found
-              </div>
-            )}
-          </div>
         </div>
       ),
       intents: [
@@ -1109,10 +1085,6 @@ app.frame('/share-owned', async (c) => {
         console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
     }
-
-    // Fetch vesting contract address using all user addresses
-    const vestingContractAddress = await getVestingContractAddress(userAddresses);
-    console.log('Vesting contract address:', vestingContractAddress);
 
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceWei = BigInt(balance);
@@ -1229,35 +1201,6 @@ app.frame('/share-owned', async (c) => {
             <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginTop: '20px',
-            width: '100%',
-          }}>
-            {vestingContractAddress ? (
-              <div style={{
-                fontSize: '18px',
-                color: '#000000',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                padding: '10px',
-                borderRadius: '10px',
-              }}>
-                Vesting Contract: {`${vestingContractAddress.slice(0, 6)}...${vestingContractAddress.slice(-4)}`}
-              </div>
-            ) : (
-              <div style={{
-                fontSize: '18px',
-                color: '#000000',
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                padding: '10px',
-                borderRadius: '10px',
-              }}>
-                No vesting contract found
-              </div>
-            )}
-          </div>
         </div>
       ),
       intents: [
@@ -1267,20 +1210,10 @@ app.frame('/share-owned', async (c) => {
   } catch (error) {
     console.error('Error fetching fan token data:', error);
     
-    let errorMessage: string;
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      console.error('Error details:', error.stack);
-    } else if (typeof error === 'string') {
-      errorMessage = error;
-    } else {
-      errorMessage = 'An unknown error occurred';
-    }
-    
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data: {errorMessage}</h1>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
