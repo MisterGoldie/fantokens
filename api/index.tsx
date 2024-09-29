@@ -26,7 +26,6 @@ interface TokenHolding {
   buyVolume: string;
   sellVolume: string;
   subjectToken: {
-    id: any;
     name: string;
     symbol: string;
     currentPriceInMoxie: string;
@@ -377,87 +376,32 @@ async function getOwnedFanTokens(userAddress: string): Promise<TokenHolding[] | 
 }
 
 async function getVestingContractAddresses(ethAddress: string): Promise<string[]> {
-  console.log('Fetching vesting contract addresses for:', ethAddress);
   const graphQLClient = new GraphQLClient(
     "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest"
   );
 
   const query = gql`
-    query MyQuery($beneficiary: Bytes!) {
+    query MyQuery($beneficiary: Bytes) {
       tokenLockWallets(where: {beneficiary: $beneficiary}) {
         address: id
       }
     }
   `;
 
-  // Ensure the address is properly formatted (remove '0x' prefix if present and lowercase)
-  const formattedAddress = ethAddress.toLowerCase().replace(/^0x/, '');
-
   const variables = {
-    beneficiary: `0x${formattedAddress}`
+    beneficiary: ethAddress.toLowerCase()
   };
 
   try {
-    console.log('Sending GraphQL request with variables:', JSON.stringify(variables));
     const data = await graphQLClient.request<VestingContractResponse>(query, variables);
-    console.log('Vesting contract data received:', JSON.stringify(data, null, 2));
+    console.log('Moxie API response for vesting contracts:', JSON.stringify(data, null, 2));
     return data.tokenLockWallets.map((wallet: { address: string }) => wallet.address);
   } catch (error) {
     console.error('Error fetching vesting contract addresses:', error);
-    // Instead of throwing, return an empty array
-    return [];
+    throw new Error(error as string);
   }
 }
 
-async function getTokenInfo(tokenAddress: string) {
-  console.log('Entering getTokenInfo for address:', tokenAddress);
-  
-  if (!tokenAddress || tokenAddress === 'undefined') {
-    console.error('Invalid token address provided:', tokenAddress);
-    return null;
-  }
-
-  const graphQLClient = new GraphQLClient(MOXIE_API_URL);
-
-  const query = gql`
-    query GetTokenInfo($id: ID!) {
-      subjectTokens(where: { id: $id }) {
-        id
-        name
-        symbol
-        currentPriceInMoxie
-      }
-    }
-  `;
-
-  const variables = {
-    id: tokenAddress.toLowerCase()
-  };
-
-  try {
-    console.log('Sending GraphQL request with variables:', JSON.stringify(variables));
-    const data = await graphQLClient.request<any>(query, variables);
-    console.log('GraphQL response received:', JSON.stringify(data, null, 2));
-
-    if (data.subjectTokens && data.subjectTokens.length > 0) {
-      const token = data.subjectTokens[0];
-      console.log('Token data found:', JSON.stringify(token, null, 2));
-      // Extract FID from symbol if it's in the format "fid:123"
-      const fidMatch = token.symbol.match(/^fid:(\d+)$/);
-      const result = {
-        ...token,
-        fid: fidMatch ? fidMatch[1] : null
-      };
-      console.log('Processed token info:', JSON.stringify(result, null, 2));
-      return result;
-    }
-    console.log('No token data found');
-    return null;
-  } catch (error) {
-    console.error('Error in getTokenInfo:', error);
-    return null;
-  }
-}
 // The code stops here, right before the (/) page starts
 
 app.frame('/', (c) => {
@@ -826,12 +770,8 @@ app.frame('/owned-tokens', async (c) => {
         allVestingAddresses = allVestingAddresses.concat(vestingAddresses);
       } catch (error) {
         console.error(`Error fetching data for address ${address}:`, error);
-        // Continue to the next address even if there's an error
       }
     }
-
-    console.log('All owned tokens:', allOwnedTokens);
-    console.log('All vesting addresses:', allVestingAddresses);
 
     if (allOwnedTokens.length === 0) {
       console.warn(`No fan tokens found for FID ${fid}`);
@@ -900,15 +840,9 @@ app.frame('/owned-tokens', async (c) => {
     const tokenBalance = formatBalance(token.balance);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
 
-    // Ensure tokenAddress is correctly set
-    const tokenAddress = token.subjectToken.id;
-    console.log('Token Address for share URL:', tokenAddress);
-
     const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenAddress=${tokenAddress}&balance=${token.balance}&buyVolume=${token.buyVolume}&currentPrice=${token.subjectToken.currentPriceInMoxie}`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
-
-    console.log('Constructed share URL:', shareUrl);
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -1051,18 +985,15 @@ app.frame('/owned-tokens', async (c) => {
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
-  const tokenAddress = c.req.query('tokenAddress');
-  const balance = c.req.query('balance');
-  const buyVolume = c.req.query('buyVolume');
-  const currentPrice = c.req.query('currentPrice');
+  const tokenIndex = parseInt(c.req.query('tokenIndex') || '0');
 
-  console.log(`FID: ${fid}, Token Address: ${tokenAddress}`);
+  console.log(`FID: ${fid}, Token Index: ${tokenIndex}`);
 
-  if (!fid || !tokenAddress || !balance || !buyVolume || !currentPrice) {
+  if (!fid) {
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: Missing required information</h1>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
         </div>
       ),
       intents: [
@@ -1072,22 +1003,39 @@ app.frame('/share-owned', async (c) => {
   }
 
   try {
-    let tokenProfileInfo = null;
-    let tokenName = 'Unknown Token';
+    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
+    let allOwnedTokens: TokenHolding[] = [];
 
-    // Fetch token info using the tokenAddress
-    const tokenInfo = await getTokenInfo(tokenAddress);
-    if (tokenInfo) {
-      if (tokenInfo.fid) {
-        try {
-          tokenProfileInfo = await getProfileInfo(tokenInfo.fid);
-          tokenName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || tokenInfo.name;
-        } catch (error) {
-          console.error(`Error fetching profile for FID ${tokenInfo.fid}:`, error);
-          tokenName = tokenInfo.name; // Fallback to token name if profile fetch fails
-        }
-      } else {
-        tokenName = tokenInfo.name;
+    for (const address of userAddresses) {
+      const tokens = await getOwnedFanTokens(address);
+      if (tokens) {
+        allOwnedTokens = allOwnedTokens.concat(tokens);
+      }
+    }
+
+    if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
+      return c.res({
+        image: (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan token found for this index</h1>
+          </div>
+        ),
+        intents: [
+          <Button action="/">Home</Button>
+        ]
+      });
+    }
+
+    const token = allOwnedTokens[tokenIndex];
+    let tokenProfileInfo = null;
+    let tokenFid = '';
+
+    if (token.subjectToken.symbol.startsWith('fid:')) {
+      tokenFid = token.subjectToken.symbol.split(':')[1];
+      try {
+        tokenProfileInfo = await getProfileInfo(tokenFid);
+      } catch (error) {
+        console.error(`Error fetching profile for FID ${tokenFid}:`, error);
       }
     }
 
@@ -1098,9 +1046,9 @@ app.frame('/share-owned', async (c) => {
       return balanceTokens.toFixed(2);
     };
 
-    const formatNumber = (value: string): string => {
-      const num = parseFloat(value);
-      if (isNaN(num)) return 'N/A';
+    const formatNumber = (value: number | string | null | undefined): string => {
+      if (value === null || value === undefined) return 'N/A';
+      const num = typeof value === 'string' ? parseFloat(value) : value;
       
       if (num >= 1e9) {
         return (num / 1e9).toFixed(2) + 'B';
@@ -1186,7 +1134,7 @@ app.frame('/share-owned', async (c) => {
             textAlign: 'center',
             textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
-            {tokenName}
+            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
           </h1>
           <div style={{
             display: 'flex',
@@ -1195,9 +1143,9 @@ app.frame('/share-owned', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Balance" value={`${formatBalance(balance)} tokens`} />
-            <TextBox label="Buy Volume" value={`${formatBalance(buyVolume)} MOXIE`} />
-            <TextBox label="Current Price" value={`${formatNumber(currentPrice)} MOXIE`} />
+            <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
+            <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
+            <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
         </div>
       ),
@@ -1220,7 +1168,6 @@ app.frame('/share-owned', async (c) => {
     });
   }
 });
-
 
 export const GET = handle(app);
 export const POST = handle(app);
