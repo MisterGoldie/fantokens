@@ -1010,9 +1010,6 @@ app.frame('/share-owned', async (c) => {
 
   console.log(`Received FID: ${fid}, Token Index: ${tokenIndex}, Timestamp: ${timestamp}`);
 
-  // Add a short delay to ensure all data is up-to-date
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
   if (!fid) {
     console.error('No FID provided');
     return c.res({
