@@ -480,6 +480,26 @@ app.frame('/yourfantoken', async (c) => {
     let profileInfo = await getProfileInfo(fid.toString());
     let powerboostScore = await getPowerboostScore(fid.toString());
 
+    if (!tokenInfo?.subjectTokens[0]) {
+      // User doesn't have a fan token, show only the IPFS image
+      return c.res({
+        image: (
+          <div style={{ 
+            width: '1200px', 
+            height: '628px', 
+            backgroundImage: 'url(https://bafybeidlheht3f5ep4xbkkkl6rg6lm7mwq2hqlido7w7euxzhub2snlska.ipfs.w3s.link/Group%2061%20(4).png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}/>
+        ),
+        intents: [
+          <Button action="/">Back</Button>,
+          <Button action="/yourfantoken">Refresh</Button>,
+          <Button action="/owned-tokens">Owned</Button>,
+        ],
+      });
+    }
+
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{
@@ -503,8 +523,8 @@ app.frame('/yourfantoken', async (c) => {
       );
     }
 
-    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
-    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
+    const currentPrice = parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2);
+    const holders = tokenInfo.subjectTokens[0].portfolio.length.toString();
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
 
     const shareText = `Check out my /airstack Fan Token stats by @goldie! Check your own stats here`;
