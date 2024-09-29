@@ -844,6 +844,7 @@ app.frame('/owned-tokens', async (c) => {
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share-owned?fid=${fid}&tokenIndex=${currentIndex}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
+
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{ 
@@ -1086,6 +1087,9 @@ app.frame('/share-owned', async (c) => {
       );
     }
 
+    const tokenBalance = formatBalance(token.balance);
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
+
     return c.res({
       image: (
         <div style={{
@@ -1134,7 +1138,7 @@ app.frame('/share-owned', async (c) => {
             textAlign: 'center',
             textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
           }}>
-            {tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name}
+            {tokenOwnerName}
           </h1>
           <div style={{
             display: 'flex',
@@ -1143,7 +1147,7 @@ app.frame('/share-owned', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Balance" value={`${formatBalance(token.balance)} tokens`} />
+            <TextBox label="Balance" value={`${tokenBalance} tokens`} />
             <TextBox label="Buy Volume" value={`${formatBalance(token.buyVolume)} MOXIE`} />
             <TextBox label="Current Price" value={`${formatNumber(token.subjectToken.currentPriceInMoxie)} MOXIE`} />
           </div>
