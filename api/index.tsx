@@ -284,6 +284,16 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
   const MOXIE_VESTING_API_URL = "https://api.studio.thegraph.com/query/23537/moxie_vesting_mainnet/version/latest";
   const graphQLClient = new GraphQLClient(MOXIE_VESTING_API_URL);
 
+  // Filter out non-Ethereum addresses
+  const ethereumAddresses = beneficiaryAddresses.filter(address => 
+    address.startsWith('0x') && address.length === 42
+  );
+
+  if (ethereumAddresses.length === 0) {
+    console.log('No valid Ethereum addresses found');
+    return null;
+  }
+
   const query = gql`
     query MyQuery($beneficiaries: [Bytes!]) {
       tokenLockWallets(where: {beneficiary_in: $beneficiaries}) {
@@ -294,7 +304,7 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
   `;
 
   const variables = {
-    beneficiaries: beneficiaryAddresses.map(address => address.toLowerCase())
+    beneficiaries: ethereumAddresses.map(address => address.toLowerCase())
   };
 
   try {
@@ -305,7 +315,7 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
       // Return the first vesting contract found
       return data.tokenLockWallets[0].address;
     } else {
-      console.log(`No vesting contract found for addresses: ${beneficiaryAddresses.join(', ')}`);
+      console.log(`No vesting contract found for addresses: ${ethereumAddresses.join(', ')}`);
       return null;
     }
   } catch (error) {
