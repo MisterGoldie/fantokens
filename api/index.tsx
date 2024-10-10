@@ -61,13 +61,9 @@ interface ProfileInfo {
   };
 }
 
-// Define color constants
-const PRIMARY_COLOR = '#4a4a4a'
-const SECONDARY_COLOR = '#f0f0f0'
-
-// Define a common style object with improved aesthetics
+// Define a common style object to be reused across routes
 const commonStyle = {
-  backgroundColor: SECONDARY_COLOR,
+  backgroundColor: 'white',
   width: '100%',
   height: '100%',
   display: 'flex',
@@ -75,9 +71,6 @@ const commonStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   fontFamily: '"Protest Riot", sans-serif',
-  color: PRIMARY_COLOR,
-  padding: '20px',
-  boxSizing: 'border-box',
 }
 
 export const app = new Frog({
@@ -429,36 +422,39 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
 
 
 // The code stops here, right before the (/) page starts
+
 app.frame('/', (c) => {
   return c.res({
     image: (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100%',
-          height: '100%',
-          backgroundColor: '#f0f0f0',
-          fontFamily: '"Protest Riot", sans-serif',
-          color: '#4a4a4a',
-          padding: '20px',
-        }}
-      >
-        <h1
+      <div style={commonStyle}>
+        <div
           style={{
-            fontSize: '48px',
-            marginBottom: '20px',
+            fontSize: '72px',
+            fontWeight: 'bold',
             textAlign: 'center',
-            color: '#3498db',
+            textTransform: 'uppercase',
+            letterSpacing: '4px',
+            textShadow: '0 0 10px rgba(255,215,0,0.7), 0 0 20px rgba(255,215,0,0.5), 0 0 30px rgba(255,215,0,0.3)',
+            marginBottom: '20px',
           }}
         >
-          Your Farcaster Frame
-        </h1>
-        <p style={{ fontSize: '24px', textAlign: 'center' }}>
-          Welcome to your Fan Token information frame!
-        </p>
+          You & Your
+        </div>
+        <div
+          style={{
+            fontSize: '96px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            textTransform: 'uppercase',
+            letterSpacing: '6px',
+            background: 'linear-gradient(45deg, #8B50FA, #9B6DF1)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+          }}
+        >
+          Fan Tokens
+        </div>
       </div>
     ),
     intents: [
@@ -595,7 +591,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/owned-tokens">Owned</Button>,
         <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ],
-    }); //rgeegre
+    });
   } catch (error) {
     console.error('Error fetching fan token data:', error);
     
@@ -890,77 +886,74 @@ app.frame('/owned-tokens', async (c) => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '100%',
-          height: '100%',
-          backgroundColor: '#2c3e50',
-          fontFamily: 'Protest Riot, sans-serif',
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: 'url(https://bafybeiata3diat4mmcnz54vbqfrs5hqrbankpp5ynvhbtglrxakj55hx6y.ipfs.w3s.link/Frame%2064%20(8).png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
           color: 'white',
-          padding: '20px',
+          padding: '40px',
+          boxSizing: 'border-box',
+          position: 'relative',
         }}>
-          <h1 style={{ 
-            fontSize: '60px', 
-            marginBottom: '20px', 
-            textAlign: 'center', 
-            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-            color: '#3498db'
-          }}>
-            Fan Tokens I own
-          </h1>
           <div style={{
             display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: 'rgba(255,255,255,0.1)',
-            borderRadius: '15px',
-            padding: '20px',
-            width: '90%',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            position: 'absolute',
+            bottom: '20px',
+            right: '20px',
+            fontSize: '24px',
+            color: '#000000',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            padding: '10px',
+            borderRadius: '10px',
+            fontWeight: 'bold',
           }}>
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '130px',
-              height: '130px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              backgroundColor: '#FFA500',
-              marginBottom: '20px',
-              boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
-            }}>
-              {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
-                <img 
-                  src={tokenProfileInfo.farcasterSocial.profileImage}
-                  alt="Token Profile" 
-                  style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-                />
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '150px', height: '150px', backgroundColor: '#9054FF' }}>
-                  <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
-                </div>
-              )}
-            </div>
-            <div style={{
-              display: 'flex',
-              fontSize: '48px', 
-              color: '#000000', 
-              marginBottom: '20px',
-              textAlign: 'center',
-              textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
-            }}>
-              {tokenOwnerName}
-            </div>
-            <div style={{
-              display: 'flex',
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-              width: '100%',
-            }}>
-              <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-              <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
-              <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
-            </div>
+            {currentIndex + 1} of {allOwnedTokens.length}
+          </div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '130px',
+            height: '130px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            marginBottom: '20px',
+            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
+          }}>
+            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
+              <img 
+                src={tokenProfileInfo.farcasterSocial.profileImage}
+                alt="Token Profile" 
+                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '150px', height: '150px', backgroundColor: '#9054FF' }}>
+                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
+              </div>
+            )}
+          </div>
+          <div style={{
+            display: 'flex',
+            fontSize: '48px', 
+            color: '#000000', 
+            marginBottom: '20px',
+            textAlign: 'center',
+            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
+          }}>
+            {tokenOwnerName}
+          </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+          }}>
+            <TextBox label="Balance" value={`${tokenBalance} tokens`} />
+            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
+            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
         </div>
       ),
@@ -1210,5 +1203,6 @@ app.frame('/share-owned', async (c) => {
 
 export const GET = handle(app);
 export const POST = handle(app);
+
 
 
