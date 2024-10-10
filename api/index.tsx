@@ -64,7 +64,6 @@ interface ProfileInfo {
 // Define color constants
 const PRIMARY_COLOR = '#4a4a4a'
 const SECONDARY_COLOR = '#f0f0f0'
-const ACCENT_COLOR = '#3498db'
 
 // Define a common style object with improved aesthetics
 const commonStyle = {
@@ -891,74 +890,76 @@ app.frame('/owned-tokens', async (c) => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '1200px', 
-          height: '628px', 
-          backgroundImage: 'url(https://bafybeiata3diat4mmcnz54vbqfrs5hqrbankpp5ynvhbtglrxakj55hx6y.ipfs.w3s.link/Frame%2064%20(8).png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          width: '100%',
+          height: '100%',
+          backgroundColor: '#2c3e50', // Dark background for better contrast
+          fontFamily: 'Protest Riot, sans-serif',
           color: 'white',
-          padding: '40px',
-          boxSizing: 'border-box',
-          position: 'relative',
+          padding: '20px',
         }}>
-          <div style={{
-            display: 'flex',
-            position: 'absolute',
-            bottom: '20px',
-            right: '20px',
-            fontSize: '24px',
-            color: '#000000',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',
-            padding: '10px',
-            borderRadius: '10px',
-            fontWeight: 'bold',
+          <h1 style={{ 
+            fontSize: '60px', 
+            marginBottom: '20px', 
+            textAlign: 'center', 
+            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+            color: '#3498db' // Accent color for the title
           }}>
-            {currentIndex + 1} of {allOwnedTokens.length}
-          </div>
+            Fan Tokens I own
+          </h1>
+          {/* Wrap your content in this div for a card-like appearance */}
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '130px',
-            height: '130px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            backgroundColor: '#FFA500',
-            marginBottom: '20px',
-            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
+            backgroundColor: 'rgba(255,255,255,0.1)',
+            borderRadius: '15px',
+            padding: '20px',
+            width: '90%',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
           }}>
-            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
-              <img 
-                src={tokenProfileInfo.farcasterSocial.profileImage}
-                alt="Token Profile" 
-                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '150px', height: '150px', backgroundColor: '#9054FF' }}>
-                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
-              </div>
-            )}
-          </div>
-          <div style={{
-            display: 'flex',
-            fontSize: '48px', 
-            color: '#000000', 
-            marginBottom: '20px',
-            textAlign: 'center',
-            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
-          }}>
-            {tokenOwnerName}
-          </div>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
-          }}>
-            <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
-            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '130px',
+              height: '130px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              backgroundColor: '#FFA500',
+              marginBottom: '20px',
+              boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
+            }}>
+              {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
+                <img 
+                  src={tokenProfileInfo.farcasterSocial.profileImage}
+                  alt="Token Profile" 
+                  style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                />
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '150px', height: '150px', backgroundColor: '#9054FF' }}>
+                  <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
+                </div>
+              )}
+            </div>
+            <div style={{
+              display: 'flex',
+              fontSize: '48px', 
+              color: '#000000', 
+              marginBottom: '20px',
+              textAlign: 'center',
+              textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
+            }}>
+              {tokenOwnerName}
+            </div>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+            }}>
+              <TextBox label="Balance" value={`${tokenBalance} tokens`} />
+              <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
+              <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+            </div>
           </div>
         </div>
       ),
