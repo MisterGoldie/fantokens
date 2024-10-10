@@ -61,9 +61,14 @@ interface ProfileInfo {
   };
 }
 
-// Define a common style object to be reused across routes
+// Define color constants
+const PRIMARY_COLOR = '#4a4a4a'
+const SECONDARY_COLOR = '#f0f0f0'
+const ACCENT_COLOR = '#3498db'
+
+// Define a common style object with improved aesthetics
 const commonStyle = {
-  backgroundColor: 'white',
+  backgroundColor: SECONDARY_COLOR,
   width: '100%',
   height: '100%',
   display: 'flex',
@@ -71,6 +76,26 @@ const commonStyle = {
   alignItems: 'center',
   justifyContent: 'center',
   fontFamily: '"Protest Riot", sans-serif',
+  color: PRIMARY_COLOR,
+  padding: '20px',
+  boxSizing: 'border-box',
+}
+
+const cardStyle = {
+  backgroundColor: 'white',
+  borderRadius: '15px',
+  padding: '20px',
+  margin: '10px 0',
+  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  width: '90%',
+  maxWidth: '1000px',
+}
+
+const headingStyle = {
+  fontSize: '48px',
+  marginBottom: '20px',
+  textAlign: 'center',
+  color: ACCENT_COLOR,
 }
 
 export const app = new Frog({
