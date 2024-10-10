@@ -928,7 +928,7 @@ app.frame('/owned-tokens', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
+            <TextBox label="Buy Volume" value={buyVolume} /> {/* Removed " MOXIE" */}
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
         </div>
@@ -1149,7 +1149,7 @@ app.frame('/share-owned', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
+            <TextBox label="Buy Volume" value={buyVolume} /> {/* Removed " MOXIE" */}
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
         </div>
