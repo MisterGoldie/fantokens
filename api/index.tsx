@@ -64,7 +64,6 @@ interface ProfileInfo {
 // Define color constants
 const PRIMARY_COLOR = '#4a4a4a'
 const SECONDARY_COLOR = '#f0f0f0'
-const ACCENT_COLOR = '#3498db'
 
 // Define a common style object with improved aesthetics
 const commonStyle = {
@@ -431,35 +430,35 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
 
 // The code stops here, right before the (/) page starts
 app.frame('/', (c) => {
-  const cardStyle = {
-    backgroundColor: 'white',
-    borderRadius: '15px',
-    padding: '20px',
-    margin: '10px 0',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    width: '90%',
-    maxWidth: '1000px',
-  }
-
-  const headingStyle = {
-    fontSize: '48px',
-    marginBottom: '20px',
-    textAlign: 'center',
-    color: ACCENT_COLOR, // Use ACCENT_COLOR here
-  }
-
   return c.res({
     image: (
-      <div style={commonStyle}>
-        <h1 style={headingStyle}>Your Farcaster Frame</h1>
-        <div style={cardStyle}>
-          <h2 style={{ color: ACCENT_COLOR }}>Fan Token Information</h2>
-          {/* Add your fan token information here */}
-        </div>
-        <div style={cardStyle}>
-          <h2 style={{ color: ACCENT_COLOR }}>Vesting Contract</h2>
-          {/* Add vesting contract information here */}
-        </div>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          height: '100%',
+          backgroundColor: '#f0f0f0',
+          fontFamily: '"Protest Riot", sans-serif',
+          color: '#4a4a4a',
+          padding: '20px',
+        }}
+      >
+        <h1
+          style={{
+            fontSize: '48px',
+            marginBottom: '20px',
+            textAlign: 'center',
+            color: '#3498db',
+          }}
+        >
+          Your Farcaster Frame
+        </h1>
+        <p style={{ fontSize: '24px', textAlign: 'center' }}>
+          Welcome to your Fan Token information frame!
+        </p>
       </div>
     ),
     intents: [
