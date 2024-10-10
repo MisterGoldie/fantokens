@@ -506,7 +506,7 @@ app.frame('/yourfantoken', async (c) => {
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-          <div style={{ fontSize: '32px' }}>{value}</div>
+          <div style={{ fontSize: '40px' }}>{value}</div>
         </div>
       );
     }
@@ -655,7 +655,7 @@ app.frame('/share', async (c) => {
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-          <div style={{ fontSize: '32px' }}>{value}</div>
+          <div style={{ fontSize: '40px' }}>{value}</div>
         </div>
       );
     }
@@ -859,8 +859,8 @@ app.frame('/owned-tokens', async (c) => {
           height: '130px',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         }}>
-          <div style={{ display: 'flex', fontWeight: 'bold', color: '#000000' }}>{label}</div>
-          <div style={{ display: 'flex', color: '#000000', fontSize: '32px' }}>{value}</div>
+          <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
+          <div style={{ fontSize: '40px' }}>{value}</div>
         </div>
       );
     }
@@ -1107,7 +1107,7 @@ app.frame('/share-owned', async (c) => {
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         }}>
           <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
-          <div style={{ color: '#000000', fontSize: '34px' }}>{value}</div>
+          <div style={{ fontSize: '40px' }}>{value}</div>
         </div>
       );
     }
