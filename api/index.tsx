@@ -64,7 +64,17 @@ interface ProfileInfo {
 
 export const app = new Frog({
   basePath: '/api',
-  imageOptions: { width: 1200, height: 628 },
+  imageOptions: {
+    width: 1200,
+    height: 628,
+    fonts: [
+      {
+        name: 'Matemasie',
+        source: 'google',
+        weight: 400,
+      },
+    ],
+  },
   imageAspectRatio: '1.91:1',
   title: 'Farcaster Fan Token Tracker',
   hub: AIRSTACK_API_KEY ? {
@@ -414,7 +424,7 @@ app.frame('/', (c) => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: 'Matemasie, sans-serif',
           color: '#FFD700',
           padding: '20px',
         }}
