@@ -426,7 +426,7 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
 app.frame('/', (c) => {
   return c.res({
     image: (
-      <div style={commonStyle}>
+      <div style={{...commonStyle, backgroundColor: 'black'}}>
         <div
           style={{
             fontSize: '72px',
