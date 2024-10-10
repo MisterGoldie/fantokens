@@ -819,55 +819,26 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
-    const formatBalance = (balance: string, decimals: number = 18): string => {
-      const balanceWei = BigInt(balance);
-      const denomination = BigInt(10 ** decimals);
-      const balanceTokens = Number(balanceWei) / Number(denomination);
-      return balanceTokens.toFixed(2);
+    const formatBalance = (balance: string): string => {
+      const balanceNum = parseFloat(balance);
+      return isNaN(balanceNum) ? 'N/A' : balanceNum.toFixed(2);
     };
 
-    const formatNumber = (value: number | string | null | undefined): string => {
+    const formatNumber = (value: string | number | null | undefined): string => {
       if (value === null || value === undefined) return 'N/A';
       const num = typeof value === 'string' ? parseFloat(value) : value;
+      if (isNaN(num)) return 'N/A';
       
-      if (num >= 1e9) {
-        return (num / 1e9).toFixed(2) + 'B';
-      } else if (num >= 1e6) {
-        return (num / 1e6).toFixed(2) + 'M';
-      } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(2) + 'K';
-      } else if (num > 0 && num < 0.01) {
-        return num.toExponential(2);
-      } else {
-        return num.toFixed(2);
-      }
+      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+      if (num > 0 && num < 0.01) return num.toExponential(2);
+      return num.toFixed(2);
     };
 
-    function TextBox({ label, value }: TextBoxProps) {
-      return (
-        <div style={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          padding: '10px',
-          margin: '5px',
-          borderRadius: '10px',
-          fontSize: '28px',
-          width: '300px',
-          height: '130px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        }}>
-          <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
-          <div style={{ fontSize: '40px' }}>{value}</div>
-        </div>
-      );
-    }
-
     const tokenBalance = formatBalance(token.balance);
-    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
-    const buyVolume = formatBalance(token.buyVolume);
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
+    const buyVolume = formatNumber(token.buyVolume);
     const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
 
     console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
@@ -883,7 +854,7 @@ app.frame('/owned-tokens', async (c) => {
     return c.res({
       image: (
         <div style={{
-          display: 'flex',
+          display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
@@ -993,6 +964,28 @@ app.frame('/owned-tokens', async (c) => {
   }
 });
 
+function TextBox({ label, value }: TextBoxProps) {
+  return (
+    <div style={{ 
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      padding: '10px',
+      margin: '5px',
+      borderRadius: '10px',
+      fontSize: '28px',
+      width: '300px',
+      height: '130px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    }}>
+      <div style={{ display: 'flex', fontWeight: 'bold', color: '#000000' }}>{label}</div>
+      <div style={{ display: 'flex', color: '#000000', fontSize: '32px' }}>{value}</div>
+    </div>
+  );
+}
+
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
@@ -1066,55 +1059,26 @@ app.frame('/share-owned', async (c) => {
       }
     }
 
-    const formatBalance = (balance: string, decimals: number = 18): string => {
-      const balanceWei = BigInt(balance);
-      const denomination = BigInt(10 ** decimals);
-      const balanceTokens = Number(balanceWei) / Number(denomination);
-      return balanceTokens.toFixed(2);
+    const formatBalance = (balance: string): string => {
+      const balanceNum = parseFloat(balance);
+      return isNaN(balanceNum) ? 'N/A' : balanceNum.toFixed(2);
     };
 
-    const formatNumber = (value: number | string | null | undefined): string => {
+    const formatNumber = (value: string | number | null | undefined): string => {
       if (value === null || value === undefined) return 'N/A';
       const num = typeof value === 'string' ? parseFloat(value) : value;
+      if (isNaN(num)) return 'N/A';
       
-      if (num >= 1e9) {
-        return (num / 1e9).toFixed(2) + 'B';
-      } else if (num >= 1e6) {
-        return (num / 1e6).toFixed(2) + 'M';
-      } else if (num >= 1e3) {
-        return (num / 1e3).toFixed(2) + 'K';
-      } else if (num > 0 && num < 0.01) {
-        return num.toExponential(2);
-      } else {
-        return num.toFixed(2);
-      }
+      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+      if (num > 0 && num < 0.01) return num.toExponential(2);
+      return num.toFixed(2);
     };
 
-    function TextBox({ label, value }: TextBoxProps) {
-      return (
-        <div style={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          padding: '10px',
-          margin: '5px',
-          borderRadius: '10px',
-          fontSize: '28px',
-          width: '300px',
-          height: '130px',
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        }}>
-          <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
-          <div style={{ fontSize: '40px' }}>{value}</div>
-        </div>
-      );
-    }
-
     const tokenBalance = formatBalance(token.balance);
-    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name;
-    const buyVolume = formatBalance(token.buyVolume);
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
+    const buyVolume = formatNumber(token.buyVolume);
     const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
 
     console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
