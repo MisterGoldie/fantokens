@@ -819,9 +819,13 @@ app.frame('/owned-tokens', async (c) => {
       }
     }
 
-    const formatBalance = (balance: string): string => {
-      const balanceNum = parseFloat(balance);
-      return isNaN(balanceNum) ? 'N/A' : balanceNum.toFixed(2);
+    const formatBalance = (balance: string, decimals: number = 18): string => {
+      const balanceNum = parseFloat(balance) / Math.pow(10, decimals);
+      if (isNaN(balanceNum)) return 'N/A';
+      if (balanceNum >= 1e6) return (balanceNum / 1e6).toFixed(2) + 'M';
+      if (balanceNum >= 1e3) return (balanceNum / 1e3).toFixed(2) + 'K';
+      if (balanceNum < 0.01) return balanceNum.toExponential(2);
+      return balanceNum.toFixed(2);
     };
 
     const formatNumber = (value: string | number | null | undefined): string => {
@@ -832,7 +836,7 @@ app.frame('/owned-tokens', async (c) => {
       if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
       if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
       if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
-      if (num > 0 && num < 0.01) return num.toExponential(2);
+      if (num < 0.01) return num.toExponential(2);
       return num.toFixed(2);
     };
 
@@ -1059,9 +1063,13 @@ app.frame('/share-owned', async (c) => {
       }
     }
 
-    const formatBalance = (balance: string): string => {
-      const balanceNum = parseFloat(balance);
-      return isNaN(balanceNum) ? 'N/A' : balanceNum.toFixed(2);
+    const formatBalance = (balance: string, decimals: number = 18): string => {
+      const balanceNum = parseFloat(balance) / Math.pow(10, decimals);
+      if (isNaN(balanceNum)) return 'N/A';
+      if (balanceNum >= 1e6) return (balanceNum / 1e6).toFixed(2) + 'M';
+      if (balanceNum >= 1e3) return (balanceNum / 1e3).toFixed(2) + 'K';
+      if (balanceNum < 0.01) return balanceNum.toExponential(2);
+      return balanceNum.toFixed(2);
     };
 
     const formatNumber = (value: string | number | null | undefined): string => {
@@ -1072,7 +1080,7 @@ app.frame('/share-owned', async (c) => {
       if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
       if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
       if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
-      if (num > 0 && num < 0.01) return num.toExponential(2);
+      if (num < 0.01) return num.toExponential(2);
       return num.toFixed(2);
     };
 
