@@ -29,6 +29,7 @@ interface TokenHolding {
     name: string;
     symbol: string;
     currentPriceInMoxie: string;
+    decimals?: number; // Add this line
   };
 }
 
@@ -38,6 +39,7 @@ interface SubjectToken {
   id: string;
   name: string;
   symbol: string;
+  decimals?: number; // Add this line
   portfolio: TokenHolding[];
 }
 
@@ -840,12 +842,13 @@ app.frame('/owned-tokens', async (c) => {
       return num.toFixed(2);
     };
 
-    const tokenBalance = formatBalance(token.balance);
-    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
-    const buyVolume = formatNumber(token.buyVolume);
+    const tokenBalance = formatBalance(token.balance, token.subjectToken.decimals || 18);
+    const buyVolume = formatBalance(token.buyVolume, 18); // MOXIE has 18 decimals
     const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
 
-    console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
+    console.log('Formatted data:', { tokenBalance, buyVolume, currentPrice });
+
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
 
     const shareText = `I am the proud owner of ${tokenBalance} of ${tokenOwnerName}'s Fan Tokens powered by @moxie.eth 👏. Check which Fan Tokens you own 👀. Frame by @goldie`;
     const timestamp = Date.now();
@@ -928,7 +931,7 @@ app.frame('/owned-tokens', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-            <TextBox label="Buy Volume" value={buyVolume} /> {/* Removed " MOXIE" */}
+            <TextBox label="Buy Volume" value={buyVolume} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
         </div>
@@ -968,7 +971,7 @@ app.frame('/owned-tokens', async (c) => {
   }
 });
 
-function TextBox({ label, value }: TextBoxProps) {
+function TextBox({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ 
       display: 'flex',
@@ -984,8 +987,8 @@ function TextBox({ label, value }: TextBoxProps) {
       height: '130px',
       boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     }}>
-      <div style={{ display: 'flex', fontWeight: 'bold', color: '#000000' }}>{label}</div>
-      <div style={{ display: 'flex', color: '#000000', fontSize: '32px' }}>{value}</div>
+      <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
+      <div style={{ color: '#000000', fontSize: '32px' }}>{value}</div>
     </div>
   );
 }
@@ -1084,12 +1087,13 @@ app.frame('/share-owned', async (c) => {
       return num.toFixed(2);
     };
 
-    const tokenBalance = formatBalance(token.balance);
-    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
-    const buyVolume = formatNumber(token.buyVolume);
+    const tokenBalance = formatBalance(token.balance, token.subjectToken.decimals || 18);
+    const buyVolume = formatBalance(token.buyVolume, 18); // MOXIE has 18 decimals
     const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
 
-    console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
+    console.log('Formatted data:', { tokenBalance, buyVolume, currentPrice });
+
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
 
     return c.res({
       image: (
@@ -1149,7 +1153,7 @@ app.frame('/share-owned', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-            <TextBox label="Buy Volume" value={buyVolume} /> {/* Removed " MOXIE" */}
+            <TextBox label="Buy Volume" value={buyVolume} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
         </div>
