@@ -81,23 +81,6 @@ const commonStyle = {
   boxSizing: 'border-box',
 }
 
-const cardStyle = {
-  backgroundColor: 'white',
-  borderRadius: '15px',
-  padding: '20px',
-  margin: '10px 0',
-  boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-  width: '90%',
-  maxWidth: '1000px',
-}
-
-const headingStyle = {
-  fontSize: '48px',
-  marginBottom: '20px',
-  textAlign: 'center',
-  color: ACCENT_COLOR,
-}
-
 export const app = new Frog({
   basePath: '/api',
   imageOptions: {
@@ -447,38 +430,35 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
 
 
 // The code stops here, right before the (/) page starts
-
 app.frame('/', (c) => {
+  const cardStyle = {
+    backgroundColor: 'white',
+    borderRadius: '15px',
+    padding: '20px',
+    margin: '10px 0',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    width: '90%',
+    maxWidth: '1000px',
+  }
+
+  const headingStyle = {
+    fontSize: '48px',
+    marginBottom: '20px',
+    textAlign: 'center',
+    color: ACCENT_COLOR, // Use ACCENT_COLOR here
+  }
+
   return c.res({
     image: (
       <div style={commonStyle}>
-        <div
-          style={{
-            fontSize: '72px',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            textTransform: 'uppercase',
-            letterSpacing: '4px',
-            textShadow: '0 0 10px rgba(255,215,0,0.7), 0 0 20px rgba(255,215,0,0.5), 0 0 30px rgba(255,215,0,0.3)',
-            marginBottom: '20px',
-          }}
-        >
-          You & Your
+        <h1 style={headingStyle}>Your Farcaster Frame</h1>
+        <div style={cardStyle}>
+          <h2 style={{ color: ACCENT_COLOR }}>Fan Token Information</h2>
+          {/* Add your fan token information here */}
         </div>
-        <div
-          style={{
-            fontSize: '96px',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            textTransform: 'uppercase',
-            letterSpacing: '6px',
-            background: 'linear-gradient(45deg, #8B50FA, #9B6DF1)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-          }}
-        >
-          Fan Tokens
+        <div style={cardStyle}>
+          <h2 style={{ color: ACCENT_COLOR }}>Vesting Contract</h2>
+          {/* Add vesting contract information here */}
         </div>
       </div>
     ),
