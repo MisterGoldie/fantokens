@@ -1107,7 +1107,7 @@ app.frame('/share-owned', async (c) => {
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
         }}>
           <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
-          <div style={{ color: '#000000', fontSize: '32px' }}>{value}</div>
+          <div style={{ color: '#000000', fontSize: '34px' }}>{value}</div>
         </div>
       );
     }
