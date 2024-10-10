@@ -596,7 +596,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/owned-tokens">Owned</Button>,
         <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ],
-    });
+    }); //rgeegre
   } catch (error) {
     console.error('Error fetching fan token data:', error);
     
