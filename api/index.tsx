@@ -892,7 +892,7 @@ app.frame('/owned-tokens', async (c) => {
           justifyContent: 'center',
           width: '100%',
           height: '100%',
-          backgroundColor: '#2c3e50', // Dark background for better contrast
+          backgroundColor: '#2c3e50',
           fontFamily: 'Protest Riot, sans-serif',
           color: 'white',
           padding: '20px',
@@ -902,12 +902,13 @@ app.frame('/owned-tokens', async (c) => {
             marginBottom: '20px', 
             textAlign: 'center', 
             textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-            color: '#3498db' // Accent color for the title
+            color: '#3498db'
           }}>
             Fan Tokens I own
           </h1>
-          {/* Wrap your content in this div for a card-like appearance */}
           <div style={{
+            display: 'flex',
+            flexDirection: 'column',
             backgroundColor: 'rgba(255,255,255,0.1)',
             borderRadius: '15px',
             padding: '20px',
