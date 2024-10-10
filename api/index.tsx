@@ -69,7 +69,7 @@ export const app = new Frog({
     height: 628,
     fonts: [
       {
-        name: 'Matemasie',
+        name: 'Protest Riot',
         source: 'google',
         weight: 400,
       },
@@ -424,7 +424,7 @@ app.frame('/', (c) => {
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          fontFamily: 'Matemasie, sans-serif',
+          fontFamily: '"Protest Riot", sans-serif',
           color: '#FFD700',
           padding: '20px',
         }}
