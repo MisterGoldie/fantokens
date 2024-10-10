@@ -64,6 +64,7 @@ interface ProfileInfo {
 // Define color constants
 const PRIMARY_COLOR = '#4a4a4a'
 const SECONDARY_COLOR = '#f0f0f0'
+const ACCENT_COLOR = '#3498db'
 
 // Define a common style object with improved aesthetics
 const commonStyle = {
