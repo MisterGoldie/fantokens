@@ -512,7 +512,7 @@ app.frame('/yourfantoken', async (c) => {
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-          <div style={{ fontSize: '40px' }}>{value}</div>
+          <div style={{ fontSize: '32px' }}>{value}</div>
         </div>
       );
     }
@@ -561,12 +561,19 @@ app.frame('/yourfantoken', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            {profileInfo?.farcasterSocial?.profileImage ? (
-              <img 
-                src={profileInfo.farcasterSocial.profileImage}
-                alt="Profile" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+            {profileInfo?.farcasterSocial?.profileDisplayName ? (
+              <div style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '48px',
+                color: '#ffffff',
+                backgroundColor: '#9054FF',
+              }}>
+                {profileInfo.farcasterSocial.profileDisplayName.charAt(0).toUpperCase()}
+              </div>
             ) : (
               <div style={{ 
                 width: '100%', 
