@@ -491,6 +491,10 @@ app.frame('/yourfantoken', async (c) => {
     let profileInfo = await getProfileInfo(fid.toString());
     let powerboostScore = await getPowerboostScore(fid.toString());
 
+    console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
+    console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
+    console.log('Powerboost Score:', powerboostScore);
+
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{
