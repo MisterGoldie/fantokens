@@ -539,6 +539,13 @@ app.frame('/yourfantoken', async (c) => {
 
     const imageUrl = imgurUrl || modifiedImageUrl || fallbackImageUrl;
 
+    const shareUrl = `/share?` + new URLSearchParams({
+      fid: fid.toString(),
+      currentPrice: currentPrice.toString(),
+      holders: holders.toString(),
+      powerboost: powerboost.toString()
+    }).toString();
+
     return c.res({
       image: (
         <div style={{ 
@@ -604,7 +611,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
         <Button action="/owned-tokens">Owned</Button>,
-        <Button action={`/share?fid=${fid}&currentPrice=${currentPrice}&holders=${holders}&powerboost=${powerboost}`}>Share</Button>,
+        <Button action={shareUrl}>Share</Button>,
       ],
     });
   } catch (error) {
@@ -631,9 +638,11 @@ app.frame('/share', async (c) => {
   const holders = c.req.query('holders');
   const powerboost = c.req.query('powerboost');
 
+  console.log('Query parameters:', c.req.query());
   console.log(`FID: ${fid}, Current Price: ${currentPrice}, Holders: ${holders}, Powerboost: ${powerboost}`);
 
   if (!fid) {
+    console.error('No FID provided in query parameters');
     return c.res({
       image: (
         <div style={commonStyle}>
@@ -664,7 +673,13 @@ app.frame('/share', async (c) => {
 
     const shareText = `Check out my fan token on Moxie! Current Price: ${currentPrice} MOXIE, Holders: ${holders}, Powerboost: ${powerboost}`;
     const timestamp = Date.now();
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&timestamp=${timestamp}`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?` + new URLSearchParams({
+      fid: fid.toString(),
+      currentPrice: currentPrice?.toString() || '',
+      holders: holders?.toString() || '',
+      powerboost: powerboost?.toString() || '',
+      timestamp: timestamp.toString()
+    }).toString();
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     return c.res({
