@@ -634,8 +634,8 @@ app.frame('/share', async (c) => {
   if (!fid) {
     return c.res({
       image: (
-        <div style={commonStyle}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>Error: No FID provided</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
         </div>
       ),
       intents: [
@@ -660,6 +660,7 @@ app.frame('/share', async (c) => {
           padding: '15px',
           margin: '10px',
           borderRadius: '15px',
+          fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
           display: 'flex',
           flexDirection: 'column',
@@ -670,7 +671,7 @@ app.frame('/share', async (c) => {
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-          <div style={{ fontSize: '40px' }}>{value}</div>
+          <div style={{ fontSize: '32px' }}>{value}</div>
         </div>
       );
     }
@@ -695,6 +696,7 @@ app.frame('/share', async (c) => {
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+          fontFamily: 'Arial, sans-serif',
           color: '#000000',
           padding: '20px',
           boxSizing: 'border-box',
@@ -711,26 +713,11 @@ app.frame('/share', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            {profileInfo?.farcasterSocial?.profileImage ? (
-              <img 
-                src={profileInfo.farcasterSocial.profileImage}
-                alt={profileInfo.farcasterSocial.profileDisplayName || "Profile"} 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{ 
-                width: '100%', 
-                height: '100%', 
-                backgroundColor: '#9054FF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                fontSize: '24px'
-              }}>
-                {profileInfo?.farcasterSocial?.profileDisplayName?.charAt(0).toUpperCase() || 'N/A'}
-              </div>
-            )}
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
           
           <h1 style={{ 
@@ -766,8 +753,8 @@ app.frame('/share', async (c) => {
     
     return c.res({
       image: (
-        <div style={commonStyle}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching fan token data. Please try again.</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
