@@ -2,7 +2,6 @@ import { Button, Frog } from 'frog';
 import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
 import { gql, GraphQLClient } from "graphql-request";
-import fetch from 'node-fetch';
 
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
@@ -108,19 +107,6 @@ app.use(
   })
 );
 
-async function getBase64Image(imageUrl: string): Promise<string> {
-  try {
-    const response = await fetch(imageUrl);
-    const arrayBuffer = await response.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString('base64');
-    const mimeType = response.headers.get('content-type') || 'image/jpeg';
-    return `data:${mimeType};base64,${base64}`;
-  } catch (error) {
-    console.error('Error fetching image:', error);
-    return '';
-  }
-}
 
 async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
@@ -495,8 +481,8 @@ app.frame('/yourfantoken', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={commonStyle}>
-          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center' }}>Error: No FID</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
+          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -510,10 +496,6 @@ app.frame('/yourfantoken', async (c) => {
     let profileInfo = await getProfileInfo(fid.toString());
     let powerboostScore = await getPowerboostScore(fid.toString());
 
-    console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
-    console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
-    console.log('Powerboost Score:', powerboostScore);
-
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{
@@ -521,6 +503,7 @@ app.frame('/yourfantoken', async (c) => {
           padding: '15px',
           margin: '10px',
           borderRadius: '15px',
+          fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
           display: 'flex',
           flexDirection: 'column',
@@ -552,11 +535,6 @@ app.frame('/yourfantoken', async (c) => {
     console.log('Share URL:', shareUrl);
     console.log('Farcaster Share URL:', farcasterShareURL);
 
-    let profileImageBase64 = '';
-    if (profileInfo?.farcasterSocial?.profileImage) {
-      profileImageBase64 = await getBase64Image(profileInfo.farcasterSocial.profileImage);
-    }
-
     return c.res({
       image: (
         <div style={{ 
@@ -569,6 +547,7 @@ app.frame('/yourfantoken', async (c) => {
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+          fontFamily: 'Arial, sans-serif',
           color: '#000000',
           padding: '20px',
           boxSizing: 'border-box',
@@ -585,28 +564,11 @@ app.frame('/yourfantoken', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            {profileImageBase64 ? (
-              <img 
-                src={profileImageBase64}
-                alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
-                width={180}
-                height={180}
-                style={{ objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{ 
-                width: '100%', 
-                height: '100%', 
-                backgroundColor: '#9054FF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                fontSize: '24px'
-              }}>
-                {profileInfo?.farcasterSocial?.profileDisplayName?.charAt(0).toUpperCase() || 'N/A'}
-              </div>
-            )}
+            <img 
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              alt="Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
           
           <h1 style={{ 
@@ -645,8 +607,8 @@ app.frame('/yourfantoken', async (c) => {
     
     return c.res({
       image: (
-        <div style={commonStyle}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching fan token data. Please try again.</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
@@ -655,6 +617,7 @@ app.frame('/yourfantoken', async (c) => {
     });
   }
 });
+
 
 app.frame('/share', async (c) => {
   console.log('Entering /share frame');
