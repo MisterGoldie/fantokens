@@ -539,23 +539,6 @@ app.frame('/yourfantoken', async (c) => {
     console.log('Share URL:', shareUrl);
     console.log('Farcaster Share URL:', farcasterShareURL);
 
-    const getImageUrl = (url: string) => {
-      return new Promise<string>((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(url);
-        img.onerror = () => reject(new Error('Failed to load image'));
-        img.src = url;
-      });
-    };
-
-    let profileImageUrl;
-    try {
-      profileImageUrl = await getImageUrl(profileInfo?.farcasterSocial?.profileImage || '');
-    } catch (error) {
-      console.error('Failed to load profile image:', error);
-      profileImageUrl = null;
-    }
-
     return c.res({
       image: (
         <div style={{ 
@@ -584,10 +567,10 @@ app.frame('/yourfantoken', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            {profileImageUrl ? (
+            {profileInfo?.farcasterSocial?.profileImage ? (
               <img 
-                src={profileImageUrl}
-                alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
+                src={profileInfo.farcasterSocial.profileImage}
+                alt={profileInfo.farcasterSocial.profileDisplayName || "Profile"}
                 width={180}
                 height={180}
                 style={{ objectFit: 'cover' }}
