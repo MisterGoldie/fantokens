@@ -63,7 +63,7 @@ interface ProfileInfo {
   };
 }
 
-// Define a common style object to be reused across routes
+// Define a common style object to be reused across route
 const commonStyle = {
   backgroundColor: 'white',
   width: '100%',
