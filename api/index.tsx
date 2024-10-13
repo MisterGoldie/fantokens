@@ -154,16 +154,22 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
     const data = await graphQLClient.request<any>(query, variables);
     console.log('Profile API response data:', JSON.stringify(data, null, 2));
 
-    if (!data.Wallet || !data.farcasterSocials.Social[0]) {
+    if (!data.farcasterSocials.Social[0]) {
       throw new Error('Incomplete data in the response');
     }
 
-    const wallet = data.Wallet;
     const social = data.farcasterSocials.Social[0];
 
     return {
-      primaryDomain: wallet.primaryDomain,
-      farcasterSocial: social,
+      primaryDomain: data.Wallet.primaryDomain,
+      farcasterSocial: {
+        profileDisplayName: social.profileDisplayName,
+        profileImage: social.profileImage,
+        profileBio: social.profileBio,
+        followerCount: social.followerCount,
+        followingCount: social.followingCount,
+        farcasterScore: social.farcasterScore,
+      },
     };
   } catch (error) {
     console.error('Error in getProfileInfo:', error);
@@ -561,19 +567,12 @@ app.frame('/yourfantoken', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            {profileInfo?.farcasterSocial?.profileDisplayName ? (
-              <div style={{
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '48px',
-                color: '#ffffff',
-                backgroundColor: '#9054FF',
-              }}>
-                {profileInfo.farcasterSocial.profileDisplayName.charAt(0).toUpperCase()}
-              </div>
+            {profileInfo?.farcasterSocial?.profileImage ? (
+              <img 
+                src={profileInfo.farcasterSocial.profileImage}
+                alt={profileInfo.farcasterSocial.profileDisplayName || "Profile"}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             ) : (
               <div style={{ 
                 width: '100%', 
@@ -585,7 +584,7 @@ app.frame('/yourfantoken', async (c) => {
                 color: '#ffffff',
                 fontSize: '24px'
               }}>
-                No Image
+                {profileInfo?.farcasterSocial?.profileDisplayName?.charAt(0).toUpperCase() || 'N/A'}
               </div>
             )}
           </div>
@@ -727,7 +726,7 @@ app.frame('/share', async (c) => {
             {profileInfo?.farcasterSocial?.profileImage ? (
               <img 
                 src={profileInfo.farcasterSocial.profileImage}
-                alt="Profile" 
+                alt={profileInfo.farcasterSocial.profileDisplayName || "Profile"}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
@@ -741,7 +740,7 @@ app.frame('/share', async (c) => {
                 color: '#ffffff',
                 fontSize: '24px'
               }}>
-                No Image
+                {profileInfo?.farcasterSocial?.profileDisplayName?.charAt(0).toUpperCase() || 'N/A'}
               </div>
             )}
           </div>
