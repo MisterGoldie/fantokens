@@ -604,7 +604,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
         <Button action="/owned-tokens">Owned</Button>,
-        <Button.Link href={`https://warpcast.com/~/compose?text=${encodeURIComponent(`Check out my fan token on Moxie! https://moxie.xyz/yourfantoken?fid=${fid}`)}`}>Share</Button.Link>,
+        <Button action={`/share?fid=${fid}&currentPrice=${currentPrice}&holders=${holders}&powerboost=${powerboost}`}>Share</Button>,
       ],
     });
   } catch (error) {
@@ -627,9 +627,11 @@ app.frame('/yourfantoken', async (c) => {
 app.frame('/share', async (c) => {
   console.log('Entering /share frame');
   const fid = c.req.query('fid');
-  const timestamp = c.req.query('timestamp');
+  const currentPrice = c.req.query('currentPrice');
+  const holders = c.req.query('holders');
+  const powerboost = c.req.query('powerboost');
 
-  console.log(`FID: ${fid}, Timestamp: ${timestamp}`);
+  console.log(`FID: ${fid}, Current Price: ${currentPrice}, Holders: ${holders}, Powerboost: ${powerboost}`);
 
   if (!fid) {
     return c.res({
@@ -645,42 +647,8 @@ app.frame('/share', async (c) => {
   }
 
   try {
-    let tokenInfo = await getFanTokenInfo(fid.toString());
     let profileInfo = await getProfileInfo(fid.toString());
-    let powerboostScore = await getPowerboostScore(fid.toString());
-
-    console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
     console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
-    console.log('Powerboost Score:', powerboostScore);
-
-    function TextBox({ label, value }: TextBoxProps) {
-      return (
-        <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          padding: '15px',
-          margin: '10px',
-          borderRadius: '15px',
-          fontFamily: 'Arial, sans-serif',
-          fontSize: '28px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '300px',
-          height: '130px',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-          <div style={{ fontSize: '32px' }}>{value}</div>
-        </div>
-      );
-    }
-
-    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
-    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
-    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
-    
-    console.log('Formatted data:', { currentPrice, holders, powerboost });
 
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
@@ -739,8 +707,8 @@ app.frame('/share', async (c) => {
             maxWidth: '1000px',
           }}>
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
-            <TextBox label="Powerboost" value={powerboost} />
-            <TextBox label="Holders" value={holders} />
+            <TextBox label="Powerboost" value={powerboost || ''} />
+            <TextBox label="Holders" value={holders || ''} />
           </div>
         </div>
       ),
