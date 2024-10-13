@@ -638,8 +638,7 @@ app.frame('/share', async (c) => {
   const holders = c.req.query('holders');
   const powerboost = c.req.query('powerboost');
 
-  console.log('Query parameters:', c.req.query());
-  console.log(`FID: ${fid}, Current Price: ${currentPrice}, Holders: ${holders}, Powerboost: ${powerboost}`);
+  console.log('Query parameters:', { fid, currentPrice, holders, powerboost });
 
   if (!fid) {
     console.error('No FID provided in query parameters');
@@ -1209,6 +1208,3 @@ app.frame('/share-owned', async (c) => {
 
 export const GET = handle(app);
 export const POST = handle(app);
-
-
-
