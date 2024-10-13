@@ -481,8 +481,8 @@ app.frame('/yourfantoken', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
-          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -495,6 +495,10 @@ app.frame('/yourfantoken', async (c) => {
     let tokenInfo = await getFanTokenInfo(fid.toString());
     let profileInfo = await getProfileInfo(fid.toString());
     let powerboostScore = await getPowerboostScore(fid.toString());
+
+    console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
+    console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
+    console.log('Powerboost Score:', powerboostScore);
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -523,17 +527,17 @@ app.frame('/yourfantoken', async (c) => {
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
 
-    const shareText = `Check out my /airstack Fan Token stats by @goldie! Check your own stats here`;
-    
+    console.log('Formatted data:', { currentPrice, holders, powerboost });
+
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    // Add timestamp to the share URL
-    const timestamp = Date.now();
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&timestamp=${timestamp}`;
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+    // Modify the image URL to use a more compatible format
+    const originalImageUrl = profileInfo?.farcasterSocial?.profileImage?.split('/').pop();
+    const imgurUrl = originalImageUrl ? `https://i.imgur.com/${originalImageUrl}` : null;
+    const modifiedImageUrl = profileInfo?.farcasterSocial?.profileImage?.replace('f_gif', 'f_auto');
+    const fallbackImageUrl = '/api/placeholder/150/150'; // Replace with your actual fallback image URL
 
-    console.log('Share URL:', shareUrl);
-    console.log('Farcaster Share URL:', farcasterShareURL);
+    const imageUrl = imgurUrl || modifiedImageUrl || fallbackImageUrl;
 
     return c.res({
       image: (
@@ -547,7 +551,6 @@ app.frame('/yourfantoken', async (c) => {
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          fontFamily: 'Arial, sans-serif',
           color: '#000000',
           padding: '20px',
           boxSizing: 'border-box',
@@ -565,9 +568,11 @@ app.frame('/yourfantoken', async (c) => {
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
             <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-              alt="Profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              src={imageUrl}
+              alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
+              width={180}
+              height={180}
+              style={{ objectFit: 'cover' }}
             />
           </div>
           
@@ -599,7 +604,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
         <Button action="/owned-tokens">Owned</Button>,
-        <Button.Link href={farcasterShareURL}>Share</Button.Link>,
+        <Button.Link href={`https://warpcast.com/~/compose?text=${encodeURIComponent(`Check out my fan token on Moxie! https://moxie.xyz/yourfantoken?fid=${fid}`)}`}>Share</Button.Link>,
       ],
     });
   } catch (error) {
@@ -607,8 +612,8 @@ app.frame('/yourfantoken', async (c) => {
     
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
@@ -709,7 +714,7 @@ app.frame('/share', async (c) => {
             {profileInfo?.farcasterSocial?.profileImage ? (
               <img 
                 src={profileInfo.farcasterSocial.profileImage}
-                alt={profileInfo.farcasterSocial.profileDisplayName || "Profile"}
+                alt={profileInfo.farcasterSocial.profileDisplayName || "Profile"} 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
