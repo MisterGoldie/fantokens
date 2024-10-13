@@ -557,11 +557,26 @@ app.frame('/yourfantoken', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-              alt="Profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            {profileInfo?.farcasterSocial?.profileImage ? (
+              <img 
+                src={profileInfo.farcasterSocial.profileImage}
+                alt="Profile" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{ 
+                width: '100%', 
+                height: '100%', 
+                backgroundColor: '#9054FF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontSize: '24px'
+              }}>
+                No Image
+              </div>
+            )}
           </div>
           
           <h1 style={{ 
@@ -698,11 +713,26 @@ app.frame('/share', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-              alt="Profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            {profileInfo?.farcasterSocial?.profileImage ? (
+              <img 
+                src={profileInfo.farcasterSocial.profileImage}
+                alt="Profile" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{ 
+                width: '100%', 
+                height: '100%', 
+                backgroundColor: '#9054FF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontSize: '24px'
+              }}>
+                No Image
+              </div>
+            )}
           </div>
           
           <h1 style={{ 
@@ -901,15 +931,24 @@ app.frame('/owned-tokens', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
-            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
+            {tokenProfileInfo?.farcasterSocial?.profileImage ? (
               <img 
                 src={tokenProfileInfo.farcasterSocial.profileImage}
                 alt="Token Profile" 
-                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '150px', height: '150px', backgroundColor: '#9054FF' }}>
-                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                width: '100%', 
+                height: '100%', 
+                backgroundColor: '#9054FF',
+                color: '#ffffff',
+                fontSize: '24px'
+              }}>
+                Channel
               </div>
             )}
           </div>
@@ -1124,15 +1163,24 @@ app.frame('/share-owned', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
-            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
+            {tokenProfileInfo?.farcasterSocial?.profileImage ? (
               <img 
                 src={tokenProfileInfo.farcasterSocial.profileImage}
                 alt="Token Profile" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#9054FF' }}>
-                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                width: '100%', 
+                height: '100%', 
+                backgroundColor: '#9054FF',
+                color: '#ffffff',
+                fontSize: '24px'
+              }}>
+                Channel
               </div>
             )}
           </div>
