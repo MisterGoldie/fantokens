@@ -166,11 +166,18 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
     const wallet = data.Wallet;
     const social = data.farcasterSocials.Social[0];
 
+    // Ensure the profile image is an absolute URL
+    const profileImage = social.profileImage 
+      ? (social.profileImage.startsWith('http') 
+          ? social.profileImage 
+          : `https://i.imgur.com/${social.profileImage}`)
+      : 'https://example.com/default-profile-image.jpg';
+
     return {
       primaryDomain: wallet.primaryDomain,
       farcasterSocial: {
         ...social,
-        profileImage: social.profileImage ? social.profileImage.split('/').pop() : null
+        profileImage
       },
     };
   } catch (error) {
@@ -533,9 +540,7 @@ app.frame('/yourfantoken', async (c) => {
     console.log('Share URL:', shareUrl);
     console.log('Farcaster Share URL:', farcasterShareURL);
 
-    const profileImageUrl = profileInfo?.farcasterSocial?.profileImage 
-      ? `https://i.imgur.com/${profileInfo.farcasterSocial.profileImage}`
-      : 'https://example.com/default-profile-image.jpg';
+    const profileImageUrl = profileInfo?.farcasterSocial?.profileImage || 'https://example.com/default-profile-image.jpg';
 
     return c.res({
       image: (
@@ -679,6 +684,8 @@ app.frame('/share', async (c) => {
 
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
+    const profileImageUrl = profileInfo?.farcasterSocial?.profileImage || 'https://example.com/default-profile-image.jpg';
+
     return c.res({
       image: (
         <div style={{ 
@@ -709,7 +716,7 @@ app.frame('/share', async (c) => {
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
             <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              src={profileImageUrl}
               alt="Profile" 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
@@ -892,6 +899,8 @@ app.frame('/owned-tokens', async (c) => {
     console.log('Share URL:', shareUrl);
     console.log('Farcaster Share URL:', farcasterShareURL);
 
+    const profileImageUrl = tokenProfileInfo?.farcasterSocial?.profileImage || 'https://example.com/default-profile-image.jpg';
+
     return c.res({
       image: (
         <div style={{
@@ -935,17 +944,11 @@ app.frame('/owned-tokens', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
-            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
-              <img 
-                src={tokenProfileInfo.farcasterSocial.profileImage}
-                alt="Token Profile" 
-                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '150px', height: '150px', backgroundColor: '#9054FF' }}>
-                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
-              </div>
-            )}
+            <img 
+              src={profileImageUrl}
+              alt="Token Profile" 
+              style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+            />
           </div>
           <div style={{
             display: 'flex',
@@ -1131,6 +1134,11 @@ app.frame('/share-owned', async (c) => {
 
     console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
 
+    const shareText = `Check out this $DEGEN fan token I own! Balance: ${tokenBalance} tokens, Buy Volume: ${buyVolume} MOXIE, Current Price: ${currentPrice} MOXIE`;
+    const shareUrl = `https://your-domain.com/api/share-owned?fid=${fid}&tokenIndex=${tokenIndex}&timestamp=${Date.now()}`;
+
+    const profileImageUrl = tokenProfileInfo?.farcasterSocial?.profileImage || 'https://example.com/default-profile-image.jpg';
+
     return c.res({
       image: (
         <div style={{
@@ -1160,17 +1168,11 @@ app.frame('/share-owned', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
-            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
-              <img 
-                src={tokenProfileInfo.farcasterSocial.profileImage}
-                alt="Token Profile" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#9054FF' }}>
-                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
-              </div>
-            )}
+            <img 
+              src={profileImageUrl}
+              alt="Token Profile" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
           </div>
           <h1 style={{ 
             fontSize: '48px', 
@@ -1195,7 +1197,8 @@ app.frame('/share-owned', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/owned-tokens">Check Your Owned Tokens</Button>
+        <Button action="/owned-tokens">Check Your Owned Tokens</Button>,
+        <Button.Link href={`https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`}>Share</Button.Link>,
       ]
     });
   } catch (error) {
