@@ -167,11 +167,15 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
     const social = data.farcasterSocials.Social[0];
 
     // Ensure the profile image is an absolute URL
-    const profileImage = social.profileImage 
-      ? (social.profileImage.startsWith('http') 
-          ? social.profileImage 
-          : `https://i.imgur.com/${social.profileImage}`)
-      : 'https://example.com/default-profile-image.jpg';
+    let profileImage = social.profileImage;
+    if (profileImage) {
+      if (!profileImage.startsWith('http')) {
+        // If it's just a filename, assume it's from Imgur and construct the full URL
+        profileImage = `https://i.imgur.com/${profileImage}`;
+      }
+    } else {
+      profileImage = 'https://example.com/default-profile-image.jpg';
+    }
 
     return {
       primaryDomain: wallet.primaryDomain,
@@ -684,11 +688,11 @@ app.frame('/share', async (c) => {
 
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    const profileImageUrl = profileInfo?.farcasterSocial?.profileImage || 'https://example.com/default-profile-image.jpg';
+    const profileImageUrl = profileInfo?.farcasterSocial?.profileImage;
 
     return c.res({
       image: (
-        <div style={{ 
+        <div style={{
           display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center',
@@ -715,11 +719,13 @@ app.frame('/share', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            <img 
-              src={profileImageUrl}
-              alt="Profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            {profileImageUrl && (
+              <img 
+                src={profileImageUrl}
+                alt="Profile" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            )}
           </div>
           
           <h1 style={{ 
