@@ -642,8 +642,8 @@ app.frame('/owned-tokens', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{...commonStyle, color: '#ffffff'}}>
-          <div style={{ fontSize: '48px', textAlign: 'center' }}>Error: No FID</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+          <div style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</div>
         </div>
       ),
       intents: [
@@ -656,11 +656,17 @@ app.frame('/owned-tokens', async (c) => {
     const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
     console.log('User addresses:', userAddresses);
 
+    // Fetch vesting contract address
     const vestingContractAddress = await getVestingContractAddress(userAddresses);
     console.log('Vesting contract address:', vestingContractAddress);
 
-    const allAddresses = [...userAddresses, ...(vestingContractAddress ? [vestingContractAddress] : [])];
+    // Combine user addresses and vesting contract address
+    const allAddresses = [...userAddresses];
+    if (vestingContractAddress) {
+      allAddresses.push(vestingContractAddress);
+    }
 
+    // Fetch tokens for all addresses
     const allOwnedTokens = await getOwnedFanTokens(allAddresses) || [];
 
     console.log(`Total owned tokens: ${allOwnedTokens.length}`);
@@ -670,8 +676,8 @@ app.frame('/owned-tokens', async (c) => {
       console.warn(`No fan tokens found for FID ${fid}`);
       return c.res({
         image: (
-          <div style={{...commonStyle, color: '#ffffff'}}>
-            <div style={{ fontSize: '36px', textAlign: 'center' }}>No fan tokens found for FID {fid}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
+            <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for FID {fid}</div>
           </div>
         ),
         intents: [
@@ -857,207 +863,7 @@ app.frame('/owned-tokens', async (c) => {
   }
 });
 
-app.frame('/share-owned', async (c) => {
-  console.log('Entering /share-owned frame');
-  const fid = c.req.query('fid');
-  const tokenIndex = Math.max(0, parseInt(c.req.query('tokenIndex') || '0'));
-  const timestamp = parseInt(c.req.query('timestamp') || '0');
-
-  console.log(`Received FID: ${fid}, Token Index: ${tokenIndex}, Timestamp: ${timestamp}`);
-
-  if (!fid) {
-    console.error('No FID provided');
-    return c.res({
-      image: (
-        <div style={commonStyle}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>Error: No FID provided</h1>
-        </div>
-      ),
-      intents: [
-        <Button action="/">Home</Button>
-      ]
-    });
-  }
-
-  try {
-    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
-    console.log('User addresses:', userAddresses);
-
-    // Fetch vesting contract address
-    const vestingContractAddress = await getVestingContractAddress(userAddresses);
-    console.log('Vesting contract address:', vestingContractAddress);
-
-    // Combine user addresses and vesting contract address
-    const allAddresses = [...userAddresses];
-    if (vestingContractAddress) {
-      allAddresses.push(vestingContractAddress);
-    }
-
-    // Fetch tokens for all addresses
-    const allOwnedTokens = await getOwnedFanTokens(allAddresses) || [];
-
-    console.log(`Total owned tokens: ${allOwnedTokens.length}`);
-    console.log('First few tokens:', JSON.stringify(allOwnedTokens.slice(0, 3), null, 2));
-
-    if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
-      console.warn(`No fan tokens found or invalid token index for FID ${fid}`);
-      return c.res({
-        image: (
-          <div style={commonStyle}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>No fan token found for this index</h1>
-          </div>
-        ),
-        intents: [
-          <Button action="/">Home</Button>
-        ]
-      });
-    }
-
-    console.log(`Selecting token at index ${tokenIndex} out of ${allOwnedTokens.length} tokens`);
-    const token = allOwnedTokens[tokenIndex];
-    console.log('Selected token:', JSON.stringify(token, null, 2));
-
-    let tokenProfileInfo = null;
-    let tokenFid = '';
-
-    if (token.subjectToken.symbol.startsWith('fid:')) {
-      tokenFid = token.subjectToken.symbol.split(':')[1];
-      try {
-        tokenProfileInfo = await getProfileInfo(tokenFid);
-        console.log('Token profile info:', JSON.stringify(tokenProfileInfo, null, 2));
-      } catch (error) {
-        console.error(`Error fetching profile for FID ${tokenFid}:`, error);
-      }
-    }
-
-    const formatBalance = (balance: string, decimals: number = 18): string => {
-      const balanceNum = parseFloat(balance) / Math.pow(10, decimals);
-      if (isNaN(balanceNum)) return 'N/A';
-      if (balanceNum >= 1e6) return (balanceNum / 1e6).toFixed(2) + 'M';
-      if (balanceNum >= 1e3) return (balanceNum / 1e3).toFixed(2) + 'K';
-      if (balanceNum < 0.01) return balanceNum.toExponential(2);
-      return balanceNum.toFixed(2);
-    };
-
-    const formatNumber = (value: string | number | null | undefined): string => {
-      if (value === null || value === undefined) return 'N/A';
-      const num = typeof value === 'string' ? parseFloat(value) : value;
-      if (isNaN(num)) return 'N/A';
-      
-      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-      if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
-      if (num < 0.01) return num.toExponential(2);
-      return num.toFixed(2);
-    };
-
-    const tokenBalance = formatBalance(token.balance, token.subjectToken.decimals || 18);
-    const buyVolume = formatBalance(token.buyVolume, 18); // MOXIE has 18 decimals
-    const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
-
-    console.log('Formatted data:', { tokenBalance, buyVolume, currentPrice });
-
-    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
-
-    return c.res({
-      image: (
-        <div style={{
-          display: 'flex', 
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '1200px', 
-          height: '628px', 
-          backgroundImage: 'url(https://bafybeiata3diat4mmcnz54vbqfrs5hqrbankpp5ynvhbtglrxakj55hx6y.ipfs.w3s.link/Frame%2064%20(8).png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          color: 'white',
-          padding: '40px',
-          boxSizing: 'border-box',
-        }}>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '130px',
-            height: '130px',
-            borderRadius: '50%',
-            overflow: 'hidden',
-            backgroundColor: '#FFA500',
-            marginBottom: '20px',
-            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
-          }}>
-            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
-              <img 
-                src={tokenProfileInfo.farcasterSocial.profileImage}
-                alt="Token Profile" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#9054FF' }}>
-                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
-              </div>
-            )}
-          </div>
-          <div style={{
-            display: 'flex',
-            fontSize: '48px', 
-            color: '#000000', 
-            marginBottom: '20px',
-            textAlign: 'center',
-            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
-          }}>
-            {tokenOwnerName}
-          </div>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-              <div>{`Balance: ${tokenBalance} tokens`}</div>
-              <div>{`Buy Volume: ${buyVolume} MOXIE`}</div>
-              <div>{`Current Price: ${currentPrice} MOXIE`}</div>
-            </div>
-          </div>
-        </div>
-      ),
-      intents: [
-        <Button action="/">Home</Button>
-      ]
-    });
-  } catch (error) {
-    console.error('Error fetching fan token data:', error);
-    
-    let errorMessage: string;
-    if (error instanceof Error) {
-      errorMessage = error.message;
-      console.error('Error details:', error.stack);
-    } else if (typeof error === 'string') {
-      errorMessage = error;
-    } else {
-      errorMessage = 'An unknown error occurred';
-    }
-
-    return c.res({
-      image: (
-        <div style={commonStyle}>
-          <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>
-            Error fetching fan tokens: {errorMessage}
-          </div>
-        </div>
-      ),
-      intents: [
-        <Button action="/">Home</Button>
-      ]
-    });
-  }
-});
-
-
+////
 
 export const GET = handle(app);
 export const POST = handle(app);
