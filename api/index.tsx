@@ -693,7 +693,7 @@ app.frame('/share', async (c) => {
     return c.res({
       image: (
         <div style={{
-          display: 'flex', 
+          display: 'flex', // Add this line
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1148,7 +1148,7 @@ app.frame('/share-owned', async (c) => {
     return c.res({
       image: (
         <div style={{
-          display: 'flex', 
+          display: 'flex', // Add this line
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
