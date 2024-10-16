@@ -643,12 +643,12 @@ app.frame('/yourfantoken', async (c) => {
 
 app.frame('/share', async (c) => {
   console.log('Entering /share frame');
-  const fid = c.req.query('fid');
-  const timestamp = c.req.query('timestamp');
+  const { fid } = c.frameData ?? {};
 
-  console.log(`FID: ${fid}, Timestamp: ${timestamp}`);
+  console.log(`FID: ${fid}`);
 
   if (!fid) {
+    console.error('No FID found in frameData');
     return c.res({
       image: (
         <div style={commonStyle}>
@@ -677,6 +677,7 @@ app.frame('/share', async (c) => {
           padding: '15px',
           margin: '10px',
           borderRadius: '15px',
+          fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
           display: 'flex',
           flexDirection: 'column',
@@ -687,7 +688,7 @@ app.frame('/share', async (c) => {
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
         }}>
           <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-          <div style={{ fontSize: '40px' }}>{value}</div>
+          <div style={{ fontSize: '32px' }}>{value}</div>
         </div>
       );
     }
@@ -695,10 +696,20 @@ app.frame('/share', async (c) => {
     const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
     const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
     const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
-    
+
     console.log('Formatted data:', { currentPrice, holders, powerboost });
 
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+
+    const profileImageUrl = profileInfo?.farcasterSocial?.profileImage;
+
+    const shareText = `Check out my Fan Token powered by @moxie.eth 👏. Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Frame by @goldie`;
+    const timestamp = Date.now();
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&timestamp=${timestamp}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
+    console.log('Share URL:', shareUrl);
+    console.log('Farcaster Share URL:', farcasterShareURL);
 
     return c.res({
       image: (
@@ -728,11 +739,36 @@ app.frame('/share', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
-              alt="Profile" 
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
+            {profileImageUrl ? (
+              <img 
+                src={profileImageUrl}
+                alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
+                width={180}
+                height={180}
+                style={{ 
+                  objectFit: 'cover',
+                  borderRadius: '50%',
+                }}
+                onError={(e: { currentTarget: { style: { display: string; }; }; }) => {
+                  console.error('Image load error:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            ) : (
+              <div style={{ 
+                width: '180px',
+                height: '180px',
+                backgroundColor: '#FFA500',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontSize: '24px'
+              }}>
+                No Image
+              </div>
+            )}
           </div>
           
           <h1 style={{ 
@@ -743,7 +779,7 @@ app.frame('/share', async (c) => {
             color: '#ffffff',
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
-            {profileInfo?.farcasterSocial?.profileDisplayName || 'Unknown'}'s Fan Token
+            My Fan Token
           </h1>
           
           <div style={{
@@ -760,7 +796,9 @@ app.frame('/share', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/yourfantoken">Check Your Fan Token</Button>
+        <Button action="/">Back</Button>,
+        <Button action="/yourfantoken">Check Your Fan Token</Button>,
+        <Button.Link href={farcasterShareURL}>Share on Farcaster</Button.Link>
       ]
     });
   } catch (error) {
