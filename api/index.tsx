@@ -642,8 +642,8 @@ app.frame('/owned-tokens', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={commonStyle}>
-          <div style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>Error: No FID</div>
+        <div style={{...commonStyle, color: '#ffffff'}}>
+          <div style={{ fontSize: '48px', textAlign: 'center' }}>Error: No FID</div>
         </div>
       ),
       intents: [
@@ -656,17 +656,11 @@ app.frame('/owned-tokens', async (c) => {
     const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
     console.log('User addresses:', userAddresses);
 
-    // Fetch vesting contract address
     const vestingContractAddress = await getVestingContractAddress(userAddresses);
     console.log('Vesting contract address:', vestingContractAddress);
 
-    // Combine user addresses and vesting contract address
-    const allAddresses = [...userAddresses];
-    if (vestingContractAddress) {
-      allAddresses.push(vestingContractAddress);
-    }
+    const allAddresses = [...userAddresses, ...(vestingContractAddress ? [vestingContractAddress] : [])];
 
-    // Fetch tokens for all addresses
     const allOwnedTokens = await getOwnedFanTokens(allAddresses) || [];
 
     console.log(`Total owned tokens: ${allOwnedTokens.length}`);
@@ -676,8 +670,8 @@ app.frame('/owned-tokens', async (c) => {
       console.warn(`No fan tokens found for FID ${fid}`);
       return c.res({
         image: (
-          <div style={commonStyle}>
-            <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>No fan tokens found for FID {fid}</div>
+          <div style={{...commonStyle, color: '#ffffff'}}>
+            <div style={{ fontSize: '36px', textAlign: 'center' }}>No fan tokens found for FID {fid}</div>
           </div>
         ),
         intents: [
@@ -686,7 +680,6 @@ app.frame('/owned-tokens', async (c) => {
       });
     }
 
-    console.log(`Selecting token at index ${currentIndex} out of ${allOwnedTokens.length} tokens`);
     const token = allOwnedTokens[currentIndex];
     console.log('Selected token:', JSON.stringify(token, null, 2));
 
