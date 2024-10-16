@@ -814,9 +814,11 @@ app.frame('/owned-tokens', async (c) => {
             alignItems: 'center',
             width: '100%',
           }}>
-            <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} /> {/* Added " MOXIE" back */}
-            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+              <div style={{ marginBottom: '10px' }}>Balance: {tokenBalance} tokens</div>
+              <div style={{ marginBottom: '10px' }}>Buy Volume: {buyVolume} MOXIE</div>
+              <div>Current Price: {currentPrice} MOXIE</div>
+            </div>
           </div>
         </div>
       ),
@@ -855,14 +857,16 @@ app.frame('/owned-tokens', async (c) => {
   }
 });
 
-app.frame('/share', async (c) => {
-  console.log('Entering /share frame');
+app.frame('/share-owned', async (c) => {
+  console.log('Entering /share-owned frame');
   const fid = c.req.query('fid');
-  const timestamp = c.req.query('timestamp');
+  const tokenIndex = Math.max(0, parseInt(c.req.query('tokenIndex') || '0'));
+  const timestamp = parseInt(c.req.query('timestamp') || '0');
 
-  console.log(`FID: ${fid}, Timestamp: ${timestamp}`);
+  console.log(`Received FID: ${fid}, Token Index: ${tokenIndex}, Timestamp: ${timestamp}`);
 
   if (!fid) {
+    console.error('No FID provided');
     return c.res({
       image: (
         <div style={commonStyle}>
@@ -876,134 +880,174 @@ app.frame('/share', async (c) => {
   }
 
   try {
-    let tokenInfo = await getFanTokenInfo(fid.toString());
-    let profileInfo = await getProfileInfo(fid.toString());
-    let powerboostScore = await getPowerboostScore(fid.toString());
+    const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
+    console.log('User addresses:', userAddresses);
 
-    console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
-    console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
-    console.log('Powerboost Score:', powerboostScore);
+    // Fetch vesting contract address
+    const vestingContractAddress = await getVestingContractAddress(userAddresses);
+    console.log('Vesting contract address:', vestingContractAddress);
 
-    function TextBox({ label, value }: TextBoxProps) {
-      return (
-        <div style={{
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          padding: '15px',
-          margin: '10px',
-          borderRadius: '15px',
-          fontSize: '28px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '300px',
-          height: '130px',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
-          <div style={{ fontSize: '32px' }}>{value}</div>
-        </div>
-      );
+    // Combine user addresses and vesting contract address
+    const allAddresses = [...userAddresses];
+    if (vestingContractAddress) {
+      allAddresses.push(vestingContractAddress);
     }
 
-    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
-    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
-    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
+    // Fetch tokens for all addresses
+    const allOwnedTokens = await getOwnedFanTokens(allAddresses) || [];
 
-    console.log('Formatted data:', { currentPrice, holders, powerboost });
+    console.log(`Total owned tokens: ${allOwnedTokens.length}`);
+    console.log('First few tokens:', JSON.stringify(allOwnedTokens.slice(0, 3), null, 2));
 
-    const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+    if (allOwnedTokens.length === 0 || tokenIndex >= allOwnedTokens.length) {
+      console.warn(`No fan tokens found or invalid token index for FID ${fid}`);
+      return c.res({
+        image: (
+          <div style={commonStyle}>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>No fan token found for this index</h1>
+          </div>
+        ),
+        intents: [
+          <Button action="/">Home</Button>
+        ]
+      });
+    }
 
-    // Modify the image URL to use a more compatible format
-    const originalImageUrl = profileInfo?.farcasterSocial?.profileImage?.split('/').pop();
-    const imgurUrl = originalImageUrl ? `https://i.imgur.com/${originalImageUrl}` : null;
-    const modifiedImageUrl = profileInfo?.farcasterSocial?.profileImage?.replace('f_gif', 'f_auto');
-    const fallbackImageUrl = '/api/placeholder/150/150'; // Replace with your actual fallback image URL
+    console.log(`Selecting token at index ${tokenIndex} out of ${allOwnedTokens.length} tokens`);
+    const token = allOwnedTokens[tokenIndex];
+    console.log('Selected token:', JSON.stringify(token, null, 2));
 
-    const imageUrl = imgurUrl || modifiedImageUrl || fallbackImageUrl;
+    let tokenProfileInfo = null;
+    let tokenFid = '';
 
-    const shareText = `Check out my Fan Token on @fantokens_app! 🌟 I'm proud to be a part of the Farcaster community. Frame by @goldie`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&timestamp=${timestamp}`;
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+    if (token.subjectToken.symbol.startsWith('fid:')) {
+      tokenFid = token.subjectToken.symbol.split(':')[1];
+      try {
+        tokenProfileInfo = await getProfileInfo(tokenFid);
+        console.log('Token profile info:', JSON.stringify(tokenProfileInfo, null, 2));
+      } catch (error) {
+        console.error(`Error fetching profile for FID ${tokenFid}:`, error);
+      }
+    }
 
-    console.log('Share URL:', shareUrl);
-    console.log('Farcaster Share URL:', farcasterShareURL);
+    const formatBalance = (balance: string, decimals: number = 18): string => {
+      const balanceNum = parseFloat(balance) / Math.pow(10, decimals);
+      if (isNaN(balanceNum)) return 'N/A';
+      if (balanceNum >= 1e6) return (balanceNum / 1e6).toFixed(2) + 'M';
+      if (balanceNum >= 1e3) return (balanceNum / 1e3).toFixed(2) + 'K';
+      if (balanceNum < 0.01) return balanceNum.toExponential(2);
+      return balanceNum.toFixed(2);
+    };
+
+    const formatNumber = (value: string | number | null | undefined): string => {
+      if (value === null || value === undefined) return 'N/A';
+      const num = typeof value === 'string' ? parseFloat(value) : value;
+      if (isNaN(num)) return 'N/A';
+      
+      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+      if (num < 0.01) return num.toExponential(2);
+      return num.toFixed(2);
+    };
+
+    const tokenBalance = formatBalance(token.balance, token.subjectToken.decimals || 18);
+    const buyVolume = formatBalance(token.buyVolume, 18); // MOXIE has 18 decimals
+    const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
+
+    console.log('Formatted data:', { tokenBalance, buyVolume, currentPrice });
+
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
 
     return c.res({
       image: (
-        <div style={{ 
+        <div style={{
           display: 'flex', 
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           width: '1200px', 
           height: '628px', 
-          backgroundImage: `url(${backgroundImage})`,
+          backgroundImage: 'url(https://bafybeiata3diat4mmcnz54vbqfrs5hqrbankpp5ynvhbtglrxakj55hx6y.ipfs.w3s.link/Frame%2064%20(8).png)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          color: '#000000',
-          padding: '20px',
+          color: 'white',
+          padding: '40px',
           boxSizing: 'border-box',
         }}>
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            width: '180px',
-            height: '180px',
+            justifyContent: 'center',
+            width: '130px',
+            height: '130px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#FFA500',
             marginBottom: '20px',
-            boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
+            boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
-            <img 
-              src={imageUrl}
-              alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
-              width={180}
-              height={180}
-              style={{ objectFit: 'cover' }}
-            />
+            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
+              <img 
+                src={tokenProfileInfo.farcasterSocial.profileImage}
+                alt="Token Profile" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#9054FF' }}>
+                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
+              </div>
+            )}
           </div>
-          
-          <h1 style={{ 
-            fontSize: '48px', 
-            fontWeight: 'bold', 
-            textAlign: 'center', 
-            margin: '10px 0 20px',
-            color: '#ffffff',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
-          }}>
-            My Fan Token
-          </h1>
-          
           <div style={{
             display: 'flex',
+            fontSize: '48px', 
+            color: '#000000', 
+            marginBottom: '20px',
+            textAlign: 'center',
+            textShadow: '0 0 10px rgba(128, 0, 128, 0.5)'
+          }}>
+            {tokenOwnerName}
+          </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'row',
             justifyContent: 'center',
             alignItems: 'center',
             width: '100%',
-            maxWidth: '1000px',
           }}>
-            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
-            <TextBox label="Powerboost" value={powerboost} />
-            <TextBox label="Holders" value={holders} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+              <div>{`Balance: ${tokenBalance} tokens`}</div>
+              <div>{`Buy Volume: ${buyVolume} MOXIE`}</div>
+              <div>{`Current Price: ${currentPrice} MOXIE`}</div>
+            </div>
           </div>
         </div>
       ),
       intents: [
-        <Button action="/">Back</Button>,
-        <Button action="/yourfantoken">Refresh</Button>,
-        <Button action="/owned-tokens">Owned</Button>,
-        <Button.Link href={farcasterShareURL}>Share</Button.Link>,
-      ],
+        <Button action="/">Home</Button>
+      ]
     });
   } catch (error) {
     console.error('Error fetching fan token data:', error);
     
+    let errorMessage: string;
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      console.error('Error details:', error.stack);
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = 'An unknown error occurred';
+    }
+
     return c.res({
       image: (
         <div style={commonStyle}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching fan token data. Please try again.</h1>
+          <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>
+            Error fetching fan tokens: {errorMessage}
+          </div>
         </div>
       ),
       intents: [
@@ -1013,27 +1057,7 @@ app.frame('/share', async (c) => {
   }
 });
 
-function TextBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ 
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      padding: '10px',
-      margin: '5px',
-      borderRadius: '10px',
-      fontSize: '28px',
-      width: '300px',
-      height: '130px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    }}>
-      <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
-      <div style={{ color: '#000000', fontSize: '32px' }}>{value}</div>
-    </div>
-  );
-}
+
 
 export const GET = handle(app);
 export const POST = handle(app);
