@@ -533,11 +533,7 @@ app.frame('/yourfantoken', async (c) => {
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
     const profileImageUrl = profileInfo?.farcasterSocial?.profileImage;
-    const fallbackImageUrl = '/path/to/default/image.png'; // Replace with an actual fallback image
-
-    const imageUrl = profileImageUrl || fallbackImageUrl;
-
-    console.log('Profile Image URL:', imageUrl); // For debugging
+    console.log('Profile Image URL:', profileImageUrl); // For debugging
 
     return c.res({
       image: (
@@ -547,7 +543,7 @@ app.frame('/yourfantoken', async (c) => {
           alignItems: 'center',
           justifyContent: 'center',
           width: '1200px', 
-          height: '628px', 
+          height: '628px',
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -567,16 +563,36 @@ app.frame('/yourfantoken', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
-            <img 
-              src={imageUrl}
-              alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
-              width={180}
-              height={180}
-              style={{ 
-                objectFit: 'cover',
-                borderRadius: '50%', // If you want a circular image
-              }}
-            />
+            {profileImageUrl ? (
+              <img 
+                src={profileImageUrl}
+                alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
+                width={180}
+                height={180}
+                style={{ 
+                  objectFit: 'cover',
+                  borderRadius: '50%',
+                }}
+                onError={(e: { currentTarget: { style: { display: string; }; }; }) => {
+                  console.error('Image load error:', e);
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            ) : (
+              <div style={{ 
+                width: '180px',
+                height: '180px',
+                backgroundColor: '#FFA500',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                fontSize: '24px'
+              }}>
+                No Image
+              </div>
+            )}
           </div>
           
           <h1 style={{ 
