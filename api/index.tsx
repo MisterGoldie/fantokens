@@ -655,7 +655,7 @@ app.frame('/owned-tokens', async (c) => {
       allAddresses.push(vestingContractAddress);
     }
 
-    // Fetch tokens for all addresses
+    // Fetch tokens for all addresse
     const allOwnedTokens = await getOwnedFanTokens(allAddresses) || [];
 
     console.log(`Total owned tokens: ${allOwnedTokens.length}`);
