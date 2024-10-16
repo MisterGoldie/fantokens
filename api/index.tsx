@@ -531,7 +531,13 @@ app.frame('/yourfantoken', async (c) => {
 
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    const profileImageUrl = profileInfo?.farcasterSocial?.profileImage || 'https://example.com/default-profile-image.jpg';
+    // Modify the image URL to use a more compatible format
+    const originalImageUrl = profileInfo?.farcasterSocial?.profileImage?.split('/').pop();
+    const imgurUrl = originalImageUrl ? `https://i.imgur.com/${originalImageUrl}` : null;
+    const modifiedImageUrl = profileInfo?.farcasterSocial?.profileImage?.replace('f_gif', 'f_auto');
+    const fallbackImageUrl = '/api/placeholder/150/150'; // Replace with your actual fallback image URL
+
+    const imageUrl = imgurUrl || modifiedImageUrl || fallbackImageUrl;
 
     return c.res({
       image: (
@@ -562,15 +568,11 @@ app.frame('/yourfantoken', async (c) => {
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
             <img 
-              src={profileImageUrl}
+              src={imageUrl}
               alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
               width={180}
               height={180}
               style={{ objectFit: 'cover' }}
-              onError={(e: { currentTarget: { onerror: null; src: string; }; }) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = 'https://example.com/default-profile-image.jpg';
-              }}
             />
           </div>
           
@@ -655,7 +657,7 @@ app.frame('/owned-tokens', async (c) => {
       allAddresses.push(vestingContractAddress);
     }
 
-    // Fetch tokens for all addresse
+    // Fetch tokens for all addresses
     const allOwnedTokens = await getOwnedFanTokens(allAddresses) || [];
 
     console.log(`Total owned tokens: ${allOwnedTokens.length}`);
