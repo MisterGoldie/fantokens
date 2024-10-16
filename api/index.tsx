@@ -573,6 +573,10 @@ app.frame('/yourfantoken', async (c) => {
               width={180}
               height={180}
               style={{ objectFit: 'cover' }}
+              onError={(e: { currentTarget: { onerror: null; src: string; }; }) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://example.com/default-profile-image.jpg';
+              }}
             />
           </div>
           
