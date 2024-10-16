@@ -2,6 +2,7 @@ import { Button, Frog } from 'frog';
 import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
 import { gql, GraphQLClient } from "graphql-request";
+import fs from 'fs';
 
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
@@ -72,7 +73,7 @@ const commonStyle = {
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  fontFamily: '"Protest Riot", sans-serif',
+  fontFamily: "'LoveDays', Arial, sans-serif",
 }
 
 export const app = new Frog({
@@ -82,9 +83,10 @@ export const app = new Frog({
     height: 628,
     fonts: [
       {
-        name: 'Protest Riot',
-        source: 'google',
+        name: 'LoveDays',
+        data: fs.readFileSync('./public/fonts/LoveDays.ttf'),
         weight: 400,
+        style: 'normal',
       },
     ],
   },
@@ -507,7 +509,7 @@ app.frame('/yourfantoken', async (c) => {
           padding: '15px',
           margin: '10px',
           borderRadius: '15px',
-          fontFamily: 'Arial, sans-serif',
+          fontFamily: "'LoveDays', Arial, sans-serif",
           fontSize: '28px',
           display: 'flex',
           flexDirection: 'column',
@@ -643,7 +645,7 @@ app.frame('/owned-tokens', async (c) => {
     return c.res({
       image: (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <div style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</div>
+          <div style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: "'LoveDays', Arial, sans-serif" }}>Error: No FID</div>
         </div>
       ),
       intents: [
@@ -677,7 +679,7 @@ app.frame('/owned-tokens', async (c) => {
       return c.res({
         image: (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan tokens found for FID {fid}</div>
+            <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: "'LoveDays', Arial, sans-serif" }}>No fan tokens found for FID {fid}</div>
           </div>
         ),
         intents: [
