@@ -494,6 +494,7 @@ app.frame('/yourfantoken', async (c) => {
   try {
     let tokenInfo = await getFanTokenInfo(fid.toString());
     let profileInfo = await getProfileInfo(fid.toString());
+    console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
     let powerboostScore = await getPowerboostScore(fid.toString());
 
     console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
@@ -531,13 +532,12 @@ app.frame('/yourfantoken', async (c) => {
 
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    // Modify the image URL to use a more compatible format
-    const originalImageUrl = profileInfo?.farcasterSocial?.profileImage?.split('/').pop();
-    const imgurUrl = originalImageUrl ? `https://i.imgur.com/${originalImageUrl}` : null;
-    const modifiedImageUrl = profileInfo?.farcasterSocial?.profileImage?.replace('f_gif', 'f_auto');
-    const fallbackImageUrl = '/api/placeholder/150/150'; // Replace with your actual fallback image URL
+    const profileImageUrl = profileInfo?.farcasterSocial?.profileImage;
+    const fallbackImageUrl = '/path/to/default/image.png'; // Replace with an actual fallback image
 
-    const imageUrl = imgurUrl || modifiedImageUrl || fallbackImageUrl;
+    const imageUrl = profileImageUrl || fallbackImageUrl;
+
+    console.log('Profile Image URL:', imageUrl); // For debugging
 
     return c.res({
       image: (
@@ -572,7 +572,10 @@ app.frame('/yourfantoken', async (c) => {
               alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
               width={180}
               height={180}
-              style={{ objectFit: 'cover' }}
+              style={{ 
+                objectFit: 'cover',
+                borderRadius: '50%', // If you want a circular image
+              }}
             />
           </div>
           
