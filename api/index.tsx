@@ -2,7 +2,6 @@ import { Button, Frog } from 'frog';
 import { handle } from 'frog/vercel';
 import { neynar } from 'frog/middlewares';
 import { gql, GraphQLClient } from "graphql-request";
-import fs from 'fs';
 
 const AIRSTACK_API_KEY = process.env.AIRSTACK_API_KEY || '';
 const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY || '';
@@ -65,18 +64,7 @@ interface ProfileInfo {
 
 export const app = new Frog({
   basePath: '/api',
-  imageOptions: {
-    width: 1200,
-    height: 628,
-    fonts: [
-      {
-        name: 'LoveDays',
-        data: fs.readFileSync('./public/fonts/LoveDays.ttf'),
-        weight: 400,
-        style: 'normal',
-      },
-    ],
-  },
+  imageOptions: { width: 1200, height: 628 },
   imageAspectRatio: '1.91:1',
   title: 'Farcaster Fan Token Tracker',
   hub: AIRSTACK_API_KEY ? {
@@ -411,17 +399,6 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
   }
 }
 
-async function getImageWithFallback(imageUrl: string, fallbackUrl: string): Promise<string> {
-  try {
-    const response = await fetch(imageUrl);
-    if (!response.ok) throw new Error('Image fetch failed');
-    return imageUrl;
-  } catch (error) {
-    console.error('Error loading image:', error);
-    return fallbackUrl;
-  }
-}
-
 
 // The code stops here, right before the (/) page starts
 
@@ -542,11 +519,6 @@ app.frame('/yourfantoken', async (c) => {
     console.log('Share URL:', shareUrl);
     console.log('Farcaster Share URL:', farcasterShareURL);
 
-    const profileImageUrl = await getImageWithFallback(
-      profileInfo?.farcasterSocial?.profileImage || '',
-      'https://placekitten.com/200/200' // Fallback image URL
-    );
-
     return c.res({
       image: (
         <div style={{ 
@@ -577,11 +549,9 @@ app.frame('/yourfantoken', async (c) => {
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
             <img 
-              src={profileImageUrl}
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
               alt="Profile" 
-              width={180}
-              height={180}
-              style={{ objectFit: 'cover' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
           
@@ -692,11 +662,6 @@ app.frame('/share', async (c) => {
 
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
-    const profileImageUrl = await getImageWithFallback(
-      profileInfo?.farcasterSocial?.profileImage || '',
-      'https://placekitten.com/200/200' // Fallback image URL
-    );
-
     return c.res({
       image: (
         <div style={{ 
@@ -727,11 +692,9 @@ app.frame('/share', async (c) => {
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
             <img 
-              src={profileImageUrl}
+              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
               alt="Profile" 
-              width={180}
-              height={180}
-              style={{ objectFit: 'cover' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           </div>
           
@@ -925,11 +888,6 @@ app.frame('/owned-tokens', async (c) => {
     console.log('Share URL:', shareUrl);
     console.log('Farcaster Share URL:', farcasterShareURL);
 
-    const tokenProfileImageUrl = await getImageWithFallback(
-      tokenProfileInfo?.farcasterSocial?.profileImage || '',
-      'https://placekitten.com/200/200' // Fallback image URL
-    );
-
     return c.res({
       image: (
         <div style={{
@@ -974,13 +932,17 @@ app.frame('/owned-tokens', async (c) => {
             marginBottom: '20px',
             boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
-            <img 
-              src={tokenProfileImageUrl}
-              alt="Token Profile" 
-              width={150}
-              height={150}
-              style={{ objectFit: 'cover' }}
-            />
+            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
+              <img 
+                src={tokenProfileInfo.farcasterSocial.profileImage}
+                alt="Token Profile" 
+                style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '150px', height: '150px', backgroundColor: '#9054FF' }}>
+                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
+              </div>
+            )}
           </div>
           <div style={{
             display: 'flex',
@@ -1007,8 +969,8 @@ app.frame('/owned-tokens', async (c) => {
       ),
       intents: [
         <Button action="/">Home</Button>,
-        ...(currentIndex > 0 ? [<Button action="/owned-tokens" value={(currentIndex - 1).toString()}>Previous</Button>] : []),
         ...(currentIndex < allOwnedTokens.length - 1 ? [<Button action="/owned-tokens" value={(currentIndex + 1).toString()}>Next</Button>] : []),
+        ...(currentIndex > 0 ? [<Button action="/owned-tokens" value={(currentIndex - 1).toString()}>Previous</Button>] : []),
         <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ]
     });
@@ -1047,9 +1009,6 @@ app.frame('/share-owned', async (c) => {
   const timestamp = parseInt(c.req.query('timestamp') || '0');
 
   console.log(`Received FID: ${fid}, Token Index: ${tokenIndex}, Timestamp: ${timestamp}`);
-
-  // Add a short delay to ensure all data is up-to-date
-  await new Promise(resolve => setTimeout(resolve, 1000));
 
   if (!fid) {
     console.error('No FID provided');
@@ -1143,16 +1102,16 @@ app.frame('/share-owned', async (c) => {
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
           backgroundColor: 'rgba(255, 255, 255, 0.8)',
           padding: '10px',
           margin: '5px',
           borderRadius: '10px',
           fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
           width: '300px',
           height: '130px',
           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
@@ -1169,11 +1128,6 @@ app.frame('/share-owned', async (c) => {
     const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
 
     console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
-
-    const tokenProfileImageUrl = await getImageWithFallback(
-      tokenProfileInfo?.farcasterSocial?.profileImage || '',
-      'https://placekitten.com/200/200' // Fallback image URL
-    );
 
     return c.res({
       image: (
@@ -1193,24 +1147,29 @@ app.frame('/share-owned', async (c) => {
           boxSizing: 'border-box',
         }}>
           <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
             width: '130px',
             height: '130px',
             borderRadius: '50%',
             overflow: 'hidden',
             backgroundColor: '#FFA500',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             marginBottom: '20px',
             boxShadow: '0 0 20px 10px rgba(128, 0, 128, 0.5)',
           }}>
-            <img 
-              src={tokenProfileImageUrl}
-              alt="Token Profile" 
-              width={150}
-              height={150}
-              style={{ objectFit: 'cover' }}
-            />
+            {tokenProfileInfo && tokenProfileInfo.farcasterSocial && tokenProfileInfo.farcasterSocial.profileImage ? (
+              <img 
+                src={tokenProfileInfo.farcasterSocial.profileImage}
+                alt="Token Profile" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: '#9054FF' }}>
+                <span style={{ fontSize: '24px', color: '#ffffff' }}>Channel</span>
+              </div>
+            )}
           </div>
           <h1 style={{ 
             fontSize: '48px', 
@@ -1232,18 +1191,6 @@ app.frame('/share-owned', async (c) => {
             <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
-          {vestingContractAddress && (
-            <div style={{
-              marginTop: '20px',
-              fontSize: '18px',
-              color: '#000000',
-              backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              padding: '10px',
-              borderRadius: '10px',
-            }}>
-              Vesting Contract: {`${vestingContractAddress.slice(0, 6)}...${vestingContractAddress.slice(-4)}`}
-            </div>
-          )}
         </div>
       ),
       intents: [
@@ -1268,3 +1215,5 @@ app.frame('/share-owned', async (c) => {
 
 export const GET = handle(app);
 export const POST = handle(app);
+
+////
