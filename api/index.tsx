@@ -61,10 +61,38 @@ interface ProfileInfo {
   };
 }
 
+// Define color constants
+const PRIMARY_COLOR = '#4a4a4a'
+const SECONDARY_COLOR = '#f0f0f0'
+
+// Define a common style object with improved aesthetics
+const commonStyle = {
+  backgroundColor: SECONDARY_COLOR,
+  width: '100%',
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontFamily: '"Protest Riot", sans-serif',
+  color: PRIMARY_COLOR,
+  padding: '20px',
+  boxSizing: 'border-box',
+}
 
 export const app = new Frog({
   basePath: '/api',
-  imageOptions: { width: 1200, height: 628 },
+  imageOptions: {
+    width: 1200,
+    height: 628,
+    fonts: [
+      {
+        name: 'Protest Riot',
+        source: 'google',
+        weight: 400,
+      },
+    ],
+  },
   imageAspectRatio: '1.91:1',
   title: 'Farcaster Fan Token Tracker',
   hub: AIRSTACK_API_KEY ? {
@@ -401,52 +429,36 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
 
 
 // The code stops here, right before the (/) page starts
-
 app.frame('/', (c) => {
   return c.res({
     image: (
       <div
         style={{
-          width: '1200px',
-          height: '628px',
-          background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
           alignItems: 'center',
-          fontFamily: 'Arial, sans-serif',
-          color: '#FFD700',
+          justifyContent: 'center',
+          width: '100%',
+          height: '100%',
+          backgroundColor: '#f0f0f0',
+          fontFamily: '"Protest Riot", sans-serif',
+          color: '#4a4a4a',
           padding: '20px',
         }}
       >
-        <div
+        <h1
           style={{
-            fontSize: '72px',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            textTransform: 'uppercase',
-            letterSpacing: '4px',
-            textShadow: '0 0 10px rgba(255,215,0,0.7), 0 0 20px rgba(255,215,0,0.5), 0 0 30px rgba(255,215,0,0.3)',
+            fontSize: '48px',
             marginBottom: '20px',
-          }}
-        >
-          You & Your
-        </div>
-        <div
-          style={{
-            fontSize: '96px',
-            fontWeight: 'bold',
             textAlign: 'center',
-            textTransform: 'uppercase',
-            letterSpacing: '6px',
-            background: 'linear-gradient(45deg, #8B50FA, #9B6DF1)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+            color: '#3498db',
           }}
         >
-          Fan Tokens
-        </div>
+          Your Farcaster Frame
+        </h1>
+        <p style={{ fontSize: '24px', textAlign: 'center' }}>
+          Welcome to your Fan Token information frame!
+        </p>
       </div>
     ),
     intents: [
@@ -465,8 +477,8 @@ app.frame('/yourfantoken', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#87CEEB' }}>
-          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</h1>
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '64px', color: '#ffffff', textAlign: 'center' }}>Error: No FID</h1>
         </div>
       ),
       intents: [
@@ -487,7 +499,6 @@ app.frame('/yourfantoken', async (c) => {
           padding: '15px',
           margin: '10px',
           borderRadius: '15px',
-          fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
           display: 'flex',
           flexDirection: 'column',
@@ -531,10 +542,10 @@ app.frame('/yourfantoken', async (c) => {
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          fontFamily: 'Arial, sans-serif',
           color: '#000000',
           padding: '20px',
           boxSizing: 'border-box',
+          fontFamily: 'Arial, sans-serif', // Changed to Arial
         }}>
           <div style={{
             display: 'flex',
@@ -591,8 +602,8 @@ app.frame('/yourfantoken', async (c) => {
     
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
@@ -612,8 +623,8 @@ app.frame('/share', async (c) => {
   if (!fid) {
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>Error: No FID provided</h1>
         </div>
       ),
       intents: [
@@ -638,7 +649,6 @@ app.frame('/share', async (c) => {
           padding: '15px',
           margin: '10px',
           borderRadius: '15px',
-          fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
           display: 'flex',
           flexDirection: 'column',
@@ -674,10 +684,10 @@ app.frame('/share', async (c) => {
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          fontFamily: 'Arial, sans-serif',
           color: '#000000',
           padding: '20px',
           boxSizing: 'border-box',
+          fontFamily: 'Arial, sans-serif', // Changed to Arial
         }}>
           <div style={{
             display: 'flex',
@@ -731,8 +741,8 @@ app.frame('/share', async (c) => {
     
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
@@ -753,8 +763,8 @@ app.frame('/owned-tokens', async (c) => {
     console.error('No FID found in frameData');
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <div style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID</div>
+        <div style={commonStyle}>
+          <div style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>Error: No FID</div>
         </div>
       ),
       intents: [
@@ -787,20 +797,8 @@ app.frame('/owned-tokens', async (c) => {
       console.warn(`No fan tokens found for FID ${fid}`);
       return c.res({
         image: (
-          <div style={{ 
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            width: '1200px', 
-            height: '628px', 
-            backgroundImage: 'url(https://bafybeihchbzogsv4setiimulvkeufmqjx6n2gxw6nxftl7hz4jjy3p46im.ipfs.w3s.link/Group%2061%20(3).png)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            padding: '20px',
-          }}>
-            <div style={{ display: 'flex', fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
-            </div>
+          <div style={commonStyle}>
+            <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>No fan tokens found for FID {fid}</div>
           </div>
         ),
         intents: [
@@ -861,7 +859,6 @@ app.frame('/owned-tokens', async (c) => {
           padding: '10px',
           margin: '5px',
           borderRadius: '10px',
-          fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
           width: '300px',
           height: '130px',
@@ -901,7 +898,6 @@ app.frame('/owned-tokens', async (c) => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: 'white',
-          fontFamily: 'Arial, sans-serif',
           padding: '40px',
           boxSizing: 'border-box',
           position: 'relative',
@@ -989,8 +985,8 @@ app.frame('/owned-tokens', async (c) => {
 
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>
+        <div style={commonStyle}>
+          <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>
             Error fetching fan tokens: {errorMessage}
           </div>
         </div>
@@ -1014,8 +1010,8 @@ app.frame('/share-owned', async (c) => {
     console.error('No FID provided');
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error: No FID provided</h1>
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>Error: No FID provided</h1>
         </div>
       ),
       intents: [
@@ -1048,8 +1044,8 @@ app.frame('/share-owned', async (c) => {
       console.warn(`No fan tokens found or invalid token index for FID ${fid}`);
       return c.res({
         image: (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>No fan token found for this index</h1>
+          <div style={commonStyle}>
+            <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>No fan token found for this index</h1>
           </div>
         ),
         intents: [
@@ -1110,7 +1106,6 @@ app.frame('/share-owned', async (c) => {
           padding: '10px',
           margin: '5px',
           borderRadius: '10px',
-          fontFamily: 'Arial, sans-serif',
           fontSize: '28px',
           width: '300px',
           height: '130px',
@@ -1142,7 +1137,6 @@ app.frame('/share-owned', async (c) => {
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: 'white',
-          fontFamily: 'Arial, sans-serif',
           padding: '40px',
           boxSizing: 'border-box',
         }}>
@@ -1202,8 +1196,8 @@ app.frame('/share-owned', async (c) => {
     
     return c.res({
       image: (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '1200px', height: '628px', backgroundColor: '#1A1A1A' }}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center', fontFamily: 'Arial, sans-serif' }}>Error fetching fan token data. Please try again.</h1>
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
@@ -1215,5 +1209,3 @@ app.frame('/share-owned', async (c) => {
 
 export const GET = handle(app);
 export const POST = handle(app);
-
-////
