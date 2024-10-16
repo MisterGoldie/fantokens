@@ -168,7 +168,10 @@ async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
 
     return {
       primaryDomain: wallet.primaryDomain,
-      farcasterSocial: social,
+      farcasterSocial: {
+        ...social,
+        profileImage: social.profileImage ? social.profileImage.split('/').pop() : null
+      },
     };
   } catch (error) {
     console.error('Error in getProfileInfo:', error);
@@ -530,6 +533,10 @@ app.frame('/yourfantoken', async (c) => {
     console.log('Share URL:', shareUrl);
     console.log('Farcaster Share URL:', farcasterShareURL);
 
+    const profileImageUrl = profileInfo?.farcasterSocial?.profileImage 
+      ? `https://i.imgur.com/${profileInfo.farcasterSocial.profileImage}`
+      : 'https://example.com/default-profile-image.jpg';
+
     return c.res({
       image: (
         <div style={{ 
@@ -545,7 +552,7 @@ app.frame('/yourfantoken', async (c) => {
           color: '#000000',
           padding: '20px',
           boxSizing: 'border-box',
-          fontFamily: 'Arial, sans-serif', // Changed to Arial
+          fontFamily: 'Arial, sans-serif',
         }}>
           <div style={{
             display: 'flex',
@@ -560,7 +567,7 @@ app.frame('/yourfantoken', async (c) => {
             boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
           }}>
             <img 
-              src={profileInfo?.farcasterSocial?.profileImage || '/api/placeholder/150/150'} 
+              src={profileImageUrl}
               alt="Profile" 
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
