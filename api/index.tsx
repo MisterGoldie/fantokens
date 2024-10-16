@@ -539,6 +539,14 @@ app.frame('/yourfantoken', async (c) => {
 
     const imageUrl = imgurUrl || modifiedImageUrl || fallbackImageUrl;
 
+    const shareText = `Check out my Fan Token on @fantokens_app! 🌟 I'm proud to be a part of the Farcaster community. Frame by @goldie`;
+    const timestamp = Date.now();
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&timestamp=${timestamp}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
+    console.log('Share URL:', shareUrl);
+    console.log('Farcaster Share URL:', farcasterShareURL);
+
     return c.res({
       image: (
         <div style={{ 
@@ -604,6 +612,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
         <Button action="/owned-tokens">Owned</Button>,
+        <Button.Link href={farcasterShareURL}>Share</Button.Link>,
       ],
     });
   } catch (error) {
@@ -844,6 +853,164 @@ app.frame('/owned-tokens', async (c) => {
           <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>
             Error fetching fan tokens: {errorMessage}
           </div>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Home</Button>
+      ]
+    });
+  }
+});
+
+app.frame('/share', async (c) => {
+  console.log('Entering /share frame');
+  const fid = c.req.query('fid');
+  const timestamp = c.req.query('timestamp');
+
+  console.log(`FID: ${fid}, Timestamp: ${timestamp}`);
+
+  if (!fid) {
+    return c.res({
+      image: (
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '48px', color: '#ffffff', textAlign: 'center' }}>Error: No FID provided</h1>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Home</Button>
+      ]
+    });
+  }
+
+  try {
+    let tokenInfo = await getFanTokenInfo(fid.toString());
+    let profileInfo = await getProfileInfo(fid.toString());
+    let powerboostScore = await getPowerboostScore(fid.toString());
+
+    console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
+    console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
+    console.log('Powerboost Score:', powerboostScore);
+
+    function TextBox({ label, value }: TextBoxProps) {
+      return (
+        <div style={{
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '15px',
+          margin: '10px',
+          borderRadius: '15px',
+          fontSize: '28px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '300px',
+          height: '130px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>{label}</div>
+          <div style={{ fontSize: '32px' }}>{value}</div>
+        </div>
+      );
+    }
+
+    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
+    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
+    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
+
+    console.log('Formatted data:', { currentPrice, holders, powerboost });
+
+    const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
+
+    // Modify the image URL to use a more compatible format
+    const originalImageUrl = profileInfo?.farcasterSocial?.profileImage?.split('/').pop();
+    const imgurUrl = originalImageUrl ? `https://i.imgur.com/${originalImageUrl}` : null;
+    const modifiedImageUrl = profileInfo?.farcasterSocial?.profileImage?.replace('f_gif', 'f_auto');
+    const fallbackImageUrl = '/api/placeholder/150/150'; // Replace with your actual fallback image URL
+
+    const imageUrl = imgurUrl || modifiedImageUrl || fallbackImageUrl;
+
+    const shareText = `Check out my Fan Token on @fantokens_app! 🌟 I'm proud to be a part of the Farcaster community. Frame by @goldie`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&timestamp=${timestamp}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+
+    console.log('Share URL:', shareUrl);
+    console.log('Farcaster Share URL:', farcasterShareURL);
+
+    return c.res({
+      image: (
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '1200px', 
+          height: '628px', 
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          color: '#000000',
+          padding: '20px',
+          boxSizing: 'border-box',
+        }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '180px',
+            height: '180px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+            backgroundColor: '#FFA500',
+            marginBottom: '20px',
+            boxShadow: '0 0 20px rgba(255, 165, 0, 0.5)',
+          }}>
+            <img 
+              src={imageUrl}
+              alt={profileInfo?.farcasterSocial?.profileDisplayName || "Profile"}
+              width={180}
+              height={180}
+              style={{ objectFit: 'cover' }}
+            />
+          </div>
+          
+          <h1 style={{ 
+            fontSize: '48px', 
+            fontWeight: 'bold', 
+            textAlign: 'center', 
+            margin: '10px 0 20px',
+            color: '#ffffff',
+            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            My Fan Token
+          </h1>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: '1000px',
+          }}>
+            <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
+            <TextBox label="Powerboost" value={powerboost} />
+            <TextBox label="Holders" value={holders} />
+          </div>
+        </div>
+      ),
+      intents: [
+        <Button action="/">Back</Button>,
+        <Button action="/yourfantoken">Refresh</Button>,
+        <Button action="/owned-tokens">Owned</Button>,
+        <Button.Link href={farcasterShareURL}>Share</Button.Link>,
+      ],
+    });
+  } catch (error) {
+    console.error('Error fetching fan token data:', error);
+    
+    return c.res({
+      image: (
+        <div style={commonStyle}>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching fan token data. Please try again.</h1>
         </div>
       ),
       intents: [
