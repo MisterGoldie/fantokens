@@ -535,6 +535,10 @@ app.frame('/yourfantoken', async (c) => {
     const profileImageUrl = profileInfo?.farcasterSocial?.profileImage;
     console.log('Profile Image URL:', profileImageUrl); // For debugging
 
+    const shareText = `Check out my Fan Token powered by @moxie.eth 👏. Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Frame by @goldie`;
+    const timestamp = Date.now();
+    const shareUrl = `/share?fid=${fid}&currentPrice=${currentPrice}&powerboost=${powerboost}&holders=${holders}&timestamp=${timestamp}`;
+
     return c.res({
       image: (
         <div style={{ 
@@ -623,6 +627,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
         <Button action="/owned-tokens">Owned</Button>,
+        <Button action={shareUrl}>Share</Button>
       ],
     });
   } catch (error) {
