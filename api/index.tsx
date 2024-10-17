@@ -536,9 +536,9 @@ app.frame('/yourfantoken', async (c) => {
     console.log('Profile Image URL:', profileImageUrl); // For debugging
 
     const shareText = `Check out my Fan Token powered by @moxie.eth 👏. Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Frame by @goldie`;
-    const timestamp = Date.now();
-    const shareUrl = `/share?fid=${fid}&currentPrice=${currentPrice}&powerboost=${powerboost}&holders=${holders}&timestamp=${timestamp}`;
-
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&currentPrice=${encodeURIComponent(currentPrice)}&powerboost=${encodeURIComponent(powerboost)}&holders=${encodeURIComponent(holders)}&timestamp=${Date.now()}`;
+    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
+    
     return c.res({
       image: (
         <div style={{ 
@@ -627,7 +627,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
         <Button action="/owned-tokens">Owned</Button>,
-        <Button action={shareUrl}>Share</Button>
+        <Button.Link href={farcasterShareURL}>Share on Farcaster</Button.Link>
       ],
     });
   } catch (error) {
@@ -646,9 +646,10 @@ app.frame('/yourfantoken', async (c) => {
   }
 });
 
+
 app.frame('/share', async (c) => {
   console.log('Entering /share frame');
-  const fid = c.req.query('fid');
+  const fid = c.req.query('fid') || c.frameData?.fid?.toString();
   const currentPrice = c.req.query('currentPrice');
   const powerboost = c.req.query('powerboost');
   const holders = c.req.query('holders');
@@ -671,7 +672,7 @@ app.frame('/share', async (c) => {
   }
 
   try {
-    let profileInfo = await getProfileInfo(fid.toString());
+    let profileInfo = await getProfileInfo(fid);
     console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
 
     function TextBox({ label, value }: TextBoxProps) {
@@ -815,6 +816,7 @@ app.frame('/share', async (c) => {
     });
   }
 });
+
 
 
 app.frame('/owned-tokens', async (c) => {
