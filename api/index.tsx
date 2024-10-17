@@ -728,13 +728,6 @@ app.frame('/share', async (c) => {
 
     const profileImageUrl = profileInfo?.farcasterSocial?.profileImage;
 
-    const shareText = `Check out my Fan Token powered by @moxie.eth 👏. Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Frame by @goldie`;
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&currentPrice=${currentPrice}&powerboost=${powerboost}&holders=${holders}&timestamp=${timestamp}`;
-    const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
-
-    console.log('Share URL:', shareUrl);
-    console.log('Farcaster Share URL:', farcasterShareURL);
-
     return c.res({
       image: (
         <div style={{ 
@@ -820,9 +813,7 @@ app.frame('/share', async (c) => {
         </div>
       ),
       intents: [
-        <Button action="/">Back</Button>,
-        <Button action="/yourfantoken">Check Your Fan Token</Button>,
-        <Button.Link href={farcasterShareURL}>Share on Farcaster</Button.Link>
+        <Button action="/yourfantoken">Check Fan Token</Button>
       ]
     });
   } catch (error) {
