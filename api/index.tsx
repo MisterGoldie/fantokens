@@ -501,6 +501,38 @@ app.frame('/yourfantoken', async (c) => {
     console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
     console.log('Powerboost Score:', powerboostScore);
 
+    if (!tokenInfo || !tokenInfo.subjectTokens || tokenInfo.subjectTokens.length === 0) {
+      // No fan token found, display the IPFS image
+      return c.res({
+        image: (
+          <div style={{
+            width: '1200px',
+            height: '628px',
+            backgroundImage: 'url(https://bafybeieo4qwdih6sc5p3g7htxhoghjj63hd6lc4kd7kivouruygzpkygde.ipfs.w3s.link/Group%2061%20(5).png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <h1 style={{
+              fontSize: '48px',
+              color: '#ffffff',
+              textAlign: 'center',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+            }}>
+              No Fan Token Found
+            </h1>
+          </div>
+        ),
+        intents: [
+          <Button action="/">Back</Button>,
+          <Button action="/yourfantoken">Refresh</Button>,
+        ],
+      });
+    }
+
     function TextBox({ label, value }: TextBoxProps) {
       return (
         <div style={{
@@ -533,7 +565,7 @@ app.frame('/yourfantoken', async (c) => {
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
 
     const profileImageUrl = profileInfo?.farcasterSocial?.profileImage;
-    console.log('Profile Image URL:', profileImageUrl); // For debugging
+    console.log('Profile Image URL:', profileImageUrl);
 
     const shareText = `Check out my Fan Token powered by @moxie.eth 👏. Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Frame by @goldie`;
     const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&currentPrice=${encodeURIComponent(currentPrice)}&powerboost=${encodeURIComponent(powerboost)}&holders=${encodeURIComponent(holders)}&timestamp=${Date.now()}`;
@@ -645,7 +677,6 @@ app.frame('/yourfantoken', async (c) => {
     });
   }
 });
-
 
 app.frame('/share', async (c) => {
   console.log('Entering /share frame');
@@ -817,8 +848,6 @@ app.frame('/share', async (c) => {
   }
 });
 
-
-
 app.frame('/owned-tokens', async (c) => {
   console.log('Entering /owned-tokens frame');
   const { fid } = c.frameData || {};
@@ -864,12 +893,30 @@ app.frame('/owned-tokens', async (c) => {
       console.warn(`No fan tokens found for FID ${fid}`);
       return c.res({
         image: (
-          <div style={commonStyle}>
-            <div style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>No fan tokens found for FID {fid}</div>
+          <div style={{
+            width: '1200px',
+            height: '628px',
+            backgroundImage: 'url(https://bafybeicqe4rjtk6sgcgkhncf3tiquxkjbpbvafn3ixtk5qjnjszumzjv3i.ipfs.w3s.link/Group%2061%20(6).png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <h1 style={{
+              fontSize: '48px',
+              color: '#ffffff',
+              textAlign: 'center',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+            }}>
+              No Fan Tokens Owned
+            </h1>
           </div>
         ),
         intents: [
-          <Button action="/">Back</Button>
+          <Button action="/">Back</Button>,
+          <Button action="/yourfantoken">Your Fan Token</Button>
         ]
       });
     }
@@ -1010,7 +1057,7 @@ app.frame('/owned-tokens', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} /> {/* Added " MOXIE" back */}
+            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
         </div>
@@ -1049,6 +1096,7 @@ app.frame('/owned-tokens', async (c) => {
     });
   }
 });
+
 
 function TextBox({ label, value }: { label: string; value: string }) {
   return (
