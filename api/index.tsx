@@ -502,7 +502,7 @@ app.frame('/yourfantoken', async (c) => {
     console.log('Powerboost Score:', powerboostScore);
 
     if (!tokenInfo || !tokenInfo.subjectTokens || tokenInfo.subjectTokens.length === 0) {
-      // No fan token found, display the IPFS image
+      // No fan token found, display the IPFS image without text
       return c.res({
         image: (
           <div style={{
@@ -516,14 +516,7 @@ app.frame('/yourfantoken', async (c) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <h1 style={{
-              fontSize: '48px',
-              color: '#ffffff',
-              textAlign: 'center',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-            }}>
-              No Fan Token Found
-            </h1>
+            {/* Removed the "No Fan Token Found" text */}
           </div>
         ),
         intents: [
