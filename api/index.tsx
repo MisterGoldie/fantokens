@@ -627,7 +627,7 @@ app.frame('/yourfantoken', async (c) => {
         <Button action="/">Back</Button>,
         <Button action="/yourfantoken">Refresh</Button>,
         <Button action="/owned-tokens">Owned</Button>,
-        <Button.Link href={farcasterShareURL}>Share on Farcaster</Button.Link>
+        <Button.Link href={farcasterShareURL}>Share</Button.Link>
       ],
     });
   } catch (error) {
