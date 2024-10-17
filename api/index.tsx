@@ -547,7 +547,7 @@ app.frame('/yourfantoken', async (c) => {
           alignItems: 'center',
           justifyContent: 'center',
           width: '1200px', 
-          height: '628px',
+          height: '628px', 
           backgroundImage: `url(${backgroundImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -648,12 +648,16 @@ app.frame('/yourfantoken', async (c) => {
 
 app.frame('/share', async (c) => {
   console.log('Entering /share frame');
-  const { fid } = c.frameData ?? {};
+  const fid = c.req.query('fid');
+  const currentPrice = c.req.query('currentPrice');
+  const powerboost = c.req.query('powerboost');
+  const holders = c.req.query('holders');
+  const timestamp = c.req.query('timestamp');
 
-  console.log(`FID: ${fid}`);
+  console.log(`FID: ${fid}, Current Price: ${currentPrice}, Powerboost: ${powerboost}, Holders: ${holders}, Timestamp: ${timestamp}`);
 
   if (!fid) {
-    console.error('No FID found in frameData');
+    console.error('No FID provided');
     return c.res({
       image: (
         <div style={commonStyle}>
@@ -667,13 +671,8 @@ app.frame('/share', async (c) => {
   }
 
   try {
-    let tokenInfo = await getFanTokenInfo(fid.toString());
     let profileInfo = await getProfileInfo(fid.toString());
-    let powerboostScore = await getPowerboostScore(fid.toString());
-
-    console.log('Token Info:', JSON.stringify(tokenInfo, null, 2));
     console.log('Profile Info:', JSON.stringify(profileInfo, null, 2));
-    console.log('Powerboost Score:', powerboostScore);
 
     function TextBox({ label, value }: TextBoxProps) {
       return (
@@ -698,10 +697,6 @@ app.frame('/share', async (c) => {
       );
     }
 
-    const currentPrice = tokenInfo?.subjectTokens[0] ? parseFloat(tokenInfo.subjectTokens[0].currentPriceInMoxie).toFixed(2) : 'N/A';
-    const holders = tokenInfo?.subjectTokens[0] ? tokenInfo.subjectTokens[0].portfolio.length.toString() : 'N/A';
-    const powerboost = powerboostScore !== null ? powerboostScore.toFixed(2) : 'N/A';
-
     console.log('Formatted data:', { currentPrice, holders, powerboost });
 
     const backgroundImage = 'https://bafybeidk74qchajtzcnpnjfjo6ku3yryxkn6usjh2jpsrut7lgom6g5n2m.ipfs.w3s.link/Untitled%20543%201.png';
@@ -709,8 +704,7 @@ app.frame('/share', async (c) => {
     const profileImageUrl = profileInfo?.farcasterSocial?.profileImage;
 
     const shareText = `Check out my Fan Token powered by @moxie.eth 👏. Current Price: ${currentPrice} MOXIE, Powerboost: ${powerboost}, Holders: ${holders}. Frame by @goldie`;
-    const timestamp = Date.now();
-    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&timestamp=${timestamp}`;
+    const shareUrl = `https://fantokens-kappa.vercel.app/api/share?fid=${fid}&currentPrice=${currentPrice}&powerboost=${powerboost}&holders=${holders}&timestamp=${timestamp}`;
     const farcasterShareURL = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(shareUrl)}`;
 
     console.log('Share URL:', shareUrl);
@@ -795,8 +789,8 @@ app.frame('/share', async (c) => {
             maxWidth: '1000px',
           }}>
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
-            <TextBox label="Powerboost" value={powerboost} />
-            <TextBox label="Holders" value={holders} />
+            <TextBox label="Powerboost" value={powerboost?.toString() || ''} />
+            <TextBox label="Holders" value={holders?.toString() || ''} />
           </div>
         </div>
       ),
@@ -807,12 +801,12 @@ app.frame('/share', async (c) => {
       ]
     });
   } catch (error) {
-    console.error('Error fetching fan token data:', error);
+    console.error('Error fetching profile data:', error);
     
     return c.res({
       image: (
         <div style={commonStyle}>
-          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching fan token data. Please try again.</h1>
+          <h1 style={{ fontSize: '36px', color: '#ffffff', textAlign: 'center' }}>Error fetching profile data. Please try again.</h1>
         </div>
       ),
       intents: [
