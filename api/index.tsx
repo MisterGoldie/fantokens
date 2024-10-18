@@ -237,7 +237,7 @@ async function getFanTokenAddressFromFID(fid: string): Promise<any> {
       }
     }
   `;
-
+////
   const variables = {
     symbol_starts_with: `fid:${fid}`
   };
@@ -1198,7 +1198,7 @@ app.frame('/share-owned', async (c) => {
       return num.toFixed(2);
     };
 
-    const tokenBalance = formatBalance(token.balance);
+    const tokenBalance = formatBalance(token.balance, token.subjectToken.decimals || 18);
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
     const buyVolume = formatNumber(token.buyVolume);
     const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
@@ -1263,7 +1263,7 @@ app.frame('/share-owned', async (c) => {
             width: '100%',
           }}>
             <TextBox label="Balance" value={`${tokenBalance} tokens`} />
-            <TextBox label="Buy Volume" value={buyVolume} /> {/* Removed " MOXIE" */}
+            <TextBox label="Buy Volume" value={`${buyVolume} MOXIE`} />
             <TextBox label="Current Price" value={`${currentPrice} MOXIE`} />
           </div>
         </div>
