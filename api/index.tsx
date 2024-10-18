@@ -1130,17 +1130,14 @@ app.frame('/share-owned', async (c) => {
     const userAddresses = await getFarcasterAddressesFromFID(fid.toString());
     console.log('User addresses:', userAddresses);
 
-    // Fetch vesting contract address
     const vestingContractAddress = await getVestingContractAddress(userAddresses);
     console.log('Vesting contract address:', vestingContractAddress);
 
-    // Combine user addresses and vesting contract address
     const allAddresses = [...userAddresses];
     if (vestingContractAddress) {
       allAddresses.push(vestingContractAddress);
     }
 
-    // Fetch tokens for all addresses
     const allOwnedTokens = await getOwnedFanTokens(allAddresses) || [];
 
     console.log(`Total owned tokens: ${allOwnedTokens.length}`);
@@ -1180,22 +1177,14 @@ app.frame('/share-owned', async (c) => {
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceNum = parseFloat(balance) / Math.pow(10, decimals);
       if (isNaN(balanceNum)) return 'N/A';
-      if (balanceNum >= 1e6) return (balanceNum / 1e6).toFixed(2) + 'M';
-      if (balanceNum >= 1e3) return (balanceNum / 1e3).toFixed(2) + 'K';
-      if (balanceNum < 0.01) return balanceNum.toExponential(2);
-      return balanceNum.toFixed(2);
+      return balanceNum.toFixed(2);  // Always show 2 decimal places
     };
 
     const formatNumber = (value: string | number | null | undefined): string => {
       if (value === null || value === undefined) return 'N/A';
       const num = typeof value === 'string' ? parseFloat(value) : value;
       if (isNaN(num)) return 'N/A';
-      
-      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-      if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
-      if (num < 0.01) return num.toExponential(2);
-      return num.toFixed(2);
+      return num.toFixed(3);  // Always show 3 decimal places for MOXIE values
     };
 
     const tokenBalance = formatBalance(token.balance, token.subjectToken.decimals || 18);
