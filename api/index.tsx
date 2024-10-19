@@ -1178,17 +1178,18 @@ app.frame('/share-owned', async (c) => {
       return balanceNum.toFixed(2);
     };
 
-    const formatNumber = (value: string | number | null | undefined): string => {
-      if (value === null || value === undefined) return 'N/A';
+    const formatNumber = (value: string | number): string => {
       const num = typeof value === 'string' ? parseFloat(value) : value;
       if (isNaN(num)) return 'N/A';
       
-      if (num >= 1e6) {
-        return (num / 1e3).toFixed(2) + 'K';
+      if (num >= 1e9) {
+        return (num / 1e9).toFixed(2) + 'B';
+      } else if (num >= 1e6) {
+        return (num / 1e6).toFixed(2) + 'M';
       } else if (num >= 1e3) {
-        return num.toFixed(2);
+        return (num / 1e3).toFixed(2) + 'K';
       } else {
-        return num.toFixed(3);
+        return num.toFixed(2);
       }
     };
 
@@ -1199,11 +1200,11 @@ app.frame('/share-owned', async (c) => {
     });
 
     const tokenBalance = formatBalance(token.balance, token.subjectToken.decimals || 18);
-    const buyVolume = formatNumber(token.buyVolume);
-    const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
+    const buyVolumeInMoxie = parseFloat(token.buyVolume) / 1e18; // Convert wei to MOXIE
+    const buyVolume = formatNumber(buyVolumeInMoxie);
+    const currentPrice = formatNumber(parseFloat(token.subjectToken.currentPriceInMoxie));
 
     console.log('Formatted data:', { tokenBalance, buyVolume, currentPrice });
-
 
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
 
