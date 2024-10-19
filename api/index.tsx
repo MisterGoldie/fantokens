@@ -913,7 +913,6 @@ app.frame('/owned-tokens', async (c) => {
               textAlign: 'center',
               textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
             }}>
-              No Fan Tokens Owned
             </h1>
           </div>
         ),
