@@ -1177,22 +1177,36 @@ app.frame('/share-owned', async (c) => {
     const formatBalance = (balance: string, decimals: number = 18): string => {
       const balanceNum = parseFloat(balance) / Math.pow(10, decimals);
       if (isNaN(balanceNum)) return 'N/A';
-      return balanceNum.toFixed(2);  // Always show 2 decimal places
+      return balanceNum.toFixed(2);
     };
 
     const formatNumber = (value: string | number | null | undefined): string => {
       if (value === null || value === undefined) return 'N/A';
       const num = typeof value === 'string' ? parseFloat(value) : value;
       if (isNaN(num)) return 'N/A';
-      return num.toFixed(3);  // Always show 3 decimal places for MOXIE values
+      
+      if (num >= 1e6) {
+        return (num / 1e3).toFixed(2) + 'K';
+      } else if (num >= 1e3) {
+        return num.toFixed(2);
+      } else {
+        return num.toFixed(3);
+      }
     };
 
+    console.log('Raw token data:', {
+      balance: token.balance,
+      buyVolume: token.buyVolume,
+      currentPrice: token.subjectToken.currentPriceInMoxie
+    });
+
     const tokenBalance = formatBalance(token.balance, token.subjectToken.decimals || 18);
-    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
     const buyVolume = formatNumber(token.buyVolume);
     const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
 
-    console.log('Formatted data:', { tokenBalance, tokenOwnerName, buyVolume, currentPrice });
+    console.log('Formatted data:', { tokenBalance, buyVolume, currentPrice });
+
+    const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
 
     return c.res({
       image: (
