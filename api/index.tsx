@@ -29,17 +29,16 @@ interface TokenHolding {
     name: string;
     symbol: string;
     currentPriceInMoxie: string;
-    decimals?: number; // Add this line
+    decimals?: number;
   };
 }
-
 
 interface SubjectToken {
   currentPriceInMoxie: string;
   id: string;
   name: string;
   symbol: string;
-  decimals?: number; // Add this line
+  decimals?: number;
   portfolio: TokenHolding[];
 }
 
@@ -106,7 +105,6 @@ app.use(
     features: ['interactor', 'cast'],
   })
 );
-
 
 async function getProfileInfo(fid: string): Promise<ProfileInfo | null> {
   const AIRSTACK_API_URL = 'https://api.airstack.xyz/gql';
@@ -237,7 +235,7 @@ async function getFanTokenAddressFromFID(fid: string): Promise<any> {
       }
     }
   `;
-////
+
   const variables = {
     symbol_starts_with: `fid:${fid}`
   };
@@ -386,7 +384,6 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
   }
 }
 
-
 async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | null> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
@@ -427,7 +424,29 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
   }
 }
 
+function TextBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ 
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      padding: '10px',
+      margin: '5px',
+      borderRadius: '10px',
+      fontSize: '28px',
+      width: '300px',
+      height: '130px',
+      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    }}>
+      <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
+      <div style={{ color: '#000000', fontSize: '32px' }}>{value}</div>
+    </div>
+  );
+}
 
+// The code stops here, right before the (/) route starts
 // The code stops here, right before the (/) page starts
 
 app.frame('/', (c) => {
@@ -944,7 +963,7 @@ app.frame('/owned-tokens', async (c) => {
     };
 
     const tokenBalance = formatBalance(token.balance, token.subjectToken.decimals || 18);
-    const buyVolume = formatBalance(token.buyVolume, 18); // MOXIE has 18 decimals
+    const buyVolume = formatNumber(parseFloat(token.buyVolume) / 1e18); // Convert to MOXIE first
     const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
 
     console.log('Formatted data:', { tokenBalance, buyVolume, currentPrice });
@@ -1082,27 +1101,6 @@ app.frame('/owned-tokens', async (c) => {
 });
 ///
 
-function TextBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ 
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      padding: '10px',
-      margin: '5px',
-      borderRadius: '10px',
-      fontSize: '28px',
-      width: '300px',
-      height: '130px',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    }}>
-      <div style={{ fontWeight: 'bold', color: '#000000' }}>{label}</div>
-      <div style={{ color: '#000000', fontSize: '32px' }}>{value}</div>
-    </div>
-  );
-}
 
 app.frame('/share-owned', async (c) => {
   console.log('Entering /share-owned frame');
@@ -1205,6 +1203,7 @@ app.frame('/share-owned', async (c) => {
     const currentPrice = formatNumber(token.subjectToken.currentPriceInMoxie);
 
     console.log('Formatted data:', { tokenBalance, buyVolume, currentPrice });
+
 
     const tokenOwnerName = tokenProfileInfo?.farcasterSocial?.profileDisplayName || token.subjectToken.name || 'Unknown';
 
