@@ -386,16 +386,15 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
 
 async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | null> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
+  const pageSize = 1000; // Large page size to minimize API calls
   let allTokens: TokenHolding[] = [];
   let hasMore = true;
   let skip = 0;
-  const pageSize = 1000;
 
   const query = gql`
     query MyQuery($userAddresses: [ID!], $first: Int!, $skip: Int!) {
       users(where: { id_in: $userAddresses }) {
-        id
-        portfolio(first: $first, skip: $skip) {
+        portfolio(first: $first, skip: $skip, orderBy: balance, orderDirection: desc) {
           balance
           buyVolume
           sellVolume
@@ -417,45 +416,45 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
         first: pageSize,
         skip: skip
       };
-      
+
       const data = await graphQLClient.request<any>(query, variables);
-      
+      console.log(`Fetching page ${skip/pageSize + 1}, skip: ${skip}`);
+
       if (!data.users || data.users.length === 0) {
-        hasMore = false;
-        continue;
+        break;
       }
 
       const pageTokens = data.users.flatMap((user: { portfolio: TokenHolding[] }) => user.portfolio);
-      console.log(`Found ${pageTokens.length} tokens on page ${skip/pageSize + 1}`);
-
+      
       if (pageTokens.length === 0) {
         hasMore = false;
       } else {
         allTokens = [...allTokens, ...pageTokens];
         skip += pageSize;
-      }
-
-      if (pageTokens.length < pageSize) {
-        hasMore = false;
+        
+        // If we got less than pageSize tokens, we've reached the end
+        if (pageTokens.length < pageSize) {
+          hasMore = false;
+        }
       }
     }
 
-    console.log(`Total tokens fetched across all pages: ${allTokens.length}`);
+    console.log(`Total tokens fetched: ${allTokens.length}`);
 
     if (allTokens.length === 0) {
+      console.log(`No fan tokens found for addresses: ${addresses.join(', ')}`);
       return null;
     }
 
-    return allTokens
-      .filter(token => token.balance !== "0")
-      .sort((a, b) => {
-        const balanceA = BigInt(a.balance);
-        const balanceB = BigInt(b.balance);
-        return balanceB > balanceA ? 1 : -1;
-      });
+    // Sort by balance in descending order
+    return allTokens.sort((a, b) => {
+      const balanceA = parseFloat(a.balance);
+      const balanceB = parseFloat(b.balance);
+      return balanceB - balanceA;
+    });
 
   } catch (error) {
-    console.error('Error fetching fan tokens:', error);
+    console.error('Error fetching owned fan tokens from Moxie API:', error);
     return null;
   }
 }
