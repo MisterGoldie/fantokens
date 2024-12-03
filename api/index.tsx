@@ -259,7 +259,7 @@ async function getFanTokenAddressFromFID(fid: string): Promise<any> {
 async function getFanTokenInfo(fid: string): Promise<TokenInfo | null> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
 
-  // First, get the fan token address from FID
+  // First, get the fan token address from FIDs
   const tokenAddressInfo = await getFanTokenAddressFromFID(fid);
   
   if (!tokenAddressInfo) {
