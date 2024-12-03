@@ -386,81 +386,78 @@ async function getVestingContractAddress(beneficiaryAddresses: string[]): Promis
 
 async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | null> {
   const graphQLClient = new GraphQLClient(MOXIE_API_URL);
-  const pageSize = 1000;
   let allTokens: TokenHolding[] = [];
   let hasMore = true;
   let skip = 0;
+  const pageSize = 1000;
 
   const query = gql`
-    query MyQuery($userAddresses: [String!], $first: Int!, $skip: Int!) {
-      portfolios(
-        first: $first
-        skip: $skip
-        orderBy: balance
-        orderDirection: desc
-        where: {
-          user_in: $userAddresses,
-          balance_gt: "0"
-        }
-      ) {
-        balance
-        buyVolume
-        sellVolume
-        subjectToken {
-          name
-          symbol
-          currentPriceInMoxie
-          decimals
+    query MyQuery($userAddresses: [ID!], $first: Int!, $skip: Int!) {
+      users(where: { id_in: $userAddresses }) {
+        id
+        portfolio(first: $first, skip: $skip) {
+          balance
+          buyVolume
+          sellVolume
+          subjectToken {
+            name
+            symbol
+            currentPriceInMoxie
+            decimals
+          }
         }
       }
     }
   `;
 
-  while (hasMore) {
-    try {
+  try {
+    while (hasMore) {
       const variables = {
         userAddresses: addresses.map(address => address.toLowerCase()),
         first: pageSize,
         skip: skip
       };
-
+      
       const data = await graphQLClient.request<any>(query, variables);
-      console.log(`Fetching page ${skip/pageSize + 1}, skip: ${skip}`);
+      
+      if (!data.users || data.users.length === 0) {
+        hasMore = false;
+        continue;
+      }
 
-      if (!data.portfolios || data.portfolios.length === 0) break;
-
-      const pageTokens = data.portfolios || [];
-      console.log(`Found ${pageTokens.length} tokens on this page`);
+      const pageTokens = data.users.flatMap((user: { portfolio: TokenHolding[] }) => user.portfolio);
+      console.log(`Found ${pageTokens.length} tokens on page ${skip/pageSize + 1}`);
 
       if (pageTokens.length === 0) {
         hasMore = false;
       } else {
         allTokens = [...allTokens, ...pageTokens];
-        
-        if (pageTokens.length < pageSize) {
-          hasMore = false;
-        } else {
-          skip += pageSize;
-        }
+        skip += pageSize;
       }
-    } catch (error) {
-      console.error(`Error fetching page ${skip/pageSize + 1}:`, error);
-      break;
+
+      if (pageTokens.length < pageSize) {
+        hasMore = false;
+      }
     }
-  }
 
-  console.log(`Total tokens fetched across all pages: ${allTokens.length}`);
+    console.log(`Total tokens fetched across all pages: ${allTokens.length}`);
 
-  if (allTokens.length === 0) {
-    console.log(`No fan tokens found for addresses: ${addresses.join(', ')}`);
+    if (allTokens.length === 0) {
+      return null;
+    }
+
+    return allTokens
+      .filter(token => token.balance !== "0")
+      .sort((a, b) => {
+        const balanceA = BigInt(a.balance);
+        const balanceB = BigInt(b.balance);
+        return balanceB > balanceA ? 1 : -1;
+      });
+
+  } catch (error) {
+    console.error('Error fetching fan tokens:', error);
     return null;
   }
-
-  return allTokens.sort((a, b) => {
-    const balanceA = BigInt(a.balance);
-    const balanceB = BigInt(b.balance);
-    return balanceB > balanceA ? 1 : -1;
-  });
 }
 
 function TextBox({ label, value }: { label: string; value: string }) {
