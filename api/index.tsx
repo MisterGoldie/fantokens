@@ -394,7 +394,12 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
   const query = gql`
     query MyQuery($userAddresses: [ID!], $first: Int!, $skip: Int!) {
       users(where: { id_in: $userAddresses }) {
-        portfolio(first: $first, skip: $skip, orderBy: balance, orderDirection: desc) {
+        portfolios: portfolio(
+          first: $first
+          skip: $skip
+          orderBy: balance
+          orderDirection: desc
+        ) {
           balance
           buyVolume
           sellVolume
@@ -409,8 +414,8 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
     }
   `;
 
-  try {
-    while (hasMore) {
+  while (hasMore) {
+    try {
       const variables = {
         userAddresses: addresses.map(address => address.toLowerCase()),
         first: pageSize,
@@ -422,29 +427,40 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
 
       if (!data.users || data.users.length === 0) break;
 
-      const pageTokens = data.users.flatMap((user: { portfolio: TokenHolding[] }) => user.portfolio);
-      
+      const pageTokens = data.users.flatMap((user: { portfolios: TokenHolding[] }) => user.portfolios);
+      console.log(`Found ${pageTokens.length} tokens on this page`);
+
       if (pageTokens.length === 0) {
         hasMore = false;
       } else {
         allTokens = [...allTokens, ...pageTokens];
-        skip += pageSize;
-        hasMore = pageTokens.length === pageSize;
+        
+        if (pageTokens.length < pageSize) {
+          hasMore = false;
+        } else {
+          skip += pageSize;
+        }
       }
+    } catch (error) {
+      console.error(`Error fetching page ${skip/pageSize + 1}:`, error);
+      break;
     }
+  }
 
-    console.log(`Total tokens fetched: ${allTokens.length}`);
+  console.log(`Total tokens fetched across all pages: ${allTokens.length}`);
 
-    if (allTokens.length === 0) {
-      console.log(`No fan tokens found for addresses: ${addresses.join(', ')}`);
-      return null;
-    }
-
-    return allTokens.sort((a, b) => parseFloat(b.balance) - parseFloat(a.balance));
-  } catch (error) {
-    console.error('Error fetching owned fan tokens from Moxie API:', error);
+  if (allTokens.length === 0) {
+    console.log(`No fan tokens found for addresses: ${addresses.join(', ')}`);
     return null;
   }
+
+  return [...new Map(allTokens.map(token => 
+    [token.subjectToken.symbol, token]
+  )).values()].sort((a, b) => {
+    const balanceA = parseFloat(a.balance);
+    const balanceB = parseFloat(b.balance);
+    return balanceB - balanceA;
+  });
 }
 
 function TextBox({ label, value }: { label: string; value: string }) {
