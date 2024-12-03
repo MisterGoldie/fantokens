@@ -392,23 +392,25 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
   let skip = 0;
 
   const query = gql`
-    query MyQuery($userAddresses: [ID!], $first: Int!, $skip: Int!) {
-      users(where: { id_in: $userAddresses }) {
-        portfolios: portfolio(
-          first: $first
-          skip: $skip
-          orderBy: balance
-          orderDirection: desc
-        ) {
-          balance
-          buyVolume
-          sellVolume
-          subjectToken {
-            name
-            symbol
-            currentPriceInMoxie
-            decimals
-          }
+    query MyQuery($userAddresses: [String!], $first: Int!, $skip: Int!) {
+      portfolios(
+        first: $first
+        skip: $skip
+        orderBy: balance
+        orderDirection: desc
+        where: {
+          user_in: $userAddresses,
+          balance_gt: "0"
+        }
+      ) {
+        balance
+        buyVolume
+        sellVolume
+        subjectToken {
+          name
+          symbol
+          currentPriceInMoxie
+          decimals
         }
       }
     }
@@ -425,9 +427,9 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
       const data = await graphQLClient.request<any>(query, variables);
       console.log(`Fetching page ${skip/pageSize + 1}, skip: ${skip}`);
 
-      if (!data.users || data.users.length === 0) break;
+      if (!data.portfolios || data.portfolios.length === 0) break;
 
-      const pageTokens = data.users.flatMap((user: { portfolios: TokenHolding[] }) => user.portfolios);
+      const pageTokens = data.portfolios || [];
       console.log(`Found ${pageTokens.length} tokens on this page`);
 
       if (pageTokens.length === 0) {
@@ -454,12 +456,10 @@ async function getOwnedFanTokens(addresses: string[]): Promise<TokenHolding[] | 
     return null;
   }
 
-  return [...new Map(allTokens.map(token => 
-    [token.subjectToken.symbol, token]
-  )).values()].sort((a, b) => {
-    const balanceA = parseFloat(a.balance);
-    const balanceB = parseFloat(b.balance);
-    return balanceB - balanceA;
+  return allTokens.sort((a, b) => {
+    const balanceA = BigInt(a.balance);
+    const balanceB = BigInt(b.balance);
+    return balanceB > balanceA ? 1 : -1;
   });
 }
 
